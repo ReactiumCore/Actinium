@@ -1,0 +1,13 @@
+{
+    "ID": "Auth",
+    "name": "Auth Plugin",
+    "description": "Authentication specific interface",
+    "version": {
+        "actinium": ">=3.0.5",
+        "plugin": "0.0.1"
+    },
+    "meta": {
+        "builtIn": true
+    },
+    "order": 100
+}

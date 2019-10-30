@@ -1,0 +1,56 @@
+{{#if collection ~}}
+/**
+ * ----------------------------------------
+ *  Collection Definitions
+ * ----------------------------------------
+ */
+const COLLECTION = '{{collection}}';
+
+{{#if beforeSave ~}}
+// BEFORE SAVE {{collection}}
+Parse.Cloud.beforeSave(COLLECTION, req => {
+    return Promise.resolve(true);
+});
+{{/if ~}}
+
+{{#if afterSave ~}}
+// AFTER SAVE {{collection}}
+Parse.Cloud.afterSave(COLLECTION, req => {
+    return Promise.resolve(true);
+});
+{{/if ~}}
+
+{{#if beforeDelete ~}}
+// BEFORE DELETE {{collection}}
+Parse.Cloud.beforeDelete(COLLECTION, req => {
+    return Promise.resolve(true);
+});
+{{/if ~}}
+
+{{#if afterDelete ~}}
+// AFTER DELETE {{collection}}
+Parse.Cloud.afterDelete(COLLECTION, req => {
+    return Promise.resolve(true);
+});
+{{/if ~}}
+
+{{#if beforeFind ~}}
+// BEFORE FIND {{collection}}
+Parse.Cloud.beforeFind(COLLECTION, req => {
+    return Promise.resolve(true);
+});
+{{/if ~}}
+
+{{/if}}
+
+/**
+ * ----------------------------------------
+ *  Cloud Definitions
+ * ----------------------------------------
+ */
+{{#each definitions}}
+Parse.Cloud.define('{{this}}', req => {
+    return Promise.resolve(true);
+});
+
+{{/each}}

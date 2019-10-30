@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width" />
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <title>{{subject}}</title>
+    </head>
+    <body
+        class=""
+        style="background-color: #FDFDFD; color: #000000; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 16px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
+        <table
+            border="0"
+            cellpadding="10"
+            cellspacing="0"
+            class="body"
+            style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #F6F6F6;">
+            <tr>
+                <td align="center">
+                    <a href={{host}}>
+                        <img
+                        src="{{logo}}"
+                        style="height: 48px"
+                        />
+                    </a>
+                </td>
+            </tr>
+        </table>
+
+        <p style="padding: 10px 20px;">
+            Greetings,
+        </p>
+
+        <p style="padding: 10px 20px;">
+            Did you request to reset your password?
+        </p>
+
+        <p style="padding: 10px 20px;">
+            If not, ignore this message.
+        </p>
+
+        <p style="padding: 20px">
+            <a
+                href="{{host}}/reset/{{token}}"
+                style="background-color: #4F82BA; color: #FFFFFF; border-top: 20px solid #4F82BA; border-bottom: 20px solid #4F82BA; border-left: 40px solid #4F82BA; border-right: 40px solid #4F82BA; text-decoration: none; border-radius: 2px;"
+                >RESET PASSWORD</a>
+        </p>
+
+        <p style="padding: 10px 20px 80px 20px;">
+            <strong><a href="{{host}}" style="color: #000000; text-decoration: none;">{{APPID}}</a></strong>
+        </p>
+    </body>
+</html>

@@ -1,0 +1,18 @@
+[
+    {
+        "route": "/",
+        "blueprint": "Admin",
+        "meta": {
+            "builtIn": true
+        },
+        "capabilities": ["admin-ui.view"]
+    },
+    {
+        "route": "/admin",
+        "blueprint": "Admin",
+        "meta": {
+            "builtIn": true
+        },
+        "capabilities": ["admin-ui.view"]
+    }
+]

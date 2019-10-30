@@ -1,0 +1,54 @@
+[
+    {
+        "ID": "Login",
+        "description": "Login blueprint",
+        "sections": {
+            "main": {
+                "zones": ["login"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "ID": "Logout",
+        "description": "Logout blueprint",
+        "sections": {
+            "main": {
+                "zones": ["logout"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "ID": "Forgot",
+        "description": "Forgot Password blueprint",
+        "sections": {
+            "main": {
+                "zones": ["forgot"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "ID": "ResetPassword",
+        "description": "Reset Password blueprint",
+        "sections": {
+            "main": {
+                "zones": ["reset"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    }
+]

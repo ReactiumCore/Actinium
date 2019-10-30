@@ -1,0 +1,38 @@
+[
+    {
+        "type": "post",
+        "url": "/functions/hello",
+        "title": "Example cloud function",
+        "name": "hello",
+        "group": "Hello",
+        "parameter": {
+            "fields": {
+                "Parameter": [
+                    {
+                        "group": "Parameter",
+                        "type": "String",
+                        "optional": false,
+                        "field": "msg",
+                        "description": "<p>The hello message.</p>"
+                    }
+                ]
+            }
+        },
+        "success": {
+            "fields": {
+                "Success 200": [
+                    {
+                        "group": "Success 200",
+                        "type": "String",
+                        "optional": false,
+                        "field": "The",
+                        "description": "<p>hello message.</p>"
+                    }
+                ]
+            }
+        },
+        "version": "0.0.0",
+        "filename": "src/app/cloud/hello/hello.js",
+        "groupTitle": "Hello"
+    }
+]

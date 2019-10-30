@@ -1,0 +1,36 @@
+[
+    {
+        "ID": "Admin",
+        "description": "Admin blueprint",
+        "sections": {
+            "header": {
+                "zones": ["header"],
+                "meta": {}
+            },
+            "sidebar": {
+                "zones": ["sidebar"],
+                "meta": {}
+            },
+            "main": {
+                "zones": ["content"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "ID": "Simple",
+        "description": "Blueprint with one simple content section",
+        "sections": {
+            "main": {
+                "zones": ["content"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "builtIn": true
+        }
+    }
+]

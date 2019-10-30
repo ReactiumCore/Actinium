@@ -1,0 +1,30 @@
+[
+    {
+        "route": "/logout",
+        "blueprint": "Logout",
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "route": "/login",
+        "blueprint": "Login",
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "route": "/forgot",
+        "blueprint": "Forgot",
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "route": "/reset",
+        "blueprint": "ResetPassword",
+        "meta": {
+            "builtIn": true
+        }
+    }
+]

@@ -1,0 +1,5 @@
+{
+    "ignore": ["./docs/*"],
+    "quiet": true,
+    "watch": ["./src", "./.core"]
+}

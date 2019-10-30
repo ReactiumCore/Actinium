@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8" />
+        <title>Sign In</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+            rel="stylesheet"
+            href="http://ui.reactium.io/assets/style/reactium-ui.css"
+        />
+
+        <style>
+            body {
+                height: 100vh;
+                width: 100vw;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            form {
+                max-width: 400px;
+                min-width: 300px;
+                width: 100%;
+                padding: 40px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <form action="/login" method="post">
+            <h1 class='text-center mb-xs-20'>Sign In</h1>
+            <% if (error) { %>
+            <div class='small red text-center mb-xs-20 mt-xs--10'><%= error %></div>
+            <% } %>
+            <div class="form-group">
+                <input type="text" name="username" placeholder="username" value="<%=username%>" />
+            </div>
+            <div class='form-group'>
+                <input type='password' name='password' placeholder="password" />
+            </div>
+            <div class='form-group'>
+                <button type='submit' class='btn-primary-lg'>Sign In</button>
+            </div>
+        </form>
+    </body>
+</html>
