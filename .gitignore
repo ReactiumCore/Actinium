@@ -65,3 +65,5 @@ dist
 
 # No package-lock
 .package-lock.json
+.DS_Store
+docs

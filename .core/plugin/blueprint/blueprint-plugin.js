@@ -76,6 +76,15 @@ Actinium.Collection.register(COLLECTION, {
     addField: false,
 });
 
+/**
+ * @api {Cloud} blueprint-generate blueprint-generate
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName blueprint-generate
+ * @apiDescription Generate the default Blueprint objects.
+ * @apiExample Example Usage:
+ Actinium.Cloud.run('blueprint-generate');
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-generate', async () => {
     if (Actinium.Plugin.isActive(PLUGIN.ID)) {
         // Allow plugins to add to the default blueprints
@@ -110,6 +119,48 @@ Actinium.Cloud.define(PLUGIN.ID, 'blueprint-generate', async () => {
     return Promise.resolve();
 });
 
+/**
+  * @api {Cloud} blueprint-create blueprint-create
+  * @apiVersion 3.1.2
+  * @apiGroup Cloud
+  * @apiName blueprint-create
+  * @apiParam {String} ID The name of the blueprint.
+  * @apiParam {String} description The description of the blueprint.
+  * @apiParam {Object} sections object containing 1 or more sections, each with 1 or more zones.
+  * @apiParam {Object} meta free-form metadata object
+  * @apiDescription Create a new blueprint for use in a front-end application.
+  * @apiExample Example Usage:
+Actinium.Cloud.run('blueprint-create', {
+        ID: 'MyBlueprint',
+        description: 'Blueprint with a top, left, right, center, and bottom section.',
+        sections: {
+            top: {
+                zones: ['top'],
+                meta: {},
+            },
+            right: {
+                zones: ['right'],
+                meta: {},
+            },
+            left: {
+                zones: ['left'],
+                meta: {},
+            },
+            center: {
+                zones: ['center'],
+                meta: {},
+            },
+            bottom: {
+                zones: ['bottom'],
+                meta: {},
+            },
+        },
+        meta: {
+            foo: 'bar',
+        },
+    },
+);
+  */
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-create', async req => {
     const { ID, description, sections, meta = {} } = req.params;
     const options = CloudRunOptions(req);
@@ -122,6 +173,22 @@ Actinium.Cloud.define(PLUGIN.ID, 'blueprint-create', async req => {
     return blueprint.save(null, options);
 });
 
+/**
+* @api {Cloud} blueprint-retrieve blueprint-retrieve
+* @apiVersion 3.1.2
+* @apiGroup Cloud
+* @apiName blueprint-retrieve
+* @apiParam {String} ID The name of an existing blueprint.
+* @apiParam {Number} limit=1000 Limit of blueprints to return
+* @apiParam {Number} skip=0 Number of blueprints to skip
+* @apiDescription Retrieve list of blueprints.
+* @apiExample Example Usage:
+// get a specific blueprint
+Actinium.Cloud.run('blueprint-retrieve', { ID: 'MyBlueprint'});
+
+// get list of blueprints, limit to 1000
+Actinium.Cloud.run('blueprint-retrieve', { limit: 1000 });
+*/
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-retrieve', async req => {
     const { ID, limit = 1000, skip = 0 } = req.params;
     const options = CloudRunOptions(req);
@@ -147,6 +214,49 @@ Actinium.Cloud.define(PLUGIN.ID, 'blueprint-retrieve', async req => {
     return list;
 });
 
+/**
+* @api {Cloud} blueprint-update blueprint-update
+* @apiVersion 3.1.2
+* @apiGroup Cloud
+* @apiName blueprint-update
+* @apiParam {String} [objectId] the object id of the existing blueprint
+* @apiParam {String} ID The name of the existing blueprint.
+* @apiParam {String} description The description of the blueprint.
+* @apiParam {Object} sections object containing 1 or more sections, each with 1 or more zones.
+* @apiParam {Object} meta free-form metadata object
+* @apiDescription Create a new blueprint for use in a front-end application.
+* @apiExample Example Usage:
+Actinium.Cloud.run('blueprint-update', {
+      ID: 'MyBlueprint',
+      description: 'Blueprint with a top, left, right, center, and bottom section.',
+      sections: {
+          top: {
+              zones: ['top'],
+              meta: {},
+          },
+          right: {
+              zones: ['right'],
+              meta: {},
+          },
+          left: {
+              zones: ['left'],
+              meta: {},
+          },
+          center: {
+              zones: ['center'],
+              meta: {},
+          },
+          bottom: {
+              zones: ['bottom'],
+              meta: {},
+          },
+      },
+      meta: {
+          foo: 'bar',
+      },
+  },
+);
+*/
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-update', async req => {
     const { objectId, ID, description, sections, meta = {} } = req.params;
     const options = CloudRunOptions(req);
@@ -173,6 +283,19 @@ Actinium.Cloud.define(PLUGIN.ID, 'blueprint-update', async req => {
     return blueprint.save(null, options);
 });
 
+/**
+* @api {Cloud} blueprint-delete blueprint-delete
+* @apiVersion 3.1.2
+* @apiGroup Cloud
+* @apiName blueprint-delete
+* @apiParam {String} [objectId] the object id of the existing blueprint
+* @apiParam {String} ID The name of the existing blueprint.
+* @apiDescription Delete existing blueprint. Built-in blueprints can not be deleted by default.
+* @apiExample Example Usage:
+Actinium.Cloud.run('blueprint-delete', {
+    ID: 'MyBlueprint',
+});
+*/
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-delete', async req => {
     const { objectId, ID } = req.params;
     const options = CloudRunOptions(req);
