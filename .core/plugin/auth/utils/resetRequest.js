@@ -8,13 +8,6 @@ const fs = require('fs');
 const COLLECTION = Parse.User;
 
 module.exports = async req => {
-    const { master } = req;
-
-    if (!master) {
-        throw new Error('Permission denied');
-        return;
-    }
-
     const { email } = req.params;
 
     if (!email) {
