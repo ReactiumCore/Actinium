@@ -1,4 +1,3 @@
-const ParseNode = require('parse/node');
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
 const chalk = require('chalk');
@@ -58,8 +57,8 @@ Collection.load = async (collection = false) => {
                 publicSetting,
             );
         actions[collection] = async () => {
-            const ParseSchema = new ParseNode.Schema(collection);
-            const schemaController = ParseNode.CoreManager.getSchemaController();
+            const ParseSchema = new Parse.Schema(collection);
+            const schemaController = Parse.CoreManager.getSchemaController();
             let schema;
             try {
                 schema = await ParseSchema.get({

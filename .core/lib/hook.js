@@ -34,7 +34,7 @@ Hook.register = (name, callback, order = 100, id) => {
 
 Hook.list = () => Object.keys(Hook.action).sort();
 
-Hook.run = (name, ...params) => {
+Hook.run = async (name, ...params) => {
     const context = { hook: name, params };
 
     const actions = _.sortBy(
@@ -46,9 +46,15 @@ Hook.run = (name, ...params) => {
         return acts;
     }, {});
 
-    return ActionSequence({ actions }).then(() => {
+    try {
+        await ActionSequence({ actions });
         return context;
-    });
+    } catch (errors) {
+        Object.entries(errors).forEach(([id, error]) => {
+            LOG(chalk.magenta(`Error in action.${name}[${id}]`));
+            console.error(error);
+        });
+    }
 };
 
 module.exports = Hook;
