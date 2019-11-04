@@ -127,7 +127,9 @@ Actinium.start = options =>
                 }
             });
         } catch (err) {
-            console.log(new Error(err));
+            // Catch startup errors
+            LOG(chalk.magenta('Actinium startup error.'));
+            console.error(err);
             reject(err);
         }
     });
