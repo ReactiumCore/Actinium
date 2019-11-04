@@ -1,4 +1,5 @@
 const slugify = require('slugify');
+const op = require('object-path');
 const hb = require('handlebars');
 const moment = require('moment');
 const uuid = require('uuid/v4');
@@ -40,24 +41,30 @@ module.exports = async req => {
     );
 
     // Email context
-    const APPID = Actinium.Setting.get('app.name', 'Reactium Admin');
-    const LOGO = Actinium.Setting.get(
+    const SETTINGS = {
+        app: Actinium.Setting.get('app', {}),
+        email: Actinium.Setting.get('email', {}),
+    };
+
+    const APPID = op.get(SETTINGS, 'app.name', 'Reactium Admin');
+    const LOGO = op.get(
+        SETTINGS,
         'app.logo',
         'https://cdn.reactium.io/reactium-logo.png',
     );
-    const FROM = Actinium.Setting.get(
-        'email.forgot.from',
-        'no-reply@reactium.io',
-    );
-    const TEMPLATE_HTML = Actinium.Setting.get(
+    const FROM = op.get(SETTINGS, 'email.forgot.from', 'no-reply@reactium.io');
+    const TEMPLATE_HTML = op.get(
+        SETTINGS,
         'email.forgot.html',
         path.join(__dirname, 'template-request-html.hbs'),
     );
-    const TEMPLATE_TEXT = Actinium.Setting.get(
+    const TEMPLATE_TEXT = op.get(
+        SETTINGS,
         'email.forgot.text',
         path.join(__dirname, 'template-request-text.hbs'),
     );
-    const SUBJECT = Actinium.Setting.get(
+    const SUBJECT = op.get(
+        SETTINGS,
         'email.forgot.subject',
         `${APPID} Password Reset`,
     );
