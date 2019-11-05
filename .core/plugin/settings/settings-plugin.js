@@ -69,9 +69,11 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'setting-set',
     async key => {
+        const [group] = key.split('.');
+
         const ops = ['set', 'get', 'delete'];
         for (let op of ops) {
-            const capability = `setting.${key}-${op}`;
+            const capability = `setting.${group}-${op}`;
             const perms = { allowed: [], excluded: [] };
             await Actinium.Hook.run('setting-capability', perms, key, op);
             Actinium.Capability.register(capability, perms);
@@ -79,22 +81,6 @@ Actinium.Hook.register(
     },
     Actinium.Enums.priority.highest,
 );
-
-const settingsACL = async () => {
-    const acl = new Parse.ACL();
-    const { roles = [] } = await Actinium.Hook.run('settings-acl-roles');
-
-    acl.setPublicReadAccess(false);
-    acl.setPublicWriteAccess(false);
-
-    roles.forEach(role => {
-        acl.setRoleReadAccess(role, true);
-        acl.setRoleWriteAccess(role, true);
-    });
-
-    await Actinium.Hook.run('settings-acl', acl);
-    return acl;
-};
 
 const list = async req => {
     let skip = 0;
@@ -123,13 +109,14 @@ const list = async req => {
         results = await qry.find({ useMasterKey: true });
     }
 
-    Actinium.Cache.set('settings', output);
+    Actinium.Cache.set('setting', output);
 
     return Promise.resolve(output);
 };
 
 const set = async req => {
-    const { key, value, public = false } = req.params;
+    const { key = '', value, public: publicSetting = false } = req.params;
+    const [group, ...settingPath] = key.split('.');
     const strict = false;
 
     // permission to create new or update this setting
@@ -139,7 +126,7 @@ const set = async req => {
             [
                 `${COLLECTION}.create`,
                 `${COLLECTION}.update`,
-                `setting.${key}-set`,
+                `setting.${group}-set`,
             ],
             strict,
         )
@@ -156,25 +143,29 @@ const set = async req => {
         strict,
     );
 
-    let obj = await new Parse.Query(COLLECTION).equalTo('key', key).first(opts);
-
+    let obj = await new Parse.Query(COLLECTION)
+        .equalTo('key', group)
+        .first(opts);
     obj = obj || new Parse.Object(COLLECTION);
 
-    if (value) {
-        obj.set('key', key);
-        obj.set('value', { value });
+    let objValue;
+    if (settingPath.length) {
+        objValue = op.get(obj.get('value'), 'value', {});
+        op.set(objValue, settingPath, value);
     } else {
-        obj.unset(key);
+        objValue = value;
     }
 
-    const setting = await obj.save(null, opts);
+    obj.set('key', group);
+    obj.set('value', { value: objValue });
 
+    const setting = await obj.save(null, opts);
     // Make setting publicly readable
-    if (public) {
+    if (publicSetting) {
         await Actinium.Cloud.run(
             'capability-edit',
             {
-                group: `setting.${key}-get`,
+                group: `setting.${group}-get`,
                 perms: {
                     allowed: ['anonymous'],
                 },
@@ -186,14 +177,14 @@ const set = async req => {
         const { allowed = [] } = await Actinium.Cloud.run(
             'capability-get',
             {
-                group: `setting.${key}-get`,
+                group: `setting.${group}-get`,
             },
             CloudRunOptions(req),
         );
         await Actinium.Cloud.run(
             'capability-edit',
             {
-                group: `setting.${key}-get`,
+                group: `setting.${group}-get`,
                 perms: {
                     allowed: allowed.filter(role => role !== 'anonymous'),
                 },
@@ -202,18 +193,31 @@ const set = async req => {
         );
     }
 
-    return setting;
+    const result = op.get(setting.get('value'), 'value');
+    if (settingPath.length) {
+        return op.get(result, settingPath);
+    }
+
+    return result;
 };
 
 const del = async req => {
-    const { key } = req.params;
+    const { key = '' } = req.params;
+    const [group, ...settingPath] = key.split('.');
+
+    // delete only for top-level groups, otherwise set
+    if (settingPath.length) {
+        op.del(req, 'params.value');
+        return set(req);
+    }
+
     const strict = false;
 
     // permission to create new or update this setting
     if (
         !CloudHasCapabilities(
             req,
-            [`${COLLECTION}.delete`, `setting.${key}-delete`],
+            [`${COLLECTION}.delete`, `setting.${group}-delete`],
             strict,
         )
     )
@@ -221,41 +225,55 @@ const del = async req => {
 
     const opts = CloudCapOptions(
         req,
-        [`${COLLECTION}.delete`, `setting.${key}-delete`],
+        [`${COLLECTION}.delete`, `setting.${group}-delete`],
         strict,
-    )(req);
-    let obj = await new Parse.Query(COLLECTION).equalTo('key', key).first(opts);
+    );
+
+    let obj = await new Parse.Query(COLLECTION)
+        .equalTo('key', group)
+        .first(opts);
 
     return obj ? obj.destroy(opts) : Promise.resolve();
 };
 
-const get = (async = async req => {
-    const { key } = req.params;
+const get = async req => {
+    const { key = '' } = req.params;
+    const [group, ...settingPath] = key.split('.');
+
     const strict = false;
 
     if (
         !CloudHasCapabilities(
             req,
-            [`${COLLECTION}.retrieve`, `setting.${key}-get`],
+            [`${COLLECTION}.retrieve`, `setting.${group}-get`],
             false,
         )
     )
         return Promise.reject('Permission denied.');
 
+    const cached = Actinium.Cache.get(`setting.${key}`);
+
+    if (typeof cached !== 'undefined') {
+        return cached;
+    }
+
     let obj = await new Parse.Query(COLLECTION)
-        .equalTo('key', key)
+        .equalTo('key', group)
         .first(
             CloudCapOptions(
                 req,
-                [`${COLLECTION}.retrieve`, `setting.${key}-get`],
+                [`${COLLECTION}.retrieve`, `setting.${group}-get`],
                 false,
             ),
         );
     obj = obj ? obj.toJSON() : {};
-    return Promise.resolve(op.get(obj, 'value'));
-});
 
-const isValid = ({ value }) => {
+    const result = op.get(obj, 'value.value');
+    if (settingPath.length) return op.get(result, settingPath);
+    return result;
+};
+
+const isValid = value => {
     const checks = [
         'isEmpty',
         'isBoolean',
@@ -270,13 +288,13 @@ const isValid = ({ value }) => {
 };
 
 const beforeSave = async req => {
-    const { key, value } = req.object.toJSON();
+    const { key: group, value } = req.object.toJSON();
 
     const old = await new Parse.Query(COLLECTION)
-        .equalTo('key', key)
+        .equalTo('key', group)
         .first(CloudRunOptions(req));
 
-    Actinium.Cache.set(`setting.${key}`, op.get(value, 'value'));
+    Actinium.Cache.set(`setting.${group}`, op.get(value, 'value'));
 
     // lock down all settings, and enforce by capability
     const acl = await settingsACL();
@@ -286,21 +304,37 @@ const beforeSave = async req => {
         const { value: previous } = old.toJSON();
 
         if (!_.isEqual(previous, value)) {
-            Actinium.Hook.run('setting-change', key, value, previous);
+            Actinium.Hook.run('setting-change', group, value, previous);
         }
     } else {
-        Actinium.Hook.run('setting-set', key, value);
+        Actinium.Hook.run('setting-set', group, value);
     }
 };
 
-const afterDel = req => {
-    const { key, value } = req.object.toJSON();
+const settingsACL = async () => {
+    const acl = new Parse.ACL();
+    const { roles = [] } = await Actinium.Hook.run('settings-acl-roles');
 
-    Actinium.Cache.del(`setting.${key}`);
-    Actinium.Hook.run('setting-unset', key, value);
+    acl.setPublicReadAccess(false);
+    acl.setPublicWriteAccess(false);
+
+    roles.forEach(role => {
+        acl.setRoleReadAccess(role, true);
+        acl.setRoleWriteAccess(role, true);
+    });
+
+    await Actinium.Hook.run('settings-acl', acl);
+    return acl;
+};
+
+const afterDel = req => {
+    const { key = '' } = req.object.toJSON();
+
     Actinium.Capability.unregister(`setting.${key}-set`);
     Actinium.Capability.unregister(`setting.${key}-get`);
     Actinium.Capability.unregister(`setting.${key}-delete`);
+    Actinium.Cache.del(`setting.${key}`);
+    Actinium.Hook.run('setting-unset', key);
 };
 
 Actinium.Plugin.register(PLUGIN, true);
@@ -308,7 +342,10 @@ Actinium.Plugin.register(PLUGIN, true);
 Actinium.Cloud.define(PLUGIN.ID, 'settings', list);
 Actinium.Cloud.define(PLUGIN.ID, 'setting-get', get);
 Actinium.Cloud.define(PLUGIN.ID, 'setting-set', set);
+Actinium.Cloud.define(PLUGIN.ID, 'setting-save', set);
 Actinium.Cloud.define(PLUGIN.ID, 'setting-unset', del);
+Actinium.Cloud.define(PLUGIN.ID, 'setting-del', del);
+Actinium.Cloud.define(PLUGIN.ID, 'setting-rm', del);
 
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 Actinium.Cloud.afterDelete(COLLECTION, afterDel);
