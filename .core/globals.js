@@ -48,6 +48,7 @@ const defaults = {
         ],
         middleware: [
             `${ACTINIUM_DIR}/middleware/**/*.js`,
+            `${ACTINIUM_DIR}/**/*middleware.js`,
             `${BASE_DIR}/node_modules/**/actinium/*middleware.js`,
             `${APP_DIR}/**/*middleware.js`,
         ],
@@ -58,6 +59,7 @@ const defaults = {
         'x-powered-by': false,
     },
     settings: {},
+    static: path.normalize(`${process.cwd()}/public`),
 };
 
 ENV.LOG = stringToBoolean(op.get(ENV, 'LOG', true));
@@ -90,6 +92,8 @@ ENV.GLOB_MIDDLEWARE = stringToObject(
 ENV.SETTINGS = stringToObject(op.get(ENV, 'SETTINGS', defaults.settings));
 
 ENV.ROLES = stringToObject(op.get(ENV, 'ROLES', defaults.roles));
+
+ENV.STATIC_PATH = op.get(ENV, 'STATIC_PATH', defaults.static);
 
 global.LOG = (...args) => {
     if (!ENV.LOG) {

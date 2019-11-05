@@ -79,13 +79,16 @@ mw.init = app => {
 
     mw.list = actions;
 
-    return ActionSequence({ actions }).then(() => {
-        delete mw.sort;
-    });
+    return ActionSequence({ actions });
 };
 
-mw.register = (id, callback, order = 100) =>
+mw.register = (id, callback, order = 100) => {
+    if (!Array.isArray(op.get(mw, 'sort'))) {
+        mw.sort = [];
+    }
+
     mw.sort.push({ id, callback, order });
+};
 
 mw.replace = (id, callback) => op.set(mw.replacements, id, callback);
 

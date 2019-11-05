@@ -1,6 +1,6 @@
 {
     "name": "Actinium",
-    "version": "3.1.3",
+    "version": "3.1.4",
     "author": "Cam Tullos",
     "scripts": {
         "start": "node ./src/index.js",
@@ -11,6 +11,7 @@
         "docs": "arcli docs -s .core,src/app -d docs"
     },
     "dependencies": {
+        "@atomic-reactor/actinium-auth": "^1.0.0",
         "action-sequence": "^1.1.1",
         "apidoc": "^0.17.7",
         "body-parser": "*",
