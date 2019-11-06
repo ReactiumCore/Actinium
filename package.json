@@ -1,7 +1,7 @@
 {
     "name": "Actinium",
-    "version": "3.1.4",
-    "author": "Cam Tullos",
+    "version": "3.1.5",
+    "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
         "local": "npm run docs && cross-env NODE_ENV=development nodemon",
@@ -11,7 +11,7 @@
         "docs": "arcli docs -s .core,src/app -d docs"
     },
     "dependencies": {
-        "@atomic-reactor/actinium-auth": "^1.0.0",
+        "@atomic-reactor/actinium-auth": "^1.0.1",
         "action-sequence": "^1.1.1",
         "apidoc": "^0.17.7",
         "body-parser": "*",
