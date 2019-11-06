@@ -3,16 +3,12 @@
         "ID": "Admin",
         "description": "Admin blueprint",
         "sections": {
-            "header": {
-                "zones": ["header"],
-                "meta": {}
-            },
             "sidebar": {
-                "zones": ["sidebar"],
+                "zones": ["admin-sidebar"],
                 "meta": {}
             },
             "main": {
-                "zones": ["content"],
+                "zones": ["admin-header", "admin-content", "admin-actions"],
                 "meta": {}
             }
         },
