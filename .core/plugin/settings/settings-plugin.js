@@ -7,6 +7,29 @@ const {
     CloudHasCapabilities,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
+/**
+ * @api {Object} Actinium.Setting Setting
+ * @apiVersion 3.1.1
+ * @apiName Setting
+ * @apiGroup Actinium
+ * @apiDescription Manage application setting key/value pairs.
+ Actinium settings are provided to you can manage your running configuration for your application.
+ By default, each setting is securely stored so that only users that should have access to a setting
+ are permitted to set, get, or delete settings on the site.
+
+ The following capabilities can be assigned to your roles for settings:
+
+ | Capability | Default Roles | Description |
+ | :---- | :-- | -----: |
+ | Setting.create | administrator,super-admin | Ability to create a new setting. |
+ | Setting.retrieve | administrator,super-admin | Ability to retrieve any/all settings. |
+ | Setting.update | administrator,super-admin | Ability to edit any existing setting. |
+ | Setting.delete | administrator,super-admin | Ability to delete any existing setting. |
+ | setting.${group}-get | administrator,super-admin | Ability to retrieve the setting with `group` setting group. e.g. setting.foo-get to allow get of setting group `foo` |
+ | setting.${group}-set | administrator,super-admin | Ability to edit the setting with `group` setting group. e.g. setting.foo-set to allow edit of setting group `foo` |
+ | setting.${group}-delete | administrator,super-admin | Ability to delete the setting with `group` setting group. e.g. setting.foo-delete to allow delete of setting group `foo` |
+ */
+
 const COLLECTION = 'Setting';
 
 const PLUGIN = {
@@ -82,6 +105,16 @@ Actinium.Hook.register(
     Actinium.Enums.priority.highest,
 );
 
+/**
+ * @api {Cloud} settings settings
+ * @apiVersion 3.1.1
+ * @apiGroup Cloud
+ * @apiName settings
+ * @apiDescription Retrieves the list of settings. Capabilities will be enforced.
+ * @apiPermission `Setting.retrieve` or individual `setting.${key}-get` permissions.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('settings');
+ */
 const list = async req => {
     let skip = 0;
     const output = {};
@@ -114,6 +147,19 @@ const list = async req => {
     return Promise.resolve(output);
 };
 
+/**
+ * @api {Cloud} setting-set setting-set
+ * @apiVersion 3.1.1
+ * @apiGroup Cloud
+ * @apiName setting-set
+ * @apiDescription Create or update a setting object. Capabilities will be enforced.
+ * @apiParam {String} key The unique setting key.
+ * @apiParam {Mixed} value The setting value.
+ * @apiParam {Boolean} [public] When true, the setting will be made publicly readable, otherwise reads will be restricted.
+ * @apiPermission `Setting.create`, `Setting.update` or `setting.${key}-set` capabilities.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, public: true});
+ */
 const set = async req => {
     const { key = '', value, public: publicSetting = false } = req.params;
     const [group, ...settingPath] = key.split('.');
@@ -201,6 +247,17 @@ const set = async req => {
     return result;
 };
 
+/**
+ * @api {Cloud} setting-unset setting-unset
+ * @apiVersion 3.1.1
+ * @apiGroup Cloud
+ * @apiName setting-unset
+ * @apiDescription Unsets a setting value. Capabilities will be enforced.
+ * @apiParam {String} key The unique setting key.
+ * @apiPermission `Setting.delete` or `setting.${key}-delete` capabilities.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('setting-unset', { key: 'site' });
+ */
 const del = async req => {
     const { key = '' } = req.params;
     const [group, ...settingPath] = key.split('.');
@@ -236,6 +293,17 @@ const del = async req => {
     return obj ? obj.destroy(opts) : Promise.resolve();
 };
 
+/**
+ * @api {Cloud} setting-get setting-get
+ * @apiVersion 3.1.1
+ * @apiGroup Cloud
+ * @apiName setting-get
+ * @apiDescription Retrieves a specifc setting object. Capabilities will be enforced.
+ * @apiParam {String} key The unique setting key.
+ * @apiPermission `Setting.retrieve` or `setting.${key}-get` capabilities.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('setting-get', { key: 'site'});
+ */
 const get = async req => {
     const { key = '' } = req.params;
     const [group, ...settingPath] = key.split('.');

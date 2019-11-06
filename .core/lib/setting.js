@@ -26,6 +26,22 @@ Setting.schema = async () => {
     return Promise.resolve(isSchema);
 };
 
+/**
+ * @api {Function} Actinium.Setting.set(key,value) Setting.set()
+ * @apiVersion 3.1.1
+ * @apiGroup Actinium
+ * @apiName Setting.set
+ * @apiDescription Create or update a setting value. Returns a `{Promise}`.
+ * @apiParam {String} key The unique setting key, in object path form (`group.path.to.leaf`).
+ * @apiParam {Mixed} [value] The setting value. If the value is an object, you can use dot notation to set a specific portion of the setting.
+ * @apiParam {Parse.ACL} [ACL] The Parse ACL object to apply to the setting.
+ * @apiExample Example Usage:
+// Save group of site settings
+Actinium.Setting.set('site', { title: 'My Awesome Site', hostname: 'mysite.com' });
+
+// Save hostname setting in site group
+Actinium.Setting.set('site.hostname', 'mysite.com');
+ */
 Setting.set = async (key, value) => {
     const karr = String(key).split('.');
     const rootKey = karr.shift();
@@ -46,6 +62,21 @@ Setting.set = async (key, value) => {
     );
 };
 
+/**
+ * @api {Function} Actinium.Setting.get(key,default) Setting.get()
+ * @apiVersion 3.1.1
+ * @apiGroup Actinium
+ * @apiName Setting.get
+ * @apiDescription Get a setting value.
+ * @apiParam {String} key The unique setting key, in object path form (`group.path.to.leaf`).
+ * @apiParam {Mixed} default The default value if the key has not been set.
+ * @apiExample Example Usage:
+// get hostname setting in site group
+Actinium.Setting.get('site.hostname');
+
+// get object of all site settings
+Actinium.Setting.get('site');
+ */
 Setting.get = (key, defaultValue) => {
     if (key) {
         return Actinium.Cache.get(`setting.${key}`, defaultValue);
@@ -54,6 +85,20 @@ Setting.get = (key, defaultValue) => {
     }
 };
 
+/**
+ * @api {Function} Actinium.Setting.unset(key) Setting.unset()
+ * @apiVersion 3.1.1
+ * @apiGroup Actinium
+ * @apiName Setting.unset
+ * @apiDescription Unset a setting value. Returns a `{Promise}`.
+ * @apiParam {String} key The unique setting key, in object path form (`group.path.to.leaf`).
+ * @apiExample Example Usage:
+// unsets the title setting in the site group
+Actinium.Setting.unset('site.title');
+
+// remove the entire site setting group, including all settings and the capabilities associated
+Actinium.Setting.unset('site');
+ */
 Setting.unset = key =>
     key.split('.').length > 0
         ? Setting.set(key)
