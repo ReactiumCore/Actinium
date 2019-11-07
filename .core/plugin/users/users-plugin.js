@@ -105,6 +105,8 @@ const save = async req => {
     }
 };
 
+const validate = req => ({ valid: !!op.get(req, 'user') });
+
 const afterSave = async req => {
     let acl = req.object.getACL();
     if (!acl) {
@@ -155,3 +157,5 @@ Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
+
+Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
