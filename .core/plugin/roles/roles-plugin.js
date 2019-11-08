@@ -20,27 +20,27 @@ const PLUGIN = {
 };
 
 Actinium.Capability.register(
-    `_Role.create`,
+    '_Role.create',
     {},
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
-    `_Role.retrieve`,
+    '_Role.retrieve',
     {},
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
-    `_Role.update`,
+    '_Role.update',
     {},
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
-    `_Role.delete`,
+    '_Role.delete',
     {},
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
-    `_Role.addField`,
+    '_Role.addField',
     {},
     Actinium.Enums.priority.highest,
 );
@@ -171,8 +171,8 @@ const decorateRoles = async (objects = [], options) => {
             .get('roles')
             .query()
             .each(item => {
-                const { level, name, objectId } = item.toJSON();
-                roles[objectId] = { level, name, objectId };
+                const { level, name, objectId, label } = item.toJSON();
+                roles[objectId] = { label, level, name, objectId };
             }, options);
 
         item.set('userList', users);
@@ -312,3 +312,56 @@ Actinium.Cloud.beforeDelete(COLLECTION, beforeDelete);
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 
 Actinium.Cloud.afterSave(COLLECTION, afterSave);
+
+/**
+ * @api {Cloud} role role
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName role
+ * @apiDescription Get a role.
+ * @apiParam {Mixed} search The role ID, level, or name.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('role', { search: 'super-admin' });
+ * @apiExample Returns
+{
+    "super-admin": {
+        "name": "super-admin",
+        "label": "Super Administrator",
+        "level": 10000,
+        "users": {
+            "HrIE319DdZ": {
+                "avatar": "https://media.licdn.com/dms/image/C4E03AQED89TDXv9FgA/profile-displayphoto-shrink_200_200/0?e=1578528000&v=beta&t=As6LzG8uZNA2eqq6KcrEAzfxhtRJxmSRTMZEw-nss7A",
+                "objectId": "HrIE319DdZ",
+                "username": "cam"
+            }
+        },
+        "roles": {
+            "6CX7sAaV1S": {
+                "label": "Standard User",
+                "level": 1,
+                "name": "user",
+                "objectId": "6CX7sAaV1S"
+            },
+            "VHFAoFXSTz": {
+                "label": "Moderator",
+                "level": 100,
+                "name": "moderator",
+                "objectId": "VHFAoFXSTz"
+            },
+            "XF7ByHfaEe": {
+                "label": "Contributor",
+                "level": 10,
+                "name": "contributor",
+                "objectId": "XF7ByHfaEe"
+            },
+            "kDIUBqCNXW": {
+                "label": "Administrator",
+                "level": 1000,
+                "name": "administrator",
+                "objectId": "kDIUBqCNXW"
+            }
+        },
+        "objectId": "Lxank79qjd"
+    }
+}
+ */
