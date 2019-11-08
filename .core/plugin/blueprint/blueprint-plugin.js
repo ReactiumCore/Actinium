@@ -86,6 +86,13 @@ Actinium.Collection.register(COLLECTION, {
  Actinium.Cloud.run('blueprint-generate');
  */
 Actinium.Cloud.define(PLUGIN.ID, 'blueprint-generate', async req => {
+    if (Actinium.Cache.get('blueprint-generating')) return;
+    Actinium.Cache.get(
+        'blueprint-generating',
+        true,
+        Actinium.Enums.cache.dataLoading,
+    );
+
     const options = CloudRunOptions(req);
 
     // Allow plugins to add to the default blueprints
@@ -466,6 +473,14 @@ const beforeDelete = async req => {
 
     return Promise.resolve();
 };
+
+Actinium.Hook.register('start', async () => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        return Actinium.Cloud.run('blueprint-generate', null, {
+            useMasterKey: true,
+        });
+    }
+});
 
 Actinium.Hook.register('activate', ({ ID }) => {
     if (ID === PLUGIN.ID) {

@@ -75,6 +75,13 @@ Actinium.Collection.register(COLLECTION, {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'route-generate', async req => {
+    if (Actinium.Cache.get('route-generating')) return;
+    Actinium.Cache.get(
+        'route-generating',
+        true,
+        Actinium.Enums.cache.dataLoading,
+    );
+
     const options = CloudRunOptions(req);
 
     await Actinium.Hook.run('route-defaults', DEFAULTS);
@@ -369,6 +376,14 @@ const updateRouteCache = async req => {
 
     return Promise.resolve();
 };
+
+Actinium.Hook.register('start', async () => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        return Actinium.Cloud.run('route-generate', null, {
+            useMasterKey: true,
+        });
+    }
+});
 
 Actinium.Hook.register('activate', ({ ID }) =>
     ID == PLUGIN.ID
