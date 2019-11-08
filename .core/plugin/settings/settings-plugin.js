@@ -57,7 +57,7 @@ const ROUTE = {
     meta: {
         builtIn: true,
     },
-    capabilities: ['admin-ui.view'],
+    capabilities: ['settings-ui.view'],
 };
 
 const PLUGIN = {
