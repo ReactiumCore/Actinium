@@ -32,6 +32,34 @@ const {
 
 const COLLECTION = 'Setting';
 
+const BLUEPRINT = {
+    sections: {
+        sidebar: {
+            zones: ['admin-sidebar'],
+            meta: {},
+        },
+        main: {
+            zones: ['admin-header', 'settings-groups', 'settings-actions'],
+            meta: {},
+        },
+    },
+    meta: {
+        builtIn: true,
+    },
+    ID: 'Settings',
+    description: 'Settings blueprint',
+    className: 'Blueprint',
+};
+
+const ROUTE = {
+    route: '/admin/settings',
+    blueprint: BLUEPRINT.ID,
+    meta: {
+        builtIn: true,
+    },
+    capabilities: ['admin-ui.view'],
+};
+
 const PLUGIN = {
     ID: 'Settings',
     description: 'Settings plugin used to manage application settings',
@@ -104,6 +132,22 @@ Actinium.Hook.register(
     },
     Actinium.Enums.priority.highest,
 );
+
+Actinium.Hook.register('blueprint-defaults', async blueprints => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        if (!blueprints.find(({ ID }) => ID === BLUEPRINT.ID)) {
+            blueprints.push(BLUEPRINT);
+        }
+    }
+});
+
+Actinium.Hook.register('route-defaults', async routes => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        if (!routes.find(({ route }) => route === ROUTE.route)) {
+            routes.push(ROUTE);
+        }
+    }
+});
 
 /**
  * @api {Cloud} settings settings

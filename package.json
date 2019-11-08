@@ -65,8 +65,8 @@
         "url": "https://github.com/Atomic-Reactor/Actinium-2.0"
     },
     "engines": {
-        "node": "11.9.0",
-        "npm": ">=6.5.0"
+        "node": "12.13.0",
+        "npm": ">=6.12.0"
     },
     "husky": {
         "hooks": {
