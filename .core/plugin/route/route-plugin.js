@@ -370,11 +370,6 @@ const updateRouteCache = async req => {
     return Promise.resolve();
 };
 
-Actinium.Hook.register('start', async () => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    await Actinium.Cloud.run('route-generate', null, { useMasterKey: true });
-});
-
 Actinium.Hook.register('activate', ({ ID }) =>
     ID == PLUGIN.ID
         ? Actinium.Cloud.run('route-generate', null, { useMasterKey: true })

@@ -440,7 +440,7 @@ const beforeSave = async req => {
             { useMasterKey: true },
         );
 
-        if (fetched.objectId) {
+        if (ID && op.get(fetched, 'objectId') === ID) {
             throw `Blueprint with ID [${ID}] already exists.`;
             return;
         }
@@ -474,17 +474,6 @@ Actinium.Hook.register('activate', ({ ID }) => {
         });
     }
 });
-
-Actinium.Hook.register(
-    'start',
-    async () => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        await Actinium.Cloud.run('blueprint-generate', null, {
-            useMasterKey: true,
-        });
-    },
-    -1000,
-);
 
 Parse.Cloud.beforeSave(COLLECTION, beforeSave);
 
