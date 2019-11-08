@@ -74,68 +74,89 @@ Actinium.Collection.register(COLLECTION, {
     addField: false,
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'route-generate', async ({ ID }) => {
+Actinium.Cloud.define(PLUGIN.ID, 'route-generate', async req => {
+    const options = CloudRunOptions(req);
+
     await Actinium.Hook.run('route-defaults', DEFAULTS);
 
-    let { routes = [] } = await Actinium.Cloud.run(
-        'routes',
-        {},
-        { useMasterKey: true },
-    );
+    let { routes = [] } = await Actinium.Cloud.run('routes', {}, options);
 
     routes = _.indexBy(routes, 'route');
 
+    const initialRoutes = [];
     const defaultRoutes = DEFAULTS.filter(
         ({ route }) => !op.has(routes, route),
-    ).map(async routeData => {
+    ).reduce((defaults, item) => {
+        const { route } = item;
+        defaults[route] = item;
+        return defaults;
+    }, {});
+
+    for (let routeData of Object.values(defaultRoutes)) {
         const route = new Parse.Object(COLLECTION);
-        const matchingBlueprints = await Parse.Cloud.run(
+        const blueprintObj = await Parse.Cloud.run(
             'blueprint-retrieve',
             { ID: routeData.blueprint },
-            { useMasterKey: true },
+            options,
         );
-        const [blueprint] = op.get(matchingBlueprints, 'blueprints', []);
+
+        if (!blueprintObj.objectId) {
+            console.log(
+                `Attempting to generate route ${route.route} with missing blueprint ${routeData.blueprint}. Skipping.`,
+            );
+            continue;
+        }
+
+        const blueprint = new Parse.Object('Blueprint');
+        blueprint.id = blueprintObj.objectId;
+
+        await blueprint.fetch(options);
+
         route.set('blueprint', blueprint);
         Object.entries(routeData).forEach(([key, value]) => {
             if (key !== 'blueprint') {
                 route.set(key, value);
             }
         });
-        return route;
-    });
 
-    const initialRoutes = await Promise.all(defaultRoutes);
+        initialRoutes.push(route);
+    }
 
     // Save initial routes
-    await Parse.Object.saveAll(initialRoutes, { useMasterKey: true });
+    await Parse.Object.saveAll(initialRoutes, options);
 
     return Promise.resolve();
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'route-create', async req => {
-    const { route, blueprintId, capabilities = [], meta = {} } = req.params;
+    const {
+        route: routePath,
+        blueprintId,
+        capabilities = [],
+        meta = {},
+    } = req.params;
     const options = CloudRunOptions(req);
 
-    if (!route) throw 'route required in route-create';
+    if (!routePath) throw 'route required in route-create';
     if (!blueprintId) throw 'blueprintId required in route-create';
-    const [blueprint] = op.get(
-        await Parse.Cloud.run(
-            'blueprint-retrieve',
-            { ID: blueprintId },
-            options,
-        ),
-        'blueprints',
-        [],
+    const blueprintObj = await Parse.Cloud.run(
+        'blueprint-retrieve',
+        { ID: blueprintId },
+        options,
     );
-    if (!blueprint) throw 'blueprint not found in route-create';
 
-    const routeObj = new Parse.Object(COLLECTION);
-    routeObj.set('route', route);
-    routeObj.set('blueprint', blueprint);
-    routeObj.set('capabilities', capabilities);
-    routeObj.set('meta', meta);
+    if (!blueprintObj) throw 'blueprint not found in route-create';
 
-    return routeObj.save(null, options);
+    const blueprint = new Parse.Object('Blueprint');
+    blueprint.id = blueprintObj.objectId;
+    await blueprint.fetch(options);
+    const route = new Parse.Object(COLLECTION);
+    route.set('route', routePath);
+    route.set('blueprint', blueprint);
+    route.set('capabilities', capabilities);
+    route.set('meta', meta);
+
+    return route.save(null, options);
 });
 
 const mapRoutes = (routes = []) =>
@@ -258,16 +279,14 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-update', async req => {
     await routeObj.fetch(options);
 
     if (blueprintId) {
-        const [blueprint] = op.get(
-            await Parse.Cloud.run(
-                'blueprint-retrieve',
-                { ID: blueprintId },
-                options,
-            ),
-            'blueprints',
-            [],
+        const blueprintObj = await Parse.Cloud.run(
+            'blueprint-retrieve',
+            { ID: blueprintId },
+            options,
         );
-        if (!blueprint) throw 'blueprint not found in route-update';
+        if (!blueprintObj) throw 'blueprint not found in route-update';
+        const blueprint = new Parse.Object('Blueprint');
+        blueprint.id = blueprintId;
         routeObj.set('blueprint', blueprint);
     }
 
@@ -299,6 +318,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-delete', async req => {
 });
 
 const beforeSave = async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
     const route = req.object.toJSON();
 
     Object.keys(route).forEach(key => {
@@ -329,6 +350,7 @@ const beforeSave = async req => {
 };
 
 const beforeDelete = async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     const route = req.object.toJSON();
 
     if (op.get(route, 'meta.builtIn')) {
@@ -348,22 +370,15 @@ const updateRouteCache = async req => {
     return Promise.resolve();
 };
 
-Actinium.Hook.register(
-    'start',
-    async () => {
-        if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-            Actinium.Hook.register('beforeSave-route', beforeSave);
-            Actinium.Hook.register('beforeDelete-route', beforeDelete);
-        }
-        return Promise.resolve();
-    },
-    -10000,
-);
-
-Actinium.Hook.register('start', () => Actinium.Cloud.run('route-generate'));
+Actinium.Hook.register('start', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    await Actinium.Cloud.run('route-generate', null, { useMasterKey: true });
+});
 
 Actinium.Hook.register('activate', ({ ID }) =>
-    ID == PLUGIN.ID ? Actinium.Cloud.run('route-generate') : null,
+    ID == PLUGIN.ID
+        ? Actinium.Cloud.run('route-generate', null, { useMasterKey: true })
+        : null,
 );
 
 Actinium.Hook.register('afterSave-route', updateRouteCache, -100000);
@@ -378,12 +393,5 @@ Actinium.Cloud.afterDelete(COLLECTION, req =>
     Actinium.Hook.run('afterDelete-route', req),
 );
 
-Actinium.Cloud.beforeSave(COLLECTION, async req => {
-    await Actinium.Hook.run('beforeSave-route', req);
-    return Promise.resolve();
-});
-
-Actinium.Cloud.beforeDelete(COLLECTION, async req => {
-    await Actinium.Hook.run('beforeDelete-route', req);
-    return Promise.resolve();
-});
+Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
+Actinium.Cloud.beforeDelete(COLLECTION, beforeDelete);
