@@ -45,6 +45,7 @@ const BLUEPRINT = {
     },
     meta: {
         builtIn: true,
+        namespace: 'admin-page',
     },
     ID: 'Settings',
     description: 'Settings blueprint',

@@ -81,7 +81,8 @@
             }
         },
         "meta": {
-            "builtIn": true
+            "builtIn": true,
+            "namespace": "admin-page"
         },
         "ID": "Admin",
         "description": "Admin blueprint",
@@ -99,7 +100,8 @@
             }
         },
         "meta": {
-            "builtIn": true
+            "builtIn": true,
+            "namespace": "admin-page"
         },
         "ID": "Profile",
         "description": "Profile blueprint",
