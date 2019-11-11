@@ -101,29 +101,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-generate', async req => {
 
     for (let routeData of Object.values(defaultRoutes)) {
         const route = new Parse.Object(COLLECTION);
-        const blueprintObj = await Parse.Cloud.run(
-            'blueprint-retrieve',
-            { ID: routeData.blueprint },
-            options,
-        );
-
-        if (!blueprintObj.objectId) {
-            console.log(
-                `Attempting to generate route ${route.route} with missing blueprint ${routeData.blueprint}. Skipping.`,
-            );
-            continue;
-        }
-
-        const blueprint = new Parse.Object('Blueprint');
-        blueprint.id = blueprintObj.objectId;
-
-        await blueprint.fetch(options);
-
-        route.set('blueprint', blueprint);
         Object.entries(routeData).forEach(([key, value]) => {
-            if (key !== 'blueprint') {
-                route.set(key, value);
-            }
+            route.set(key, value);
         });
 
         initialRoutes.push(route);
@@ -146,20 +125,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-create', async req => {
 
     if (!routePath) throw 'route required in route-create';
     if (!blueprintId) throw 'blueprintId required in route-create';
-    const blueprintObj = await Parse.Cloud.run(
-        'blueprint-retrieve',
-        { ID: blueprintId },
-        options,
-    );
 
-    if (!blueprintObj) throw 'blueprint not found in route-create';
-
-    const blueprint = new Parse.Object('Blueprint');
-    blueprint.id = blueprintObj.objectId;
-    await blueprint.fetch(options);
     const route = new Parse.Object(COLLECTION);
     route.set('route', routePath);
-    route.set('blueprint', blueprint);
+    route.set('blueprint', blueprintId);
     route.set('capabilities', capabilities);
     route.set('meta', meta);
 
@@ -169,9 +138,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-create', async req => {
 const mapRoutes = (routes = []) =>
     routes.map(item => {
         if (op.has(item, 'id')) {
-            let blueprint = item.get('blueprint');
-            blueprint = blueprint ? blueprint.toJSON() : undefined;
-            return { ...item.toJSON(), blueprint };
+            return item.toJSON();
         } else {
             return item;
         }
@@ -188,7 +155,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-retrieve', async req => {
 
     query.equalTo('route', route);
     query.descending('updatedAt');
-    query.include('blueprint');
     query.limit(1);
 
     let routes = await query.find(options);
@@ -223,7 +189,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'routes', async req => {
         // Find
         query.skip(skip);
         query.limit(limit);
-        query.include('blueprint');
 
         let results = await query.find(options);
 
@@ -286,15 +251,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'route-update', async req => {
     await routeObj.fetch(options);
 
     if (blueprintId) {
-        const blueprintObj = await Parse.Cloud.run(
-            'blueprint-retrieve',
-            { ID: blueprintId },
-            options,
-        );
-        if (!blueprintObj) throw 'blueprint not found in route-update';
-        const blueprint = new Parse.Object('Blueprint');
-        blueprint.id = blueprintId;
-        routeObj.set('blueprint', blueprint);
+        routeObj.set('blueprint', blueprintId);
     }
 
     if (capabilities && Array.isArray(capabilities))

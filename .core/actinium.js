@@ -15,6 +15,7 @@ Actinium.Schema = Parse.Schema;
 Actinium.Enums = require('./lib/enums');
 Actinium.User = {};
 Actinium.Exp = require('./lib/express-settings');
+Actinium.Blueprint = require('./lib/blueprint');
 Actinium.Cache = require('./lib/cache');
 Actinium.Setting = require('./lib/setting');
 Actinium.Roles = require('./lib/roles');
@@ -105,6 +106,9 @@ Actinium.start = options =>
 
                     // Load Plugins
                     await Actinium.Plugin.load();
+
+                    // Init blueprints
+                    await Actinium.Blueprint.init();
 
                     // Load User Roles
                     await Actinium.Roles.load();
