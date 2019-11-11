@@ -293,14 +293,12 @@ Capability.load = async () => {
         op.set(Capability._obj, group, newCapability);
         Capability._groups[group] = newCapability;
 
-        if (hook) {
-            await Actinium.Hook.run(
-                'capability-updated',
-                group,
-                newCapability,
-                oldCapability,
-            );
-        }
+        await Actinium.Hook.run(
+            'capability-updated',
+            group,
+            newCapability,
+            oldCapability,
+        );
     }
 
     // unregisters
