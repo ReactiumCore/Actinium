@@ -290,15 +290,16 @@ Capability.load = async () => {
         const oldCapability = op.get(Capability._obj, group);
         const newCapability = normalizeCapability(cap);
 
-        const hook = !oldCapability
-            ? 'capability-registered'
-            : !_.isEqual(oldCapability, newCapability) && 'capability-changed';
-
         op.set(Capability._obj, group, newCapability);
         Capability._groups[group] = newCapability;
 
         if (hook) {
-            await Actinium.Hook.run(hook, group, newCapability, oldCapability);
+            await Actinium.Hook.run(
+                'capability-updated',
+                group,
+                newCapability,
+                oldCapability,
+            );
         }
     }
 

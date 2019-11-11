@@ -45,7 +45,7 @@ const beforeLogin = async req => {
         return;
     }
 
-    await Actinium.Hook.run('user.before.login', user);
+    await Actinium.Hook.run('user-before-login', user);
 };
 
 const findCache = req => {};
@@ -70,7 +70,7 @@ const find = async req => {
     const options = CloudRunOptions(req);
 
     if (objectId || username || email) {
-        await Actinium.Hook.run('user.before.find', qry);
+        await Actinium.Hook.run('user-before-find', qry);
         const user = await qry.first(options);
         return user ? Promise.resolve(user.toJSON()) : Promise.resolve({});
     } else {
@@ -79,7 +79,7 @@ const find = async req => {
         qry.limit(limit);
         qry.skip(skip);
 
-        await Actinium.Hook.run('user.before.find', qry);
+        await Actinium.Hook.run('user-before-find', qry);
 
         return qry.find(options);
     }
@@ -123,14 +123,14 @@ const afterSave = async req => {
 
         req.object.setACL(acl);
 
-        await Actinium.Hook.run('user.after.save', req);
+        await Actinium.Hook.run('user-after-save', req);
 
         req.object.save(null, { useMasterKey: true });
     }
 };
 
 const beforeSave = async req => {
-    await Actinium.Hook.run('user.before.save', req);
+    await Actinium.Hook.run('user-before-save', req);
 
     // New user only
     if (req.object.isNew()) {
