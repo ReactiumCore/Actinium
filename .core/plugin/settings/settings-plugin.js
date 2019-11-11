@@ -45,6 +45,7 @@ const BLUEPRINT = {
     },
     meta: {
         builtIn: true,
+        admin: true,
         namespace: 'admin-page',
     },
     ID: 'Settings',
