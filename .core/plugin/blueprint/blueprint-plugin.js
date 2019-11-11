@@ -31,6 +31,17 @@ Actinium.Capability.register(
     1000,
 );
 
+// Add admin-tools zone when blueprint.meta.admin === true blueprints
+Actinium.Hook.register('blueprint-list', blueprints =>
+    blueprints.forEach(blueprint => {
+        if (op.get(blueprint, 'meta.admin', false) === true) {
+            blueprint.sections['tools'] = {
+                zones: ['admin-tools'],
+            };
+        }
+    }),
+);
+
 /**
 * @api {Cloud} blueprints blueprints
 * @apiVersion 3.1.2

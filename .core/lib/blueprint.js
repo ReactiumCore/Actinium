@@ -10,6 +10,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
         },
         ID: 'Simple',
         description: 'Blueprint with one simple content section',
@@ -24,6 +25,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
         },
         ID: 'Login',
         description: 'Login blueprint',
@@ -38,6 +40,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
         },
         ID: 'Logout',
         description: 'Logout blueprint',
@@ -52,6 +55,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
         },
         ID: 'Forgot',
         description: 'Forgot password blueprint',
@@ -66,6 +70,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
         },
         ID: 'ResetPassword',
         description: 'Reset password blueprint',
@@ -84,6 +89,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
             namespace: 'admin-page',
         },
         ID: 'Admin',
@@ -103,6 +109,7 @@ const DEFAULTS = [
         },
         meta: {
             builtIn: true,
+            admin: true,
             namespace: 'admin-page',
         },
         ID: 'Profile',
