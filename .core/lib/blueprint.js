@@ -18,66 +18,6 @@ const DEFAULTS = [
     },
     {
         sections: {
-            main: {
-                zones: ['login'],
-                meta: {},
-            },
-        },
-        meta: {
-            builtIn: true,
-            admin: true,
-        },
-        ID: 'Login',
-        description: 'Login blueprint',
-        className: 'Blueprint',
-    },
-    {
-        sections: {
-            main: {
-                zones: ['logout'],
-                meta: {},
-            },
-        },
-        meta: {
-            builtIn: true,
-            admin: true,
-        },
-        ID: 'Logout',
-        description: 'Logout blueprint',
-        className: 'Blueprint',
-    },
-    {
-        sections: {
-            main: {
-                zones: ['forgot'],
-                meta: {},
-            },
-        },
-        meta: {
-            builtIn: true,
-            admin: true,
-        },
-        ID: 'Forgot',
-        description: 'Forgot password blueprint',
-        className: 'Blueprint',
-    },
-    {
-        sections: {
-            main: {
-                zones: ['reset'],
-                meta: {},
-            },
-        },
-        meta: {
-            builtIn: true,
-            admin: true,
-        },
-        ID: 'ResetPassword',
-        description: 'Reset password blueprint',
-        className: 'Blueprint',
-    },
-    {
-        sections: {
             sidebar: {
                 zones: ['admin-sidebar'],
                 meta: {},
