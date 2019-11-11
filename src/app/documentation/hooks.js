@@ -43,8 +43,9 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) user-fetch Triggered when a user is fetched from the server. The fetched `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) blueprint-defaults Triggered when the list of default Blueprints is generated. Introduces a way to add to the default Blueprints. The Blueprint array is passed to the hook.
+ * @apiParam (Hooks) blueprint-list Triggered when the list of Blueprints is retrieved from `Blueprint.list()` or the cloud function `blueprints`
  * @apiParam (Hooks) route-defaults Triggered when the list of default Routes is generated. Introduces a way to add to the default Routes. The Route Array is passed to the hook.
- * @apiParam (Hooks) reset-request-context Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email. 
+ * @apiParam (Hooks) reset-request-context Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email.
  * @apiParam (Hooks) reset-request-email-html Triggered when the password reset request email is generating the HTML version of the message. Use this hook to replace or edit the output of the html email message.
  * @apiParam (Hooks) reset-request-email-text Triggered when the password reset request email is generating the text version of the message. Use this hook to replace or edit the output of the text email message.
  *
