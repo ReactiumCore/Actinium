@@ -24,30 +24,53 @@ _See: [Hook.run](#api-Actinium-Hook_run) for full example._
 
 ## Behavior
 Hooks are synchronous and will execute in the order they are registered unless the `order` parameter is specified.
- * @apiParam (Hooks) init Triggered after Actinium has initialized Express, Middleware, and Plugins. `init` is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it.
- * @apiParam (Hooks) install Triggered after a plugin has been installed. The `Plugin` object is passed to the hook.
- * @apiParam (Hooks) uninstall Triggered after a plugin has been uninstalled. The `Plugin` object is passed to the hook.
- * @apiParam (Hooks) start Triggered when the server starts up. If you have any database seeding or schema to construct, this is the optimal time to do it.
- * @apiParam (Hooks) warning Triggered when the startup warnings are logged.
  * @apiParam (Hooks) activate Triggered when a plugin has been activated. The `Plugin` object is passed to the hook.
- * @apiParam (Hooks) deactivate Triggered when a plugin has been deactivated. The `Plugin` object is passed to the hook.
- * @apiParam (Hooks) setting-set Triggered when a new setting has been registered. The setting key and value are passed to the hook.
- * @apiParam (Hooks) setting-unset Triggered when a setting has been deleted. The setting key and value are passed to the hook.
- * @apiParam (Hooks) setting-change Triggered when the value of a setting has been changed. The setting key and value are passed to the hook.
- * @apiParam (Hooks) settings Triggered when the settings have been fetched from the server. The settings object is passed to the hook.
- * @apiParam (Hooks) capability-registered Run when a new capability is created. The
- * @apiParam (Hooks) roles Triggered when roles are fetched from the server. The roles object is passed to the hook.
- * @apiParam (Hooks) role-find Run when a role is fetched from the server. The fetched `Parse.Role` object is passed to the hook.
- * @apiParam (Hooks) role-created Run when a role is created. The new role and updated role list is passed to the hook.
- * @apiParam (Hooks) role-removed Run when a role is removed. The removed role and updated role ist is passed to the hook.
- * @apiParam (Hooks) user-fetch Triggered when a user is fetched from the server. The fetched `Parse.User` object is passed to the hook.
- * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
+ * @apiParam (Hooks) afterDelete-plugin
+ * @apiParam (Hooks) afterDelete-route
+ * @apiParam (Hooks) afterSave
+ * @apiParam (Hooks) afterSave-route
+ * @apiParam (Hooks) beforeDelete-plugin
+ * @apiParam (Hooks) beforeSave-plugin
  * @apiParam (Hooks) blueprint-defaults Triggered when the list of default Blueprints is generated. Introduces a way to add to the default Blueprints. The Blueprint array is passed to the hook.
  * @apiParam (Hooks) blueprint-list Triggered when the list of Blueprints is retrieved from `Blueprint.list()` or the cloud function `blueprints`
- * @apiParam (Hooks) route-defaults Triggered when the list of default Routes is generated. Introduces a way to add to the default Routes. The Route Array is passed to the hook.
+ * @apiParam (Hooks) capability-edit
+ * @apiParam (Hooks) capability-loaded
+ * @apiParam (Hooks) capability-loading
+ * @apiParam (Hooks) capability-registered Run when a new capability is created. The
+ * @apiParam (Hooks) capability-unregistered
+ * @apiParam (Hooks) capability-updated
+ * @apiParam (Hooks) collection-before-permissions
+ * @apiParam (Hooks) deactivate Triggered when a plugin has been deactivated. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) init Triggered after Actinium has initialized Express, Middleware, and Plugins. `init` is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it.
+ * @apiParam (Hooks) install Triggered after a plugin has been installed. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
+ * @apiParam (Hooks) mailer-transport
  * @apiParam (Hooks) reset-request-context Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email.
  * @apiParam (Hooks) reset-request-email-html Triggered when the password reset request email is generating the HTML version of the message. Use this hook to replace or edit the output of the html email message.
  * @apiParam (Hooks) reset-request-email-text Triggered when the password reset request email is generating the text version of the message. Use this hook to replace or edit the output of the text email message.
+ * @apiParam (Hooks) role-created Run when a role is created. The new role and updated role list is passed to the hook.
+ * @apiParam (Hooks) role-find Run when a role is fetched from the server. The fetched `Parse.Role` object is passed to the hook.
+ * @apiParam (Hooks) role-removed Run when a role is removed. The removed role and updated role ist is passed to the hook.
+ * @apiParam (Hooks) roles Triggered when roles are fetched from the server. The roles object is passed to the hook.
+ * @apiParam (Hooks) route-defaults Triggered when the list of default Routes is generated. Introduces a way to add to the default Routes. The Route Array is passed to the hook.
+ * @apiParam (Hooks) route-list
+ * @apiParam (Hooks) route-retrieve
+ * @apiParam (Hooks) setting-capability
+ * @apiParam (Hooks) setting-change Triggered when the value of a setting has been changed. The setting key and value are passed to the hook.
+ * @apiParam (Hooks) setting-set Triggered when a new setting has been registered. The setting key and value are passed to the hook.
+ * @apiParam (Hooks) setting-unset Triggered when a setting has been deleted. The setting key and value are passed to the hook.
+ * @apiParam (Hooks) settings Triggered when the settings have been fetched from the server. The settings object is passed to the hook.
+ * @apiParam (Hooks) settings-acl
+ * @apiParam (Hooks) settings-acl-roles
+ * @apiParam (Hooks) start Triggered when the server starts up. If you have any database seeding or schema to construct, this is the optimal time to do it.
+ * @apiParam (Hooks) uninstall Triggered after a plugin has been uninstalled. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) update
+ * @apiParam (Hooks) user-after-save
+ * @apiParam (Hooks) user-before-find
+ * @apiParam (Hooks) user-before-login
+ * @apiParam (Hooks) user-before-save
+ * @apiParam (Hooks) user-fetch Triggered when a user is fetched from the server. The fetched `Parse.User` object is passed to the hook.
+ * @apiParam (Hooks) warning Triggered when the startup warnings are logged.
  *
  */
 
