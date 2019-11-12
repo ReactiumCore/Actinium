@@ -79,7 +79,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
 // Update Collection classLevelPermissions on capability updates
 Actinium.Hook.register('capability-updated', async group => {
     if (/\.(create|retrieve|update|delete)$/.test(group)) {
-        LOG(chalk.cyan('Updating Collections'));
         await Actinium.Collection.load();
     }
 });
