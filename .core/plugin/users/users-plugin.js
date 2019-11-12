@@ -17,6 +17,14 @@ const PLUGIN = {
     },
 };
 
+const avatarTypes = {
+    jpeg: 'jpg',
+    jpg: 'jpg',
+    png: 'png',
+    gif: 'gif',
+    svg: 'svg',
+};
+
 const afterFind = async req => {
     const { objects = [] } = req;
 
@@ -88,7 +96,27 @@ const find = async req => {
 const save = async req => {
     const options = CloudRunOptions(req);
     const { role, ...params } = req.params;
-    const user = await new Parse.Object(COLLECTION).save(params, options);
+
+    const userObj = new Parse.Object(COLLECTION);
+
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === null) {
+            userObj.unset(key);
+        } else {
+            userObj.set(key, value);
+        }
+    });
+
+    let user;
+    try {
+        user = await userObj.save(params, options);
+    } catch (err) {
+        throw new Error(err);
+    }
+
+    if (!user) {
+        throw new Error('unable to save user');
+    }
 
     try {
         if (role) {
@@ -144,6 +172,45 @@ const beforeSave = async req => {
     }
 };
 
+const createAvatar = async req => {
+    let avatar = req.object.get('avatar');
+
+    if (!avatar) {
+        return;
+    }
+
+    if (String(avatar).startsWith('data:image/')) {
+        let typeArr = avatar.split('data:image/');
+        typeArr.shift();
+
+        typeArr = typeArr.join('').split(';');
+
+        const ext = typeArr.shift();
+        let type = op.get(avatarTypes, ext, null);
+
+        if (!type) {
+            LOG('invalid avatar image type');
+            return;
+        }
+
+        type = type.replace(/\W+/g, '');
+        let fileObj;
+
+        try {
+            const fileName = `avatar.${type}`;
+            avatar = avatar.split(';base64,').pop();
+            fileObj = await new Parse.File(fileName, { base64: avatar }).save();
+        } catch (err) {
+            console.log(err);
+            return;
+        }
+
+        if (fileObj) {
+            req.object.set('avatar', fileObj.url());
+        }
+    }
+};
+
 Actinium.Plugin.register(PLUGIN, true);
 
 Actinium.Cloud.afterFind(COLLECTION, afterFind);
@@ -159,3 +226,5 @@ Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
 
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
+
+Actinium.Hook.register('user-before-save', createAvatar);
