@@ -171,7 +171,7 @@ const ACTION = ({ opt, props }) => {
         });
     })
         .then(params => generator({ params, props }))
-        .then(() => prompt.stomp())
+        .then(() => prompt.stop())
         .catch(err => {
             prompt.stop();
             message(op.get(err, 'message', CANCELED));
