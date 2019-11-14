@@ -48,28 +48,28 @@ const CONFORM = ({ input, props }) =>
         const { cwd } = props;
         let val = input[key];
         switch (key) {
-            case 'src': {
-                const paths = val.split(',').map(srcDir => {
-                    srcDir = path.normalize(srcDir);
-                    if (/^[\/\\]{1}/.test(srcDir)) {
-                        srcDir = path.relative(cwd, srcDir);
-                    }
-                    return srcDir;
-                });
-                obj.src = paths;
-                break;
-            }
-            case 'dest': {
-                let dest = path.normalize(val);
-                if (/^[\/\\]{1}/.test(dest)) {
-                    dest = path.relative(cwd, dest);
+        case 'src': {
+            const paths = val.split(',').map(srcDir => {
+                srcDir = path.normalize(srcDir);
+                if (/^[\/\\]{1}/.test(srcDir)) {
+                    srcDir = path.relative(cwd, srcDir);
                 }
-                obj.dest = dest;
-                break;
+                return srcDir;
+            });
+            obj.src = paths;
+            break;
+        }
+        case 'dest': {
+            let dest = path.normalize(val);
+            if (/^[\/\\]{1}/.test(dest)) {
+                dest = path.relative(cwd, dest);
             }
-            default:
-                obj[key] = val;
-                break;
+            obj.dest = dest;
+            break;
+        }
+        default:
+            obj[key] = val;
+            break;
         }
 
         if (!('verbose' in obj)) obj.verbose = false;
@@ -150,8 +150,6 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
-
     const { cwd, prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
@@ -172,13 +170,8 @@ const ACTION = ({ opt, props }) => {
             resolve(CONFORM({ input, props }));
         });
     })
-        .then(params => {
-            console.log('');
-            return generator({ params, props });
-        })
-        .then(results => {
-            console.log('');
-        })
+        .then(params => generator({ params, props }))
+        .then(() => prompt.stop())
         .catch(err => {
             prompt.stop();
             message(op.get(err, 'message', CANCELED));

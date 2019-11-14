@@ -7,6 +7,7 @@ module.exports = ({ params, props }) => {
         color: 'cyan',
     });
 
+    console.log('');
     spinner.start();
 
     const actions = require('./actions')(spinner);
@@ -17,6 +18,7 @@ module.exports = ({ params, props }) => {
     })
         .then(success => {
             spinner.succeed('complete!');
+            console.log('');
             return success;
         })
         .catch(error => {
