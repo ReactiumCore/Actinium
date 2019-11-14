@@ -57,6 +57,7 @@ const Capability = {
         },
         'plugin.view': {
             allowed: [],
+            required: true,
         },
         'plugin.activate': {
             allowed: [],

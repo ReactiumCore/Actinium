@@ -4,6 +4,7 @@ const op = require('object-path');
 const express = require('express');
 const { ParseServer } = require('parse-server');
 const ParseDashboard = require('parse-dashboard');
+const FileAdapter = require(ACTINIUM_DIR + '/lib/fileadapter');
 
 const parseConfig = () => {
     const config = {
@@ -16,6 +17,8 @@ const parseConfig = () => {
         serverURL: ENV.SERVER_URI + ENV.PARSE_MOUNT,
         allowClientClassCreation: ENV.PARSE_ALLOW_CLIENT_CLASS_CREATION,
     };
+
+    config.filesAdapter = FileAdapter.getProxy(config);
 
     // rest api key
     if (op.has(ENV, 'REST_API_KEY')) {
@@ -56,40 +59,7 @@ const parseConfig = () => {
 
 Actinium.Middleware.register('parse', app => {
     if (ENV.NO_PARSE !== true) {
-        let fileConfig = {};
-        if (ENV.S3_ACCESS_KEY && ENV.S3_SECRET_KEY) {
-            const S3Adapter = require('@parse/s3-files-adapter');
-            const AWS = require('aws-sdk');
-
-            //Configure Digital Ocean Spaces EndPoint
-            let s3overrides = {};
-            if (ENV.SPACES_ENDPOINT) {
-                s3overrides.endpoint = new AWS.Endpoint(ENV.SPACES_ENDPOINT);
-            }
-
-            const s3Options = {
-                bucket: ENV.S3_BUCKET,
-                region: ENV.S3_REGION,
-                baseUrl: ENV.S3_BASE_URL,
-                s3overrides: {
-                    accessKeyId: ENV.S3_ACCESS_KEY,
-                    secretAccessKey: ENV.S3_SECRET_KEY,
-                    ...s3overrides,
-                },
-            };
-
-            fileConfig = {
-                filesAdapter: new S3Adapter(s3Options),
-            };
-        }
-
-        // Parse config
-        const config = {
-            ...parseConfig(),
-            ...fileConfig,
-        };
-
-        const server = new ParseServer(config);
+        const server = new ParseServer(parseConfig());
 
         const routerServer = express.Router();
         routerServer.use(ENV.PARSE_MOUNT, server);

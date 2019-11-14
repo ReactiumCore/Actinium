@@ -100,7 +100,7 @@ Plugable.init = () => {
     // Allow public read, but private everything else:
     Actinium.Collection.register('Plugin', {
         create: false,
-        retrieve: true,
+        retrieve: false,
         update: false,
         delete: false,
         addField: false,

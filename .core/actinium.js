@@ -17,6 +17,7 @@ Actinium.User = {};
 Actinium.Exp = require('./lib/express-settings');
 Actinium.Blueprint = require('./lib/blueprint');
 Actinium.Cache = require('./lib/cache');
+Actinium.FileAdapter = require('./lib/fileadapter');
 Actinium.Setting = require('./lib/setting');
 Actinium.Roles = require('./lib/roles');
 Actinium.Cloud = require('./lib/cloud');
@@ -106,6 +107,9 @@ Actinium.start = options =>
 
                     // Load Plugins
                     await Actinium.Plugin.load();
+
+                    // Load File Adapter
+                    await Actinium.FileAdapter.update();
 
                     // Init blueprints
                     await Actinium.Blueprint.init();

@@ -1,5 +1,8 @@
 const op = require('object-path');
-const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
+const {
+    CloudHasCapabilities,
+    CloudCapOptions,
+} = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = 'Plugin';
 
@@ -10,7 +13,11 @@ const toggle = req => {
         return Promise.reject('plugin is a required paramter');
     }
 
-    const options = CloudRunOptions(req);
+    const options = CloudCapOptions(
+        req,
+        ['plugin.view', 'plugin.activate', 'plugin.deactivate'],
+        true,
+    );
 
     return new Parse.Query(COLLECTION)
         .equalTo('ID', ID)
@@ -28,7 +35,7 @@ const del = req => {
         return Promise.reject('plugin is a required paramter');
     }
 
-    const options = CloudRunOptions(req);
+    const options = CloudCapOptions(req, ['plugin.uninstall']);
 
     return new Parse.Query(COLLECTION)
         .equalTo('ID', ID)
@@ -37,7 +44,11 @@ const del = req => {
         .then(plugin => (plugin ? plugin.toJSON() : null));
 };
 
-Parse.Cloud.define('plugins', () => Promise.resolve(Actinium.Plugin.get()));
+Parse.Cloud.define('plugins', async req => {
+    if (!CloudHasCapabilities(req, ['plugin.view']))
+        throw new Error('Permission denied.');
+    return Actinium.Plugin.get();
+});
 
 Parse.Cloud.define('plugin-activate', req => {
     op.set(req, 'params.active', true);
@@ -98,7 +109,7 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
     } else {
         let old = await new Parse.Query(COLLECTION)
             .equalTo('ID', obj.ID)
-            .first();
+            .first({ useMasterKey: true });
 
         old = old.toJSON();
 
