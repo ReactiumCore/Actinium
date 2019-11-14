@@ -296,8 +296,6 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    console.log('');
-
     const { cwd, prompt } = props;
 
     const schema = SCHEMA({ props });
@@ -347,6 +345,7 @@ const ACTION = ({ opt, props }) => {
                     console.log('');
                 });
             })
+            .then(() => prompt.stop())
             .catch(err => {
                 prompt.stop();
                 message(CANCELED);
