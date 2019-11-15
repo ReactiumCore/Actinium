@@ -179,11 +179,11 @@ const createAvatar = async req => {
         return;
     }
 
-    if (String(avatar).startsWith('data:image/')) {
-        let typeArr = avatar.split('data:image/');
+    if (String(avatar).startsWith('data:image')) {
+        let typeArr = avatar.split('data:image');
         typeArr.shift();
 
-        typeArr = typeArr.join('').split(';');
+        typeArr = typeArr.join('').split(';base64');
 
         const ext = typeArr.shift();
         let type = op.get(avatarTypes, ext, null);
