@@ -4,7 +4,6 @@ const op = require('object-path');
 const S3Adapter = require('@parse/s3-files-adapter');
 const AWS = require('aws-sdk');
 
-// TODO: Test me
 const PLUGIN = {
     ID: 'S3Adapter',
     name: 'Actinium S3 Adapter plugin.',
@@ -37,5 +36,5 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
         if (endpoint) op.set(settings, 's3overrides.endpoint', endpoint);
     }
 
-    return new S3Adapter(s3Options);
+    return new S3Adapter(settings);
 });
