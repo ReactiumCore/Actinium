@@ -21,37 +21,21 @@ const PLUGIN = {
     },
 };
 
-Actinium.Plugin.register(PLUGIN);
+Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
+    const settings = Actinium.Setting.get('S3Adapter', {
+        bucket: ENV.S3_BUCKET,
+        region: ENV.S3_REGION,
+        baseUrl: ENV.S3_BASE_URL,
+        s3overrides: {
+            accessKeyId: ENV.S3_ACCESS_KEY,
+            secretAccessKey: ENV.S3_SECRET_KEY,
+        },
+    });
 
-Actinium.Hook.register('files-adapter', async (config, env, context) => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        const settings = Actinium.Setting.get('S3Adapter', {
-            bucket: ENV.S3_BUCKET,
-            region: ENV.S3_REGION,
-            baseUrl: ENV.S3_BASE_URL,
-            s3overrides: {
-                accessKeyId: ENV.S3_ACCESS_KEY,
-                secretAccessKey: ENV.S3_SECRET_KEY,
-            },
-        });
-
-        if (!op.has(settings, 's3overrides.endpoint')) {
-            const endpoint = op.get(ENV, 'SPACES_ENDPOINT');
-            if (endpoint) op.set(settings, 's3overrides.endpoint', endpoint);
-        }
-
-        context.adapter = new S3Adapter(s3Options);
+    if (!op.has(settings, 's3overrides.endpoint')) {
+        const endpoint = op.get(ENV, 'SPACES_ENDPOINT');
+        if (endpoint) op.set(settings, 's3overrides.endpoint', endpoint);
     }
-});
 
-Actinium.Hook.run('activate', async ({ ID }) => {
-    if (ID === PLUGIN.ID) {
-        Actinium.FilesAdapter.update();
-    }
-});
-
-Actinium.Hook.run('deactivate', async ({ ID }) => {
-    if (ID === PLUGIN.ID) {
-        Actinium.FilesAdapter.update();
-    }
+    return new S3Adapter(s3Options);
 });

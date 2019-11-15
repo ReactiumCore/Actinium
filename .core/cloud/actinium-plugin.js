@@ -102,7 +102,6 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
 
     if (req.object.isNew()) {
         await Actinium.Hook.run('install', obj);
-
         if (active) {
             await Actinium.Hook.run('activate', obj);
         }

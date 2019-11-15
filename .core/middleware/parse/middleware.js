@@ -4,7 +4,7 @@ const op = require('object-path');
 const express = require('express');
 const { ParseServer } = require('parse-server');
 const ParseDashboard = require('parse-dashboard');
-const FileAdapter = require(ACTINIUM_DIR + '/lib/fileadapter');
+const FileAdapter = require(ACTINIUM_DIR + '/lib/files-adapter');
 
 const parseConfig = () => {
     const config = {
