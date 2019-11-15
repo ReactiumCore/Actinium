@@ -8,7 +8,7 @@ const PLUGIN = {
     ID: 'S3Adapter',
     name: 'Actinium S3 Adapter plugin.',
     description:
-        'Actinium S3 file adapter plugin, used to allow runtime change of underlying Parse file adapter.',
+        'Actinium S3 file adapter plugin, used to allow runtime change of underlying Parse file adapter to allow AWS S3 Storage or Digital Ocean Spaces.',
     order: 0,
     version: {
         actinium: '>=3.1.2',

@@ -10,13 +10,16 @@ const chalk = require('chalk');
 const COLLECTION = 'Capability';
 const PLUGIN = {
     ID: 'Capability',
-    description: 'Capabilities plugin.',
+    name: 'Capabilities plugin.',
+    description:
+        'Adds cloud functions to facilitate setting and checking of permissions.',
     order: 0,
     version: {
         actinium: '>=3.1.2',
         plugin: '0.0.1',
     },
     meta: {
+        group: 'core',
         builtIn: true,
     },
 };

@@ -7,7 +7,7 @@ const PLUGIN = {
     ID: 'FSFileAdapter',
     name: 'Actinium File Adapter plugin.',
     description:
-        'Actinium base file adapter plugin, used to allow runtime change of underlying Parse file adapter.',
+        'Actinium file adapter plugin, used to allow files to be stored on the filesystem.',
     order: 0,
     version: {
         actinium: '>=3.1.2',
