@@ -269,8 +269,11 @@ const normalizeCapability = cap => ({
 Capability.load = async () => {
     if (Actinium.Cache.get('capabilities.loaded')) return;
 
-    LOG('');
-    LOG(chalk.cyan('Loading capabilities...'));
+    if (Actinium.started !== true) {
+        LOG('');
+        LOG(chalk.cyan('Loading capabilities...'));
+    }
+
     await Actinium.Hook.run('capability-loading');
 
     // Merge defaults with parse loaded
@@ -357,8 +360,10 @@ Capability.load = async () => {
     await Parse.Object.saveAll(objects, { useMasterKey: true });
     await Actinium.Hook.run('capability-loaded');
 
-    LOG(chalk.cyan('  Loaded.'));
-    LOG('');
+    if (Actinium.started !== true) {
+        LOG(chalk.cyan('  Loaded.'));
+        LOG('');
+    }
 
     Actinium.Cache.set(
         'capabilities.loaded',
