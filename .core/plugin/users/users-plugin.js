@@ -185,7 +185,7 @@ const createAvatar = async req => {
 
         typeArr = typeArr.join('').split(';base64');
 
-        const ext = typeArr.shift();
+        const ext = typeArr.shift().substr(1);
         let type = op.get(avatarTypes, ext, null);
 
         if (!type) {
