@@ -81,7 +81,7 @@ FilesAdapter.update = async () => {
 };
 
 /**
- * @api {Function} FilesAdapter.register(plugin,installer,active) FilesAdapter.register()
+ * @api {Function} FilesAdapter.register(plugin,installer,order) FilesAdapter.register()
  * @apiDescription Register a Parse FilesAdapter plugin to handle file operations. Ideally, at most only one FilesAdapter plugin
  * should be active at a time. If multiple FilesAdapter plugins are enabled, the plugin with the highest `order` will determine
  * the running FilesAdapter.
