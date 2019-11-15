@@ -48,7 +48,15 @@ class FilesAdapterProxy {
 
     // handleFileStream(filename: string, res: any, req: any, contentType: string): Promise
     handleFileStream(...params) {
-        return this._get().handleFileStream(...params);
+        if ('handleFileStream' in this._get())
+            return this._get().handleFileStream(...params);
+        return Promise.resolve();
+    }
+
+    handleShutdown(...params) {
+        if ('handleShutdown' in this._get())
+            return this._get().handleShutdown(...params);
+        return Promise.resolve();
     }
 }
 
