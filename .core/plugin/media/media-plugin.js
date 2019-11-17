@@ -32,11 +32,15 @@ Actinium.Hook.register('activate', async ({ ID }) => {
 });
 
 // Register Blueprints
-Actinium.Hook.register('blueprint-defaults', blueprints => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-    }
-});
+Actinium.Hook.register(
+    'blueprint-defaults',
+    blueprints => {
+        if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+            PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
+        }
+    },
+    -1000,
+);
 
 // Register Routes
 Actinium.Hook.register('route-defaults', routes => {

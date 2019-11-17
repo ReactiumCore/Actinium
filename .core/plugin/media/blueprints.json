@@ -2,15 +2,25 @@
     {
         "ID": "Media",
         "description": "Media blueprint",
+        "className": "Blueprint",
         "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {}
+            },
             "main": {
-                "zones": ["admin-media-content"],
+                "zones": [
+                    "admin-header",
+                    "admin-media-content",
+                    "admin-actions"
+                ],
                 "meta": {}
             }
         },
         "meta": {
             "admin": true,
-            "builtIn": true
+            "builtIn": true,
+            "namespace": "admin-page"
         }
     }
 ]
