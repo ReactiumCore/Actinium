@@ -1,0 +1,9 @@
+[
+    {
+        "route": "/admin/media",
+        "blueprint": "Media",
+        "meta": {
+            "builtIn": true
+        }
+    }
+]

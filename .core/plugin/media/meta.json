@@ -1,0 +1,13 @@
+{
+    "ID": "Media",
+    "name": "Media Plugin",
+    "description": "Media plugin used to manage files.",
+    "version": {
+        "actinium": ">=3.0.5",
+        "plugin": "0.0.1"
+    },
+    "meta": {
+        "group": "core",
+        "builtIn": true
+    }
+}

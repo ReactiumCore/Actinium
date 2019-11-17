@@ -1,0 +1,16 @@
+[
+    {
+        "ID": "Media",
+        "description": "Media blueprint",
+        "sections": {
+            "main": {
+                "zones": ["admin-media-content"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true
+        }
+    }
+]
