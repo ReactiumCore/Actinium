@@ -2,6 +2,7 @@ const os = require('os');
 const path = require('path');
 const op = require('object-path');
 const FSFilesAdapter = require('@parse/fs-files-adapter');
+const fs = require('fs-extra');
 
 const PLUGIN = {
     ID: 'FSFileAdapter',
@@ -17,6 +18,14 @@ const PLUGIN = {
         group: 'FilesAdapter',
         builtIn: true,
     },
+};
+
+FSFilesAdapter.prototype._getLocalFilePath = function(filename) {
+    const applicationDir = this._getApplicationDir();
+    const filePath = path.resolve(applicationDir, filename);
+    fs.ensureDirSync(path.dirname(filePath));
+
+    return filePath;
 };
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {

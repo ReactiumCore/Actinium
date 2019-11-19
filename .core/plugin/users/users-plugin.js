@@ -198,9 +198,12 @@ const createAvatar = async req => {
         let fileObj;
 
         try {
-            const fileName = `avatar.${type}`;
+            const fileName = `avatars/avatar.${type}`;
             avatar = avatar.split(';base64,').pop();
-            fileObj = await new Parse.File(fileName, { base64: avatar }).save();
+
+            fileObj = await new Parse.File(encodeURIComponent(fileName), {
+                base64: avatar,
+            }).save();
         } catch (err) {
             console.log(err);
             return;

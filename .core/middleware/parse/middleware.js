@@ -16,6 +16,8 @@ const parseConfig = () => {
         cloud: ACTINIUM_DIR + '/cloud.js',
         serverURL: ENV.SERVER_URI + ENV.PARSE_MOUNT,
         allowClientClassCreation: ENV.PARSE_ALLOW_CLIENT_CLASS_CREATION,
+        preserveFileName: ENV.PARSE_PRESERVE_FILENAME,
+        directAccess: ENV.PARSE_FILES_DIRECT_ACCESS,
     };
 
     config.filesAdapter = FileAdapter.getProxy(config);

@@ -1,5 +1,6 @@
 const Plugin = require('./plugable');
 const Hook = require('./hook');
+const Setting = require('./setting');
 const {
     GridFSBucketAdapter,
 } = require('parse-server/lib/Adapters/Files/GridFSBucketAdapter');
@@ -11,7 +12,7 @@ class FilesAdapterProxy {
         this._set();
     }
 
-    _set(adapter) {
+    async _set(adapter) {
         if (!adapter) {
             this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
         } else this._adapter = adapter;
@@ -22,34 +23,51 @@ class FilesAdapterProxy {
     }
 
     // createFile(filename: string, data, contentType: string): Promise {}
-    createFile(...params) {
-        return this._get().createFile(...params);
+    createFile(filename, data, contentType) {
+        return this._get().createFile(filename, data, contentType);
     }
 
     // deleteFile(filename: string): Promise {}
-    deleteFile(...params) {
-        return this._get().deleteFile(...params);
+    deleteFile(filename) {
+        return this._get().deleteFile(filename);
     }
 
     // getFileData(filename: string): Promise<any> {}
-    getFileData(...params) {
-        return this._get().getFileData(...params);
+    getFileData(filename) {
+        return this._get().getFileData(filename);
     }
 
     // getFileLocation(config: Config, filename: string): string {}
-    getFileLocation(...params) {
-        return this._get().getFileLocation(...params);
+    getFileLocation(config, filename) {
+        return this._get().getFileLocation(config, filename);
     }
 
     // validateFilename(filename: string): ?Parse.Error {}
-    validateFilename(...params) {
-        return this._get().validateFilename(...params);
+    validateFilename(filename) {
+        if ('validateFilename' in this._get()) {
+            return this._get().validateFilename(filename);
+        }
+
+        const regx = /^[_a-zA-Z0-9][a-zA-Z0-9@./ ~_-]*$/;
+        if (!filename.match(regx)) {
+            return new Parse.Error(
+                Parse.Error.INVALID_FILE_NAME,
+                'Filename contains invalid characters.',
+            );
+        }
+
+        return null;
     }
 
     // handleFileStream(filename: string, res: any, req: any, contentType: string): Promise
-    handleFileStream(...params) {
+    handleFileStream(filename, res, req, contentType) {
         if ('handleFileStream' in this._get())
-            return this._get().handleFileStream(...params);
+            return this._get().handleFileStream(
+                filename,
+                res,
+                req,
+                contentType,
+            );
         return Promise.resolve();
     }
 
@@ -71,11 +89,7 @@ FilesAdapter.getProxy = config => {
 };
 
 FilesAdapter.update = async () => {
-    const { adapter } = await Hook.run(
-        'files-adapter',
-        FilesAdapter.config,
-        ENV,
-    );
+    const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
 
     proxy._set(adapter);
 };

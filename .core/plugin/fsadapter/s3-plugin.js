@@ -22,6 +22,7 @@ const PLUGIN = {
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     const settings = Actinium.Setting.get('S3Adapter', {
+        directAccess: config.directAccess,
         bucket: ENV.S3_BUCKET,
         region: ENV.S3_REGION,
         baseUrl: ENV.S3_BASE_URL,

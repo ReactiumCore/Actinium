@@ -42,7 +42,7 @@
         "object-path": "^0.11.4",
         "parse": "^2.8.0",
         "parse-dashboard": "^2.0.5",
-        "parse-server": "^3.9.0",
+        "parse-server": "git+https://github.com/Atomic-Reactor/parse-server.git#3.9.x-actinium",
         "pluralize": "^8.0.0",
         "promise": "^8.0.3",
         "request": "^2.88.0",

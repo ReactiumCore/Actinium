@@ -76,11 +76,9 @@ ENV.PARSE_DASHBOARD_ALLOW_INSECURE_HTTP = stringToBoolean(
 );
 ENV.NO_PARSE = stringToBoolean(op.get(ENV, 'NO_PARSE', false));
 ENV.NO_DOCS = stringToBoolean(op.get(ENV, 'NO_DOCS', false));
-
 ENV.EXPRESS_OPTIONS = stringToObject(
     op.get(ENV, 'EXPRESS_OPTIONS', defaults.express),
 );
-
 ENV.GLOB_CLOUD = stringToObject(op.get(ENV, 'GLOB_CLOUD', defaults.glob.cloud));
 ENV.GLOB_PLUGINS = stringToObject(
     op.get(ENV, 'GLOB_PLUGINS', defaults.glob.plugins),
@@ -88,12 +86,15 @@ ENV.GLOB_PLUGINS = stringToObject(
 ENV.GLOB_MIDDLEWARE = stringToObject(
     op.get(ENV, 'GLOB_MIDDLEWARE', defaults.glob.middleware),
 );
-
 ENV.SETTINGS = stringToObject(op.get(ENV, 'SETTINGS', defaults.settings));
-
 ENV.ROLES = stringToObject(op.get(ENV, 'ROLES', defaults.roles));
-
 ENV.STATIC_PATH = op.get(ENV, 'STATIC_PATH', defaults.static);
+ENV.PARSE_PRESERVE_FILENAME = stringToBoolean(
+    op.get(ENV, 'PARSE_PRESERVE_FILENAME', true),
+);
+ENV.PARSE_FILES_DIRECT_ACCESS = stringToBoolean(
+    op.get(ENV, 'PARSE_FILES_DIRECT_ACCESS', true),
+);
 
 global.LOG = (...args) => {
     if (!ENV.LOG) {

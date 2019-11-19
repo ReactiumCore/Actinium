@@ -35,19 +35,12 @@ mw.init = app => {
         .filter(file => isMiddleware(fs.readFileSync(file, 'utf8')))
         .forEach(file => require(file));
 
-    const grouped = _.chain(mw.sort)
-        .sortBy('order')
-        .groupBy('id')
-        .value();
-
-    const actions = Object.keys(grouped).reduce((acts, key) => {
-        const item = _.last(grouped[key]);
-        const { callback = noop, id } = item;
-
-        acts[id] = () => callback(app);
-
-        LOG(chalk.cyan('  Middleware'), chalk.cyan('→'), chalk.magenta(id));
-
+    const sorted = _.sortBy(mw.sort, 'order');
+    const actions = sorted.reduce((acts, { callback = noop, id }) => {
+        acts[id] = () => {
+            LOG(chalk.cyan('  Middleware'), chalk.cyan('→'), chalk.magenta(id));
+            callback(app);
+        };
         return acts;
     }, {});
 
