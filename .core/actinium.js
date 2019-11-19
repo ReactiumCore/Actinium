@@ -18,6 +18,7 @@ Actinium.Exp = require('./lib/express-settings');
 Actinium.Blueprint = require('./lib/blueprint');
 Actinium.Cache = require('./lib/cache');
 Actinium.FilesAdapter = require('./lib/files-adapter');
+Actinium.File = require('./lib/file');
 Actinium.Setting = require('./lib/setting');
 Actinium.Roles = require('./lib/roles');
 Actinium.Cloud = require('./lib/cloud');

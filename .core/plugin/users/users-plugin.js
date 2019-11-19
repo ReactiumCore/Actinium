@@ -198,10 +198,10 @@ const createAvatar = async req => {
         let fileObj;
 
         try {
-            const fileName = `avatars/avatar.${type}`;
+            const fileName = `avatar.${type}`;
             avatar = avatar.split(';base64,').pop();
 
-            fileObj = await new Parse.File(encodeURIComponent(fileName), {
+            fileObj = await new Actinium.File(`avatars/${fileName}`, {
                 base64: avatar,
             }).save();
         } catch (err) {
