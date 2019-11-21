@@ -55,7 +55,7 @@ const mapPlugins = (plugins = []) =>
     });
 
 Parse.Cloud.define('plugins', async req => {
-    if (!CloudHasCapabilities(req, ['plugin.view']))
+    if (!CloudHasCapabilities(req, ['Plugin.retrieve']))
         throw new Error('Permission denied.');
 
     let pages = 0,
@@ -68,7 +68,7 @@ Parse.Cloud.define('plugins', async req => {
 
     const skip = page > 0 ? page * limit - limit : 0;
     const query = new Parse.Query(COLLECTION);
-    const options = CloudRunOptions(req);
+    const options = CloudCapOptions(req, ['Plugin.retrieve']);
 
     // Pagination
     total = await query.count(options);

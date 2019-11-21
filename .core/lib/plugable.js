@@ -64,6 +64,12 @@ Plugable.capabilities = [
         roles: {},
     },
     {
+        capability: 'Plugin.retrieve',
+        roles: {
+            allowed: ['anonymous'],
+        },
+    },
+    {
         capability: 'Plugin.update',
         roles: {},
     },
@@ -97,7 +103,6 @@ Plugable.init = () => {
         ),
     );
 
-    // Allow public read, but private everything else:
     Actinium.Collection.register('Plugin', {
         create: false,
         retrieve: false,
