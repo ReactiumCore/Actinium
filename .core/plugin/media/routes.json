@@ -4,6 +4,7 @@
         "blueprint": "Media",
         "meta": {
             "builtIn": true
-        }
+        },
+        "capabilities": ["media-ui.view"]
     }
 ]
