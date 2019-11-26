@@ -1,0 +1,26 @@
+[
+    {
+        "ID": "PluginManager",
+        "description": "Plugin manager blueprint",
+        "className": "Blueprint",
+        "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {}
+            },
+            "main": {
+                "zones": [
+                    "admin-header",
+                    "admin-plugin-manager-content",
+                    "admin-actions"
+                ],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true,
+            "namespace": "admin-page"
+        }
+    }
+]

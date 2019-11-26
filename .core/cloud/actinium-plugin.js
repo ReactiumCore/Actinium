@@ -2,6 +2,7 @@ const op = require('object-path');
 const {
     CloudHasCapabilities,
     CloudCapOptions,
+    CloudRunOptions,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = 'Plugin';
@@ -44,10 +45,66 @@ const del = req => {
         .then(plugin => (plugin ? plugin.toJSON() : null));
 };
 
+const mapPlugins = (plugins = []) =>
+    plugins.map(item => {
+        if (op.has(item, 'id')) {
+            return item.toJSON();
+        } else {
+            return item;
+        }
+    });
+
 Parse.Cloud.define('plugins', async req => {
-    if (!CloudHasCapabilities(req, ['plugin.view']))
+    if (!CloudHasCapabilities(req, ['Plugin.retrieve']))
         throw new Error('Permission denied.');
-    return Actinium.Plugin.get();
+
+    let pages = 0,
+        total = 0;
+
+    let { page = 0, limit = 1000 } = req.params;
+
+    page = Math.max(page, 0);
+    limit = Math.min(limit, 1000);
+
+    const skip = page > 0 ? page * limit - limit : 0;
+    const query = new Parse.Query(COLLECTION);
+    const options = CloudCapOptions(req, ['Plugin.retrieve']);
+
+    // Pagination
+    total = await query.count(options);
+
+    // Find
+    query.skip(skip);
+    query.limit(limit);
+
+    let plugins = [];
+    let results = await query.find(options);
+    while (results.length > 0) {
+        plugins = plugins.concat(results);
+
+        if (page < 1) {
+            query.skip(plugins.length);
+            results = await query.find(options);
+        } else {
+            break;
+        }
+    }
+    plugins = mapPlugins(plugins);
+
+    pages = Math.ceil(total / limit);
+
+    const list = {
+        timestamp: Date.now(),
+        limit,
+        page,
+        pages,
+        total,
+        plugins,
+    };
+
+    await Actinium.Hook.run('plugins-list', list);
+
+    return list;
 });
 
 Parse.Cloud.define('plugin-activate', req => {

@@ -33,9 +33,9 @@ const levelCheck = (can, level, match) => {
     return can;
 };
 
+const capabilities = {};
+
 const Capability = {
-    _obj: {},
-    _groups: {},
     defaults: {
         'user.admin': {
             exclude: ['user'],
@@ -107,23 +107,17 @@ Capability.unregister = group => {
 
 Capability.get = capability => {
     if (capability) {
-        return op.get(Capability._obj, capability);
+        return op.get(capabilities, [capability]);
     } else {
-        return _.flatten(
-            Object.keys(Capability._obj).map(group => {
-                return Object.keys(Capability._obj[group]).map(cap => {
-                    return `${group}.${cap}`;
-                });
-            }),
-        ).sort();
+        return Object.keys(capabilities).sort();
     }
 };
 
 Capability.roles = capability => {
-    const excluded = op.get(Capability._obj, `${capability}.excluded`, []);
+    const excluded = op.get(capabilities, [capability, 'excluded'], []);
     return _.chain(
         op
-            .get(Capability._obj, `${capability}.allowed`, [])
+            .get(capabilities, [capability, 'allowed'], [])
             .filter(r => !excluded.includes(r)),
     )
         .uniq()
@@ -140,7 +134,7 @@ Capability.Role.can = (role, capability) => {
 };
 
 Capability.Role.get = role => {
-    return Object.keys(Capability._groups).reduce((arr, capability) => {
+    return Object.keys(capabilities).reduce((arr, capability) => {
         if (Capability.Role.can(role, capability)) arr.push(capability);
         return arr;
     }, []);
@@ -151,7 +145,7 @@ Capability.User.can = (cap, user) => {
 
     const roleObj = Actinium.Roles.User.get(user);
     const roles = Object.keys(roleObj);
-    const group = op.get(Capability._obj, cap, {});
+    const group = op.get(capabilities, [cap], {});
     let { allowed = [], excluded = [] } = group;
 
     // Strict cases:
@@ -216,7 +210,7 @@ Capability.User.can = (cap, user) => {
 Capability.User.get = user => {
     const roles = Actinium.Roles.User.get(user);
     return Object.keys(roles).reduce((arr, role) => {
-        const caps = Object.keys(Capability._groups).filter(cap =>
+        const caps = Object.keys(capabilities).filter(cap =>
             Capability.Role.can(role, cap),
         );
         return arr.concat(caps);
@@ -277,25 +271,18 @@ Capability.load = async () => {
     await Actinium.Hook.run('capability-loading');
 
     // Merge defaults with parse loaded
-    Capability._obj = Object.entries(Capability.defaults).reduce(
-        (_obj, [group, defaultCap]) => {
-            const cap = normalizeCapability(defaultCap);
-
-            op.set(_obj, group, cap);
-            Capability._groups[group] = cap;
-            return _obj;
-        },
-        {},
-    );
+    Object.entries(Capability.defaults).forEach(([group, defaultCap]) => {
+        const cap = normalizeCapability(defaultCap);
+        capabilities[group] = cap;
+    });
 
     // Register new or changed
     for (let cap of _.sortBy(sort, 'order')) {
         const { group } = cap;
-        const oldCapability = op.get(Capability._obj, group);
+        const oldCapability = capabilities[group];
         const newCapability = normalizeCapability(cap);
 
-        op.set(Capability._obj, group, newCapability);
-        Capability._groups[group] = newCapability;
+        capabilities[group] = newCapability;
 
         await Actinium.Hook.run(
             'capability-updated',
@@ -307,27 +294,25 @@ Capability.load = async () => {
 
     // unregisters
     for (let group of unreg) {
-        const cap = op.get(Capability._obj, group);
+        const cap = capabilities[group];
         if (cap && !op.get(cap, 'required', false)) {
-            op.del(Capability._obj, group);
-            delete Capability._groups[group];
+            delete capabilities[group];
             await Actinium.Hook.run('capability-unregistered', group);
         }
     }
 
     const loaded = await _loadedCapabilities();
 
-    Capability._obj = Object.values(loaded).reduce((_obj, result) => {
+    Object.values(loaded).forEach(result => {
         const {
             group,
             allowedList: allowed = [],
             excludedList: excluded = [],
         } = result.toJSON();
+
         const cap = normalizeCapability({ allowed, excluded });
-        op.set(_obj, group, cap);
-        Capability._groups[group] = cap;
-        return _obj;
-    }, Capability._obj);
+        capabilities[group] = cap;
+    });
 
     let query = new Parse.Query('_Role');
     const roleObjects = await query.find({ useMasterKey: true });
@@ -337,7 +322,7 @@ Capability.load = async () => {
     }, {});
 
     // saveAll
-    const objects = Object.entries(Capability._groups).map(([group, cap]) => {
+    const objects = Object.entries(capabilities).map(([group, cap]) => {
         let obj = new Parse.Object(COLLECTION);
         if (group in loaded) {
             obj = loaded[group];
@@ -389,8 +374,7 @@ const _addCapability = async (group, cap) => {
     const { allowed = [], excluded = [] } = cap;
     const capability = normalizeCapability(cap);
 
-    op.set(Capability._obj, group, capability);
-    Capability._groups[group] = capability;
+    capabilities[group] = capability;
 
     Actinium.Hook.run('capability-updated', group, capability);
 
@@ -444,8 +428,8 @@ const _removeCapability = async group => {
 
     const capability = await query.first({ useMasterKey: true });
     if (capability) await capability.destroy({ useMasterKey: true });
-    op.del(Capability._obj, group);
-    delete Capability._groups[group];
+
+    delete capabilities[group];
 };
 
 Actinium.User.can = Capability.User.can;
