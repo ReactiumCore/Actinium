@@ -20,7 +20,7 @@ const {
  The following capabilities can be assigned to your roles for settings:
 
  | Capability | Default Roles | Description |
- | :---- | :-- | -----: |
+ | ---- | --- | ----- |
  | Setting.create | administrator,super-admin | Ability to create a new setting. |
  | Setting.retrieve | administrator,super-admin | Ability to retrieve any/all settings. |
  | Setting.update | administrator,super-admin | Ability to edit any existing setting. |
@@ -464,3 +464,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'setting-rm', del);
 
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 Actinium.Cloud.afterDelete(COLLECTION, afterDel);
+
+Actinium.Pulse.define('settings-sync', async () => {
+    const prevSettings = Actinium.Setting.get();
+    const settings = await Actinium.Setting.load();
+    Actinium.Hook.run('settings-sync', settings, prevSettings);
+});

@@ -1,21 +1,92 @@
 {
     "ACTIONS": {
-        "addField": false,
-        "create": false,
-        "delete": false,
-        "retrieve": true,
-        "update": false
+        "DIRECTORY": {
+            "addField": false,
+            "create": false,
+            "delete": false,
+            "retrieve": true,
+            "update": false
+        },
+        "MEDIA": {
+            "addField": false,
+            "create": false,
+            "delete": false,
+            "retrieve": true,
+            "update": false
+        },
+        "UPLOAD": {
+            "addField": false,
+            "create": false,
+            "delete": false,
+            "retrieve": true,
+            "update": false
+        }
     },
     "SCHEMA": {
-        "file": {
-            "type": "String"
+        "DIRECTORY": {
+            "capabilities": {
+                "type": "Array"
+            },
+            "directory": {
+                "type": "String"
+            },
+            "user": {
+                "type": "Pointer",
+                "targetClass": "_User"
+            }
         },
-        "user": {
-            "type": "Pointer",
-            "targetClass": "_User"
+        "MEDIA": {
+            "capabilities": {
+                "type": "Array"
+            },
+            "directory": {
+                "type": "String"
+            },
+            "ext": {
+                "type": "String"
+            },
+            "file": {
+                "type": "File"
+            },
+            "filename": {
+                "type": "String"
+            },
+            "meta": {
+                "type": "Object"
+            },
+            "url": {
+                "type": "String"
+            },
+            "user": {
+                "type": "Pointer",
+                "targetClass": "_User"
+            },
+            "uuid": {
+                "type": "String"
+            }
         },
-        "meta": {
-            "type": "Object"
+        "UPLOAD": {
+            "ID": {
+                "type": "String"
+            },
+            "chunk": {
+                "type": "Array"
+            },
+            "directory": {
+                "type": "String"
+            },
+            "index": {
+                "type": "Number"
+            },
+            "filename": {
+                "type": "String"
+            },
+            "total": {
+                "type": "Number"
+            },
+            "totalChunkCount": {
+                "type": "Number"
+            }
         }
     }
 }
