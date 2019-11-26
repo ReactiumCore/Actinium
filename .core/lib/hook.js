@@ -3,6 +3,7 @@ const uuid = require('uuid/v4');
 const _ = require('underscore');
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
+const assert = require('assert');
 
 const noop = () => Promise.resolve();
 
@@ -52,7 +53,31 @@ Hook.run = async (name, ...params) => {
     } catch (errors) {
         Object.entries(errors).forEach(([id, error]) => {
             LOG(chalk.magenta(`Error in action.${name}[${id}]`));
-            console.error(error);
+            if (op.get(error, 'error') instanceof assert.AssertionError) {
+                const assertion = error.error;
+                console.log(chalk.cyan('Assertion: ' + assertion.message));
+                console.log(
+                    chalk.cyan(
+                        'operator: ' +
+                            JSON.stringify(assertion.operator, null, 2),
+                    ),
+                );
+                console.log(
+                    chalk.green(
+                        'expected: ' +
+                            JSON.stringify(assertion.expected, null, 2),
+                    ),
+                );
+                console.log(
+                    chalk.red(
+                        'actual: ' + JSON.stringify(assertion.actual, null, 2),
+                    ),
+                );
+                console.log(' ');
+            } else {
+                console.log('NOT ASSERTION ERROR');
+                console.log(error);
+            }
         });
     }
 };

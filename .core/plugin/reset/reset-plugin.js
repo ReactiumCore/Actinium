@@ -11,6 +11,7 @@ const PLUGIN = {
         'Utility for resetting Actinium core to blank configuration (Use with Caution.)',
     meta: {
         group: 'utilities',
+        settings: true,
     },
 };
 
@@ -33,6 +34,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'reset-actinium', async req => {
     if (process.env.NODE_ENV !== 'development') throw 'Development only!';
     if (!CloudHasCapabilities(req, 'reset-actinium'))
         throw 'Permission Denied.';
+
     const options = CloudCapOptions(req, ['reset-actinium']);
 
     // reset routes
@@ -59,5 +61,4 @@ Actinium.Cloud.define(PLUGIN.ID, 'reset-actinium', async req => {
     });
     await Parse.Object.saveAll(plugins, options);
     await Parse.Object.destroyAll(plugins, options);
-    process.exit();
 });

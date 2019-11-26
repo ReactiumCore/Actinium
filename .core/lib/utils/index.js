@@ -24,28 +24,26 @@ const CloudRunOptions = req => {
 
 const CloudHasCapabilities = (req, capability, strict = true) => {
     const { master } = req;
-    if (master) return true;
-
-    const userCaps = req.user
-        ? // get all caps associated with user
-          Actinium.Capability.User.get(req.user.id)
-        : // treat non-user as anonymous role
-          Actinium.Capability.Role.get('anonymous');
 
     // if no capabilities specified, deny
     if (!capability) return false;
 
+    if (master) return true;
+
     const capabilities = Array.isArray(capability) ? capability : [capability];
 
+    // Check against existing capabilities
     const permitted = strict
         ? // all capabilities required for strict
           capabilities.reduce(
-              (hasCaps, cap) => !!(hasCaps && userCaps.find(uc => uc === cap)),
+              (hasCaps, cap) =>
+                  !!(hasCaps && Actinium.Capability.User.can(req.user, cap)),
               true,
           )
         : // one capability required for non-strict
           capabilities.reduce(
-              (hasCaps, cap) => !!(hasCaps || userCaps.find(uc => uc === cap)),
+              (hasCaps, cap) =>
+                  !!(hasCaps || Actinium.Capability.User.can(req.user, cap)),
               false,
           );
 
