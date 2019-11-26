@@ -41,6 +41,9 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) capability-updated
  * @apiParam (Hooks) collection-before-permissions
  * @apiParam (Hooks) deactivate Triggered when a plugin has been deactivated. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) directories Triggered after the list of upload directories is retrieved. Passes the `Array` of directories as the only paramter.
+ * @apiParam (Hooks) directory-create Triggered after a directory is created. Passes the `Parse.Object('MediaDirectory')` object as the only parameter.
+ * @apiParam (Hooks) directory-query Triggered when the query for a directory is created. Passes the `Parse.Query` object as the only parameter.
  * @apiParam (Hooks) init Triggered after Actinium has initialized Express, Middleware, and Plugins. `init` is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it.
  * @apiParam (Hooks) install Triggered after a plugin has been installed. The `Plugin` object is passed to the hook.
  * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
@@ -62,6 +65,7 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) settings Triggered when the settings have been fetched from the server. The settings object is passed to the hook.
  * @apiParam (Hooks) settings-acl
  * @apiParam (Hooks) settings-acl-roles
+ * @apiParam (Hooks) settings-sync Triggered when the settings are synced across multiple instances.
  * @apiParam (Hooks) start Triggered when the server starts up. If you have any database seeding or schema to construct, this is the optimal time to do it.
  * @apiParam (Hooks) uninstall Triggered after a plugin has been uninstalled. The `Plugin` object is passed to the hook.
  * @apiParam (Hooks) update

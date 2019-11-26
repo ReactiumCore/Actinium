@@ -60,8 +60,18 @@ const CloudCapOptions = (req, capability, strict = false) => {
     return options;
 };
 
+const UserFromSession = async sessionToken => {
+    const session = await new Parse.Query(Parse.Session)
+        .equalTo('sessionToken', sessionToken)
+        .include('user')
+        .first({ useMasterKey: true });
+
+    return session ? session.get('user') : null;
+};
+
 module.exports = {
     CloudRunOptions,
     CloudCapOptions,
     CloudHasCapabilities,
+    UserFromSession,
 };
