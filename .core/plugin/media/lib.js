@@ -36,7 +36,7 @@ const getDirectories = async () => {
 const getMedia = async () => {
     const options = { useMasterKey: true };
     const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .ascending(['directory', 'file'])
+        .ascending(['updatedAt', 'directory', 'file'])
         .include('file')
         .exists('file')
         .limit(1000)
@@ -79,6 +79,13 @@ const mapUploadToData = upload => {
 };
 
 const load = async () => {
+    const loading = Actinium.Cache.get('Media.loading', false);
+
+    if (loading === true) {
+        return Actinium.Cache.get('Media');
+    }
+    Actinium.Cache.set('Media.loading', true);
+
     const [directories, files] = await Promise.all([
         getDirectories(),
         getMedia(),
@@ -88,6 +95,7 @@ const load = async () => {
         directories,
         files,
         timestamp: Date.now(),
+        loading: false,
     });
 
     return Actinium.Cache.get('Media');
@@ -167,7 +175,7 @@ Media.chunkUpload = async (upload = {}, options = { useMasterKey: true }) => {
         const mediaObj = await Media.fileCreate(chunks, data, user, options);
 
         // 4.3 - return the file object
-        return { status, file: mediaObj };
+        return { status, file: mediaObj.toJSON() };
     } else {
         // 4.4 - return the status if not complete
         return { status };
@@ -336,7 +344,7 @@ Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
                 return false;
             }
 
-            if (search && !String(item.file).includes(search)) {
+            if (search && !String(item.url).includes(search)) {
                 return false;
             }
 
@@ -347,11 +355,12 @@ Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
     const pages = Math.ceil(items.length / limit);
     const index = limit * page - limit;
     const selection = Array.from(items).splice(index, limit);
-    const next = page !== pages ? page + 1 : undefined;
-    const prev = page !== 1 ? page - 1 : undefined;
+    const next = page < pages ? page + 1 : undefined;
+    const prev = page > 1 ? page - 1 : undefined;
 
     return {
         files: _.indexBy(selection, 'objectId'),
+        directories: Media.directories(null, user),
         count: items.length,
         page,
         pages,
@@ -362,6 +371,6 @@ Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
     };
 };
 
-Media.load = _.throttle(load, 900, { leading: false });
+Media.load = load;
 
 module.exports = Media;

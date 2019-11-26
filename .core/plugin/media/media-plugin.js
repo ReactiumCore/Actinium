@@ -206,7 +206,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'file-delete', req => {
     const { user } = req;
     const { ID } = req.params;
 
-    if (!user) throw ENUMS.ERRORS.PERMISSIONS;
+    if (!user) ENUMS.ERRORS.PERMISSIONS;
 
     return Actinium.Media.fileDelete(ID, user);
 });
@@ -297,7 +297,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', req => {
     const { user } = req;
     const { directory } = req.params;
 
-    if (!user) throw ENUMS.ERRORS.PERMISSIONS;
+    if (!user) return Promise.reject(ENUMS.ERRORS.PERMISSIONS);
     if (!directory) return Promise.reject(ENUMS.ERRORS.DIRECTORY);
 
     return Actinium.Media.directoryDelete(directory, user);
@@ -326,4 +326,16 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
     if (fetch) throw ENUMS.ERRORS.DUPLICATE_DIRECTORY;
 });
 
-Actinium.Cloud.afterSave(COLLECTION.MEDIA, Actinium.Media.load);
+Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
+    const id = req.object.id;
+    const files = Actinium.Cache.get('Media.files', {});
+    delete files[id];
+    Actinium.Cache.set('Media.files', files);
+});
+
+Actinium.Cloud.afterSave(COLLECTION.MEDIA, req => {
+    const id = req.object.id;
+    const files = Actinium.Cache.get('Media.files', {});
+    files[id] = req.object.toJSON();
+    Actinium.Cache.set('Media.files', files);
+});

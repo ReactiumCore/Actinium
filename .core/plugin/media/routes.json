@@ -1,5 +1,13 @@
 [
     {
+        "route": "/admin/media/:page",
+        "blueprint": "Media",
+        "meta": {
+            "builtIn": true
+        },
+        "capabilities": ["media-ui.view"]
+    },
+    {
         "route": "/admin/media",
         "blueprint": "Media",
         "meta": {
