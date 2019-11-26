@@ -152,13 +152,11 @@ Actinium.Harness.test(
         );
     },
     async () => {
-        console.log('setup');
         await Actinium.Capability.register('TestCapability.Foo', {
             allowed: ['contributor', 'banned'],
         });
     },
     async () => {
-        console.log('teardown');
         await Actinium.Capability.unregister('TestCapability.Foo');
     },
 );
