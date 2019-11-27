@@ -43,7 +43,6 @@ Plugable.schema = async () => {
     try {
         isSchema = await schema.get({ useMasterKey: true });
     } catch (err) {
-        schema.addArray('bundle');
         schema.addBoolean('active');
         schema.addNumber('order');
         schema.addObject('meta');

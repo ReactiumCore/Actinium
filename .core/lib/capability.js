@@ -114,10 +114,14 @@ Capability.get = capability => {
 };
 
 Capability.roles = capability => {
-    const excluded = op.get(capabilities, [capability, 'excluded'], []);
+    const excluded = op.get(capabilities, [capability, 'excluded'], ['banned']);
     return _.chain(
         op
-            .get(capabilities, [capability, 'allowed'], [])
+            .get(
+                capabilities,
+                [capability, 'allowed'],
+                ['super-admin', 'administrator'],
+            )
             .filter(r => !excluded.includes(r)),
     )
         .uniq()
@@ -126,8 +130,40 @@ Capability.roles = capability => {
         .sort();
 };
 
+Actinium.Harness.test(
+    'Capability.roles()',
+    async assert => {
+        const adminRoles = Capability.roles('TestCapability.Foo');
+        assert(
+            ['super-admin', 'administrator'].filter(role =>
+                adminRoles.find(r => r === role),
+            ).length === 2,
+            'Capability.roles() should include super-admin and administrator (if administrator isnt explicitly denied)',
+        );
+
+        const noBannedRoles = Capability.roles('TestCapability.Foo');
+        assert(
+            !noBannedRoles.find(role => role === 'banned'),
+            'Capability.roles() should never included banned, no matter what.',
+        );
+        assert(
+            noBannedRoles.find(role => role === 'contributor'),
+            'Capability.roles() missing role.',
+        );
+    },
+    async () => {
+        await Actinium.Capability.register('TestCapability.Foo', {
+            allowed: ['contributor', 'banned'],
+        });
+    },
+    async () => {
+        await Actinium.Capability.unregister('TestCapability.Foo');
+    },
+);
+
 Capability.Role.can = (role, capability) => {
     if (role === 'banned') return false;
+    if (role === 'super-admin') return true;
 
     const roles = Capability.roles(capability);
     return roles.includes(role) || roles.includes('anonymous');

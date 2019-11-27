@@ -11,6 +11,7 @@ Actinium.ready = false;
 Actinium.started = false;
 Actinium.server = null;
 Actinium.version = op.get(config, 'version', '3.1.1');
+Actinium.Harness = require('./lib/harness');
 Actinium.Schema = Parse.Schema;
 Actinium.Enums = require('./lib/enums');
 Actinium.User = {};
@@ -129,6 +130,9 @@ Actinium.start = options =>
 
                     // Run warnings hook
                     await Actinium.Warnings.run();
+
+                    // Run tests in local development
+                    await Actinium.Harness.run();
 
                     LOG('');
 

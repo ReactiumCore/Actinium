@@ -17,6 +17,7 @@ const PLUGIN = {
     meta: {
         group: 'FilesAdapter',
         builtIn: true,
+        settings: true,
     },
 };
 
