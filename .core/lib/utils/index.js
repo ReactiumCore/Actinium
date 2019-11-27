@@ -74,17 +74,11 @@ const CloudHasCapabilities = (req, capability, strict = true) => {
     const permitted = strict
         ? // all capabilities required for strict
           capabilities.reduce((hasCaps, cap) => {
-              return !!(
-                  hasCaps &&
-                  Actinium.Capability.User.can(cap, { user: req.user })
-              );
+              return !!(hasCaps && Actinium.Capability.User.can(cap, req));
           }, true)
         : // one capability required for non-strict
           capabilities.reduce((hasCaps, cap) => {
-              return !!(
-                  hasCaps ||
-                  Actinium.Capability.User.can(cap, { user: req.user })
-              );
+              return !!(hasCaps || Actinium.Capability.User.can(cap, req));
           }, false);
 
     return permitted;

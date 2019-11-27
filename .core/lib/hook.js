@@ -75,7 +75,6 @@ Hook.run = async (name, ...params) => {
                 );
                 console.log(' ');
             } else {
-                console.log('NOT ASSERTION ERROR');
                 console.log(error);
             }
         });
