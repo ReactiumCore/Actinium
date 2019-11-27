@@ -308,7 +308,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
         'Media.retrieve',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap, false)) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
     }
 
