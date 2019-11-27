@@ -195,40 +195,46 @@ Media.fileCreate = async (filedata, meta, user, options) => {
 
     capabilities = capabilities || ['Media.retrieve'];
 
-    let fileObj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .equalTo('uuid', ID)
-        .first({ useMasterKey: true });
+    const ext = filename.split('.').pop();
+    let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
 
-    if (!fileObj) {
-        const fname = [stripSlashes(directory), stripSlashes(filename)].join(
-            '/',
-        );
+    let fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+        .endsWith('url', fname)
+        .find({ useMasterKey: true });
 
-        const regex = new RegExp(`http://localhost:${PORT}`, 'gi');
-        const file = await new Actinium.File(fname, filedata).save(options);
-        const ext = filename.split('.').pop();
-        const obj = {
-            capabilities,
-            directory,
-            ext,
-            file,
-            filename,
-            meta,
-            user,
-            uuid: ID,
-            url: decodeURIComponent(String(file.url()).replace(regex, '')),
-        };
-
-        fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(
-            obj,
-            options,
-        );
-
-        // Create the directory
-        try {
-            await Media.directoryCreate(directory, null, options);
-        } catch (err) {}
+    if (fileExists.length > 0) {
+        const farr = filename.split('.');
+        farr.pop();
+        filename = `${uuid()}-${farr.join('.')}.${ext}`;
+        fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
     }
+
+    const file = await new Actinium.File(fname, filedata).save(options);
+    const url = decodeURIComponent(
+        String(file.url()).replace(
+            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
+            '/media/',
+        ),
+    );
+
+    const obj = {
+        capabilities,
+        directory,
+        ext,
+        file,
+        filename,
+        meta,
+        user,
+        uuid: ID,
+        url,
+    };
+
+    fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(obj, options);
+
+    // Create the directory
+    try {
+        await Media.directoryCreate(directory, null, options);
+    } catch (err) {}
 
     return fileObj;
 };
