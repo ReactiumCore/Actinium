@@ -107,7 +107,7 @@ Media.chunks = async (ID, options = { useMasterKey: true }) => {
     const qry = new Parse.Query(ENUMS.COLLECTION.UPLOAD)
         .ascending('index')
         .equalTo('ID', ID)
-        .limit(50)
+        .limit(100)
         .skip(0);
 
     let results = await qry.find(options);
@@ -115,14 +115,14 @@ Media.chunks = async (ID, options = { useMasterKey: true }) => {
 
     while (results.length > 0) {
         results.forEach(item => {
-            chunks.push(item.toJSON().chunk);
+            chunks.push(item.toJSON());
         });
 
         qry.skip(chunks.length);
         results = await qry.find(options);
     }
 
-    return chunks;
+    return _.flatten(_.pluck(chunks, 'chunk'));
 };
 
 Media.chunkClear = async (ID, options = { useMasterKey: true }) => {
