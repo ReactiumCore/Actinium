@@ -127,14 +127,13 @@ Capability.Role.get = role => {
 
 Capability.User.can = (cap, user) => {
     user = op.get(user, 'user.id', user);
-    const allowed = op.get(capabilities, [cap, 'allowed'], []);
 
     const roleObj = Actinium.Roles.User.get(user);
     const roles = Object.keys(roleObj);
 
     // no roles exist yet, or capability allows anonymous access
-    if (roles.length < 1 || allowed.includes('anonymous')) {
-        return true;
+    if (roles.length < 1) {
+        roles.push['anonymous'];
     }
 
     if (_.intersection(roles, Capability.roles(cap)).length > 0) return true;
