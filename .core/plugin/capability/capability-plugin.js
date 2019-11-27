@@ -123,3 +123,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
     Actinium.Capability.unregister(group);
     return Promise.resolve('success');
 });
+
+Actinium.Cloud.define(PLUGIN.ID, 'level-check', async req => {
+    const { match } = req.params;
+    return CloudRunOptions(req, match);
+});

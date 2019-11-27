@@ -1,7 +1,6 @@
 const chalk = require('chalk');
 const uuid = require('uuid/v4');
 const _ = require('underscore');
-const semver = require('semver');
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
 const Hook = require('./hook');
@@ -12,26 +11,6 @@ const noop = () => Promise.resolve();
 
 let sort = [];
 let unreg = [];
-
-const isLevel = match => {
-    match = String(match);
-    return (
-        match.includes('>') ||
-        match.includes('=') ||
-        match.includes('<') ||
-        match.includes('~') ||
-        match.includes(' ')
-    );
-};
-
-const levelCheck = (can, level, match) => {
-    level = semver.coerce(String(level));
-    match = String(match);
-    if (can !== true && semver.satisfies(level, match)) {
-        can = true;
-    }
-    return can;
-};
 
 const capabilities = {};
 
@@ -92,7 +71,7 @@ Capability.register = (
     });
 
     if (Actinium.started === true) {
-        _addCapability(group, perms);
+        return _addCapability(group, perms);
     }
 };
 
@@ -101,7 +80,7 @@ Capability.unregister = group => {
     unreg = _.compact(_.uniq(unreg));
 
     if (Actinium.started === true) {
-        _removeCapability(group);
+        return _removeCapability(group);
     }
 };
 
@@ -114,57 +93,27 @@ Capability.get = capability => {
 };
 
 Capability.roles = capability => {
-    const excluded = op.get(capabilities, [capability, 'excluded'], ['banned']);
-    return _.chain(
-        op
-            .get(
-                capabilities,
-                [capability, 'allowed'],
-                ['super-admin', 'administrator'],
-            )
-            .filter(r => !excluded.includes(r)),
-    )
+    // banned is always excluded
+    const excluded = _.uniq(
+        op.get(capabilities, [capability, 'excluded'], []).concat(['banned']),
+    );
+
+    const allowed = op
+        .get(capabilities, [capability, 'allowed'], [])
+        // administrator can be excluded
+        .concat(['administrator'])
+        .filter(r => !excluded.includes(r))
+        // super-admin may not
+        .concat(['super-admin']);
+
+    return _.chain(allowed)
         .uniq()
         .compact()
         .value()
         .sort();
 };
 
-Actinium.Harness.test(
-    'Capability.roles()',
-    async assert => {
-        const adminRoles = Capability.roles('TestCapability.Foo');
-        assert(
-            ['super-admin', 'administrator'].filter(role =>
-                adminRoles.find(r => r === role),
-            ).length === 2,
-            'Capability.roles() should include super-admin and administrator (if administrator isnt explicitly denied)',
-        );
-
-        const noBannedRoles = Capability.roles('TestCapability.Foo');
-        assert(
-            !noBannedRoles.find(role => role === 'banned'),
-            'Capability.roles() should never included banned, no matter what.',
-        );
-        assert(
-            noBannedRoles.find(role => role === 'contributor'),
-            'Capability.roles() missing role.',
-        );
-    },
-    async () => {
-        await Actinium.Capability.register('TestCapability.Foo', {
-            allowed: ['contributor', 'banned'],
-        });
-    },
-    async () => {
-        await Actinium.Capability.unregister('TestCapability.Foo');
-    },
-);
-
 Capability.Role.can = (role, capability) => {
-    if (role === 'banned') return false;
-    if (role === 'super-admin') return true;
-
     const roles = Capability.roles(capability);
     return roles.includes(role) || roles.includes('anonymous');
 };
@@ -178,69 +127,19 @@ Capability.Role.get = role => {
 
 Capability.User.can = (cap, user) => {
     user = op.get(user, 'user.id', user);
+    const allowed = op.get(capabilities, [cap, 'allowed'], []);
 
     const roleObj = Actinium.Roles.User.get(user);
     const roles = Object.keys(roleObj);
-    const group = op.get(capabilities, [cap], {});
-    let { allowed = [], excluded = [] } = group;
-
-    // Strict cases:
-
-    // If the user is banned... get outta here!
-    if (roles.includes('banned')) {
-        return false;
-    }
 
     // no roles exist yet, or capability allows anonymous access
     if (roles.length < 1 || allowed.includes('anonymous')) {
         return true;
     }
 
-    // If the user is a super-admin they get all capabilities
-    if (roles.includes('super-admin')) {
-        return true;
-    }
+    if (_.intersection(roles, Capability.roles(cap)).length > 0) return true;
 
-    // If the user is an administrator and they are not excluded from a capability
-    if (
-        roles.includes('administrator') &&
-        !excluded.includes('administrator')
-    ) {
-        return true;
-    }
-
-    // Fluid cases:
-    const level = _.max(Object.values(roleObj)) || 0;
-    let can = false;
-    if (allowed.length > 0) {
-        can = _.intersection(roles, allowed).length > 0;
-
-        // Check levels
-        if (!can) {
-            allowed.forEach(match => {
-                if (isLevel(match)) {
-                    can = levelCheck(can, level, match);
-                }
-            });
-        }
-    } else {
-        can = true;
-    }
-
-    if (excluded.length > 0) {
-        can = _.intersection(roles, excluded).length > 0 ? false : can;
-
-        // Check levels
-        if (can) {
-            excluded.forEach(match => {
-                if (isLevel(match)) {
-                    can = levelCheck(can, level, match);
-                }
-            });
-        }
-    }
-
-    return can;
+    return false;
 };
 
 Capability.User.get = user => {
@@ -412,8 +311,6 @@ const _addCapability = async (group, cap) => {
 
     capabilities[group] = capability;
 
-    Actinium.Hook.run('capability-updated', group, capability);
-
     const roles = await _getRoles();
     const query = new Parse.Query(COLLECTION);
     query.equalTo('group', group);
@@ -454,21 +351,56 @@ const _addCapability = async (group, cap) => {
         role => role in roles && excludedRel.add(roles[role]),
     );
 
-    obj.save(null, { useMasterKey: true });
+    await obj.save(null, { useMasterKey: true });
+    return Actinium.Hook.run('capability-updated', group, capability);
 };
 
 const _removeCapability = async group => {
     const query = new Parse.Query(COLLECTION);
     query.equalTo('group', group);
-    Actinium.Hook.run('capability-updated', group);
 
     const capability = await query.first({ useMasterKey: true });
-    if (capability) await capability.destroy({ useMasterKey: true });
 
-    delete capabilities[group];
+    if (capability && group in capabilities) {
+        delete capabilities[group];
+        await capability.destroy({ useMasterKey: true });
+    }
+
+    return Actinium.Hook.run('capability-updated', group);
 };
 
 Actinium.User.can = Capability.User.can;
 Actinium.User.capabilities = Capability.User.get;
 
 module.exports = Capability;
+
+Actinium.Harness.test(
+    'Capability.roles()',
+    async assert => {
+        const adminRoles = Capability.roles('TestCapability.Foo');
+        assert(
+            ['super-admin', 'administrator'].filter(role =>
+                adminRoles.find(r => r === role),
+            ).length === 2,
+            'Capability.roles() should include super-admin and administrator (if administrator isnt explicitly denied)',
+        );
+
+        const noBannedRoles = Capability.roles('TestCapability.Foo');
+        assert(
+            !noBannedRoles.find(role => role === 'banned'),
+            'Capability.roles() should never included banned, no matter what.',
+        );
+        assert(
+            noBannedRoles.find(role => role === 'contributor'),
+            'Capability.roles() missing role.',
+        );
+    },
+    async () => {
+        await Actinium.Capability.register('TestCapability.Foo', {
+            allowed: ['contributor', 'banned'],
+        });
+    },
+    async () => {
+        await Actinium.Capability.unregister('TestCapability.Foo');
+    },
+);

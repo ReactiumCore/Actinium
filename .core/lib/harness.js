@@ -62,18 +62,18 @@ Actinium.Harness.test('My Test', async assert => {
         Hook.register('tests', async context => {
             try {
                 if (typeof setup === 'function') {
-                    setup();
+                    await setup();
                 }
 
                 context[desc] = await cb(assert);
                 LOG(' - ' + description + ': ' + chalk.green('OK'));
 
-                if (typeof setup === 'function') {
-                    teardown();
+                if (typeof teardown === 'function') {
+                    await teardown();
                 }
             } catch (error) {
-                if (typeof setup === 'function') {
-                    teardown();
+                if (typeof teardown === 'function') {
+                    await teardown();
                 }
                 throw { description, error };
             }
