@@ -158,9 +158,9 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
     });
 
     if (req.object.isNew()) {
-        await Actinium.Hook.run('install', obj);
+        await Actinium.Hook.run('install', obj, req);
         if (active) {
-            await Actinium.Hook.run('activate', obj);
+            await Actinium.Hook.run('activate', obj, req);
         }
     } else {
         let old = await new Parse.Query(COLLECTION)
@@ -171,19 +171,19 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
 
         const { active: prev, version: prevVer } = old;
 
-        Actinium.Cache.set(`plugins.${obj.ID}`, obj);
-
         if (active === true && version !== prevVer) {
-            await Actinium.Hook.run('update', obj, old);
+            await Actinium.Hook.run('update', obj, old, req);
         }
 
         if (active !== prev && active === true) {
-            await Actinium.Hook.run('activate', obj);
+            await Actinium.Hook.run('activate', obj, req);
         }
 
         if (active !== prev && active === false) {
-            await Actinium.Hook.run('deactivate', obj);
+            await Actinium.Hook.run('deactivate', obj, req);
         }
+
+        Actinium.Cache.set(`plugins.${obj.ID}`, req.object.toJSON());
     }
 
     return Promise.resolve();

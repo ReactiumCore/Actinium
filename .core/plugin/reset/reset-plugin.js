@@ -1,3 +1,4 @@
+const path = require('path');
 const {
     CloudCapOptions,
     CloudHasCapabilities,
@@ -16,6 +17,14 @@ const PLUGIN = {
 };
 
 Actinium.Plugin.register(PLUGIN);
+Actinium.Plugin.addScript(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'assets/reset.js'),
+);
+Actinium.Plugin.addStylesheet(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'assets/reset-plugin.css'),
+);
 
 Actinium.Hook.register('warn', async () => {
     if (

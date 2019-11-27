@@ -93,6 +93,32 @@ Plugable.register = (plugin, active = false) => {
     }
 };
 
+Plugable.addScript = (ID, filePath) => {
+    Actinium.Hook.register('activate', async (pluginObj, req) => {
+        if (ID !== pluginObj.ID) return;
+
+        const file = await Actinium.File.create(filePath, `plugins/${ID}`);
+        const plugin = Actinium.Cache.get(`plugins.${ID}`);
+        op.set(plugin, 'meta.scriptURL', file.url());
+        req.object.set('meta', op.get(plugin, 'meta'));
+    });
+
+    // @TODO: update hook
+};
+
+Plugable.addStylesheet = (ID, filePath) => {
+    Actinium.Hook.register('activate', async (pluginObj, req) => {
+        if (ID !== pluginObj.ID) return;
+
+        const file = await Actinium.File.create(filePath, `plugins/${ID}`);
+        const plugin = Actinium.Cache.get(`plugins.${ID}`);
+        op.set(plugin, 'meta.styleURL', file.url());
+        req.object.set('meta', op.get(plugin, 'meta'));
+    });
+
+    // @TODO: update hook
+};
+
 Plugable.init = () => {
     Plugable.capabilities.forEach(({ capability, roles }) =>
         Actinium.Capability.register(
