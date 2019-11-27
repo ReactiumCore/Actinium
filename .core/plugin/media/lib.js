@@ -5,6 +5,7 @@ const moment = require('moment');
 const op = require('object-path');
 const stripSlashes = str => String(str).replace(/^\/|\/$/g, '');
 const {
+    CloudHasCapabilities,
     CloudRunOptions,
     UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
@@ -84,6 +85,7 @@ const load = async () => {
     if (loading === true) {
         return Actinium.Cache.get('Media');
     }
+
     Actinium.Cache.set('Media.loading', true);
 
     const [directories, files] = await Promise.all([

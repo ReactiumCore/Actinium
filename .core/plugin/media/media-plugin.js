@@ -315,7 +315,17 @@ Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
     return Actinium.Media.files({ ...req.params, user: req.user });
 });
 
+const dirs = () => {
+    const directories = Actinium.Cache.get('Media.directories', []);
+    return _.chain(directories)
+        .pluck('directory')
+        .compact()
+        .uniq()
+        .value()
+        .sort();
+};
 Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
+    if (!req.object.isNew()) return;
     const { directory } = req.object.toJSON();
 
     // Lookup the directory before we create it
@@ -324,6 +334,12 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
         .first({ useMasterKey: true });
 
     if (fetch) throw ENUMS.ERRORS.DUPLICATE_DIRECTORY;
+});
+
+Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
+    const { directory } = req.object.toJSON();
+    let directories = _.without(dirs(), directory).sort();
+    Actinium.Cache.set('Media.directories', directories);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
