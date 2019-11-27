@@ -1,7 +1,34 @@
 const chalk = require('chalk');
 const op = require('object-path');
+const _ = require('underscore');
+const semver = require('semver');
 
-const CloudRunOptions = req => {
+const isLevel = match => {
+    match = String(match);
+    return (
+        match.includes('>') ||
+        match.includes('=') ||
+        match.includes('<') ||
+        match.includes('~') ||
+        match.includes(' ')
+    );
+};
+
+const levelCheck = (level, match) => {
+    level = semver.coerce(String(level));
+    match = String(match);
+    return isLevel(match) && semver.satisfies(level, match);
+};
+
+const userMeetsLevel = (userId, match) => {
+    const roles = Actinium.Roles.User.get(userId);
+    return Object.values(roles).reduce(
+        (hasLevel, level) => hasLevel || levelCheck(level, match),
+        false,
+    );
+};
+
+const CloudRunOptions = (req, match = null) => {
     const { user, master } = req;
     const options = {};
 
@@ -11,12 +38,23 @@ const CloudRunOptions = req => {
 
     if (user) {
         options['sessionToken'] = user.getSessionToken();
+
         const id =
             op.get(user, 'objectId') ||
             op.get(user, 'id') ||
             op.get(user, 'username');
-        if (Actinium.Roles.User.is(id, 'super-admin'))
+
+        if (Actinium.Roles.User.is(id, 'super-admin')) {
             options['useMasterKey'] = true;
+            return options;
+        }
+
+        if (match && isLevel(match)) {
+            if (userMeetsLevel(id, match)) {
+                options['useMasterKey'] = true;
+                return options;
+            }
+        }
     }
 
     return options;
@@ -35,23 +73,19 @@ const CloudHasCapabilities = (req, capability, strict = true) => {
     // Check against existing capabilities
     const permitted = strict
         ? // all capabilities required for strict
-          capabilities.reduce(
-              (hasCaps, cap) =>
-                  !!(hasCaps && Actinium.Capability.User.can(req.user, cap)),
-              true,
-          )
+          capabilities.reduce((hasCaps, cap) => {
+              return !!(hasCaps && Actinium.Capability.User.can(cap, req.user));
+          }, true)
         : // one capability required for non-strict
-          capabilities.reduce(
-              (hasCaps, cap) =>
-                  !!(hasCaps || Actinium.Capability.User.can(req.user, cap)),
-              false,
-          );
+          capabilities.reduce((hasCaps, cap) => {
+              return !!(hasCaps || Actinium.Capability.User.can(cap, req.user));
+          }, false);
 
     return permitted;
 };
 
-const CloudCapOptions = (req, capability, strict = false) => {
-    const options = CloudRunOptions(req);
+const CloudCapOptions = (req, capability, strict = false, match = null) => {
+    const options = CloudRunOptions(req, (match = null));
     if (options.useMasterKey) return options;
 
     if (CloudHasCapabilities(req, capability, strict))
@@ -74,4 +108,5 @@ module.exports = {
     CloudCapOptions,
     CloudHasCapabilities,
     UserFromSession,
+    userMeetsLevel,
 };
