@@ -70,3 +70,4 @@ dist
 # Generated Documentation
 docs/
 files
+.tmp
