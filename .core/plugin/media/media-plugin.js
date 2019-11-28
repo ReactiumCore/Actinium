@@ -31,6 +31,12 @@ Actinium.Hook.register('activate', async ({ ID }) => {
         Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`),
     );
 
+    try {
+        const schema = new Parse.Schema(COLLECTION.UPLOAD);
+        schema.addIndex('chunks', { ID: 1, index: 1 });
+        await schema.save({ useMasterKey: true });
+    } catch (err) {}
+
     Actinium.Collection.register(
         COLLECTION.DIRECTORY,
         PLUGIN_SCHEMA.ACTIONS.DIRECTORY,
@@ -139,7 +145,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'upload-chunk', req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
     }
 
-    return Actinium.Media.chunkUpload(req);
+    const { params: upload, user } = req;
+
+    upload['index'] = Number(upload.index);
+
+    const options = { sessionToken: user.getSessionToken() };
+
+    return Actinium.Media.chunkUpload(upload, options);
 });
 
 /**

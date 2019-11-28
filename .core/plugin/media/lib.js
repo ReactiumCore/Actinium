@@ -1,14 +1,26 @@
+const path = require('path');
+const fs = require('fs-extra');
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const ENUMS = require('./enums');
 const moment = require('moment');
 const op = require('object-path');
 const stripSlashes = str => String(str).replace(/^\/|\/$/g, '');
+
 const {
     CloudHasCapabilities,
     CloudRunOptions,
     UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
+
+Buffer.prototype.toArray = function() {
+    if (this.length > 0) {
+        const data = new Array(this.length);
+        for (let i = 0; i < this.length; i = i + 1) data[i] = this[i];
+        return data;
+    }
+    return [];
+};
 
 const Media = { ENUMS };
 
@@ -57,28 +69,6 @@ const getMedia = async () => {
     return files;
 };
 
-const mapUploadToData = upload => {
-    const {
-        ID,
-        chunk,
-        directory,
-        filename,
-        index,
-        total,
-        totalChunkCount,
-    } = upload;
-
-    return {
-        ID,
-        chunk,
-        directory,
-        index: Number(index),
-        filename,
-        total,
-        totalChunkCount,
-    };
-};
-
 const load = async () => {
     const loading = Actinium.Cache.get('Media.loading', false);
 
@@ -103,34 +93,14 @@ const load = async () => {
     return Actinium.Cache.get('Media');
 };
 
-Media.chunks = async (ID, options = { useMasterKey: true }) => {
-    const qry = new Parse.Query(ENUMS.COLLECTION.UPLOAD)
-        .ascending('index')
-        .equalTo('ID', ID)
-        .limit(100)
-        .skip(0);
-
-    let results = await qry.find(options);
-    let chunks = [];
-
-    while (results.length > 0) {
-        results.forEach(item => {
-            chunks.push(item.toJSON());
-        });
-
-        qry.skip(chunks.length);
-        results = await qry.find(options);
-    }
-
-    return _.flatten(_.pluck(chunks, 'chunk'));
-};
+Media.chunkCount = (ID, options = { useMasterKey: true }) =>
+    new Parse.Query(ENUMS.COLLECTION.UPLOAD).equalTo('ID', ID).count(options);
 
 Media.chunkClear = async (ID, options = { useMasterKey: true }) => {
     const qry = new Parse.Query(ENUMS.COLLECTION.UPLOAD)
         .equalTo('ID', ID)
-        .ascending('index')
-        .skip(0)
-        .limit(100);
+        .limit(100)
+        .skip(0);
 
     let results = await qry.find(options);
 
@@ -141,57 +111,81 @@ Media.chunkClear = async (ID, options = { useMasterKey: true }) => {
 };
 
 Media.chunkUpload = async (upload = {}, options = { useMasterKey: true }) => {
-    let user;
-
-    if (op.get(upload, 'params')) {
-        options = CloudRunOptions(upload);
-        upload = upload.params;
-        user = upload.user;
-    }
-
-    if (!user && op.get(options, 'sessionToken')) {
-        user = await UserFromSession(op.get(options, 'sessionToken'));
-    }
+    const { directory, filename, index, ID, total, totalChunkCount } = upload;
 
     // 1.0 - Create chunk Parse object
-    const data = mapUploadToData(upload);
-    await new Parse.Object(ENUMS.COLLECTION.UPLOAD).save(data, options);
+    await new Parse.Object(ENUMS.COLLECTION.UPLOAD).save(upload, options);
 
     // 2.0 - Check if the upload is complete
-    const { directory, filename, ID, total } = upload;
-    const chunks = await Media.chunks(ID, options);
-
-    // 3.0 - Get status
+    const count = await Media.chunkCount(ID, options);
+    const progress = count / totalChunkCount;
     const status =
-        chunks.length === total
+        count === totalChunkCount
             ? ENUMS.STATUS.COMPLETE
             : ENUMS.STATUS.UPLOADING;
 
-    // 4.0 - If complete -> create the Actinium.File object
+    console.log(`${Math.ceil((count / totalChunkCount) * 100)}%`);
+
     if (status === ENUMS.STATUS.COMPLETE) {
-        // 4.1 - Clear the chunks
-        await Media.chunkClear(ID, options);
+        let user;
 
-        // 4.2 - Create the file object
-        const data = { directory, filename, ID, bytes: total };
-        const mediaObj = await Media.fileCreate(chunks, data, user, options);
+        if (op.get(upload, 'params')) {
+            options = CloudRunOptions(upload);
+            upload = upload.params;
+            user = upload.user;
+        }
 
-        // 4.3 - return the file object
-        return { status, file: mediaObj.toJSON() };
+        if (!user && op.get(options, 'sessionToken')) {
+            user = await UserFromSession(op.get(options, 'sessionToken'));
+        }
+
+        // 3.0 - Create the Media object
+        const mediaData = { directory, filename, ID, bytes: total };
+        const mediaObj = await Media.fileCreate(ID, mediaData, user, options);
+        return { status, progress: 1, file: mediaObj };
     } else {
-        // 4.4 - return the status if not complete
-        return { status };
+        return { status, progress };
     }
 };
 
-Media.fileCreate = async (filedata, meta, user, options) => {
+Media.chunks = async (ID, meta, options) => {
+    const ext = String(op.get(meta, 'filename', ''))
+        .split('.')
+        .pop();
+
+    const tmp = path.join(process.cwd(), '.tmp', 'upload', `${ID}.${ext}`);
+    fs.ensureFileSync(tmp);
+
+    const stream = fs.createWriteStream(tmp, { flags: 'a' });
+    let skip = 0;
+
+    const qry = new Parse.Query(ENUMS.COLLECTION.UPLOAD)
+        .ascending('index')
+        .equalTo('ID', ID)
+        .limit(50)
+        .skip(0);
+
+    let results = await qry.find(options);
+    while (results.length > 0) {
+        results.forEach(item => stream.write(Buffer.from(item.get('chunk'))));
+        // await Parse.Object.destroyAll(results, { useMasterKey: true });
+
+        skip += results.length;
+        qry.skip(skip);
+
+        results = await qry.find(options);
+    }
+
+    return tmp;
+};
+
+Media.fileCreate = async (ID, meta, user, options) => {
     if (!user) {
         throw new Error('Permission denied');
         return;
     }
 
-    let { capabilities, directory, filename, ID } = meta;
-    ID = ID || uuid();
+    let { capabilities, directory, filename } = meta;
     directory = String(directory).toLowerCase();
     filename = String(filename).toLowerCase();
 
@@ -211,7 +205,10 @@ Media.fileCreate = async (filedata, meta, user, options) => {
         fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
     }
 
-    const file = await new Actinium.File(fname, filedata).save(options);
+    const tmp = await Media.chunks(ID, meta, options);
+    const bytes = Buffer.from(fs.readFileSync(tmp)).toArray();
+
+    const file = await new Actinium.File(fname, bytes).save(options);
     const url = decodeURIComponent(
         String(file.url()).replace(
             `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
@@ -238,7 +235,7 @@ Media.fileCreate = async (filedata, meta, user, options) => {
         await Media.directoryCreate(directory, null, options);
     } catch (err) {}
 
-    return fileObj;
+    return fileObj.toJSON();
 };
 
 Media.fileDelete = async (ID, user) => {

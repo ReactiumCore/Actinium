@@ -17,6 +17,7 @@ Actinium.Middleware.register(
                 .substr(1);
 
             const url = `${req.protocol}://${req.hostname}${p}/${fileURL}`;
+
             request(url).pipe(res);
         });
 
