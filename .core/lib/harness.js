@@ -16,10 +16,10 @@ const Harness = {
     },
 
     /**
- * @api {Function} Actinium.Harness.test(description,cb,setup,teardown) Actinium.Harness.test()
+ * @api {Function} Harness.test(description,cb,setup,teardown) Harness.test()
  * @apiVersion 3.1.2
  * @apiGroup Actinium
- * @apiName Actinium.Harness.test
+ * @apiName Harness.test
  * @apiDescription Add a local development functional test, to be run at startup of Actinium. Your test callback will be passed
  the node.js 'assert' object.
  * @apiParam {String} description Describe the tests run.

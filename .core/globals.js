@@ -45,6 +45,7 @@ const defaults = {
             `${ACTINIUM_DIR}/plugin/**/*.js`,
             `${BASE_DIR}/node_modules/**/actinium/*plugin.js`,
             `${APP_DIR}/**/*plugin.js`,
+            `!${ACTINIUM_DIR}/plugin/**/assets/**/*.js`,
         ],
         middleware: [
             `${ACTINIUM_DIR}/middleware/**/*.js`,
