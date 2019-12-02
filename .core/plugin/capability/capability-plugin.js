@@ -65,25 +65,42 @@ Actinium.Collection.register(COLLECTION, {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-check', req => {
-    const { params } = req;
-    const { capabilities = [], strict = false } = params;
-    return CloudHasCapabilities(req, capabilities, strict);
+    let caps =
+        op.has(req, 'params.capability') &&
+        typeof req.params.capability === 'string'
+            ? req.params.capability
+            : op.has(req, 'params.capabilities') &&
+              Array.isArray(req.params.capabilities)
+            ? req.params.capabilities
+            : [];
+
+    if (typeof caps === 'string') {
+        caps = [caps];
+    }
+
+    caps = caps.filter(cap => typeof cap === 'string');
+    for (let cap of caps) {
+        if (cap.length < 4) {
+            throw 'capability must be at least 4 characters.';
+        }
+    }
+
+    const strict = !!op.get(req, 'params.strict', true);
+    if (caps.length < 1) {
+        throw 'One or more capabilities required.';
+    }
+
+    return CloudHasCapabilities(req, caps, strict);
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
     if (!CloudHasCapabilities(req, 'Capability.retrieve'))
         throw new Error('Permission denied');
-    const { group } = req.params;
-    if (group in Actinium.Capability._groups)
-        return Actinium.Capability._groups[group];
-    return Actinium.Capability._groups;
-});
 
-// Update Collection classLevelPermissions on capability updates
-Actinium.Hook.register('capability-updated', async group => {
-    if (/\.(create|retrieve|update|delete)$/.test(group)) {
-        await Actinium.Collection.load();
-    }
+    const { capability } = req.params;
+    if (capability) return Actinium.Capability.get(capability);
+
+    return Actinium.Capability.get();
 });
 
 const edit = async req => {
@@ -96,15 +113,14 @@ const edit = async req => {
     )
         throw new Error('Permission denied');
 
-    const group = op.get(req, 'params.group', '');
+    const capability = op.get(req, 'params.capability', '');
     const perms = op.get(req, 'params.perms', {});
 
-    if (typeof group !== 'string' || group.split('.').length !== 2)
-        throw new Error('Group of form `object.action` required.');
+    if (typeof capability !== 'string' || capability.length < 4)
+        throw new Error('Capability string required.');
 
-    await Actinium.Hook.run('capability-edit', req, group, perms);
-    Actinium.Capability.register(group, perms);
-    return Promise.resolve('success');
+    await Actinium.Capability.register(capability, perms);
+    return Actinium.Capability.get(capability);
 };
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-create', edit);
@@ -115,16 +131,132 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
     if (!CloudHasCapabilities(req, 'Capability.delete'))
         throw new Error('Permission denied');
 
-    const group = op.get(req, 'params.group', '');
-    if (typeof group !== 'string' || group.split('.').length !== 2)
-        throw new Error('Group of form `object.action` required.');
-
-    await Actinium.Hook.run('capability-edit', req, group);
-    Actinium.Capability.unregister(group);
-    return Promise.resolve('success');
+    const capability = op.get(req, 'params.capability');
+    await Actinium.Capability.unregister(capability);
+    return true;
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'level-check', async req => {
     const { match } = req.params;
-    return CloudRunOptions(req, match);
+    return !!op.get(CloudRunOptions(req, match), 'master', false);
 });
+
+/**
+ * @api {Cloud} capability-check capability-check
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName capability-check
+ * @apiDescription Check one or more capabilities for the request user.
+ * @apiParam {String} [capability] string capability name
+ * @apiParam {String} [capabilities] list of string capabilities. if multiple are provided, `strict` will apply
+ * @apiParam {Boolean} [strict=true] if [true] all capabilities must be permitted for request user, else only one must match
+ * @apiExample Example Usage
+Reactium.Cloud.run('capability-check', { capability: 'user.view', strict: false})
+ * @apiSuccess {Boolean} permitted
+ */
+
+/**
+ * @api {Cloud} capability-get capability-get
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName capability-get
+ * @apiDescription Get list of registered capabilities.
+ * @apiParam {String} [capability] Optional capability name to get allowed and excluded roles for a registered capability. If not provided,
+ * returns a list of names of registered capabilities. (Note: capabilities not listed may be enforced with defaults)
+ * @apiExample Single Capability Usage
+Reactium.Cloud.run('capability-get', { capability: 'user.view'})
+ * @apiExample Single Capability Response
+ {
+         "allowed": [
+             "administrator",
+             "super-admin"
+         ],
+         "excluded": [
+             "banned"
+         ]
+     }
+ * @apiExample List Usage
+ Reactium.Cloud.run('capability-get')
+ * @apiExample List Response Example
+ [
+        "Capability.addField",
+        "Capability.create",
+        "Capability.delete",
+        "Capability.retrieve",
+        "Capability.update",
+        "Media.addField",
+        "Media.create",
+        "Media.delete",
+        "Media.retrieve",
+        "Media.update",
+        "Plugin.addField",
+        "Plugin.create",
+        "Plugin.delete",
+        "Plugin.retrieve",
+        "Plugin.update",
+        "Route.addField",
+        "Route.create",
+        "Route.delete",
+        "Route.retrieve",
+        "Route.update",
+        "Setting.addField",
+        "Setting.create",
+        "Setting.delete",
+        "Setting.retrieve",
+        "Setting.update",
+        "Token.addField",
+        "Token.create",
+        "Token.delete",
+        "Token.retrieve",
+        "Token.update",
+        "_Role.addField",
+        "_Role.create",
+        "_Role.delete",
+        "_Role.retrieve",
+        "_Role.update",
+        "blueprint.retrieve",
+        "user.admin",
+        "user.ban",
+        "user.view"
+    ]
+ */
+
+/**
+ * @api {Cloud} capability-edit capability-edit
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName capability-edit
+ * @apiDescription Create new capability or edit an existing one.
+ * @apiParam {String} group capability name in object path form `group.action` (e.g. user.edit)
+ * @apiParam {Object} perms `allowed` roles and `excluded` roles.
+ * @apiExample Example Usage
+// only administrators and super-admin users can "mail.send"
+Reactium.Cloud.run('capability-edit', 'mail.send', {
+    "allowed": [
+        "administrator",
+        "super-admin"
+    ],
+    "excluded": [
+        "banned"
+    ]
+})
+ */
+
+/**
+ * @api {Cloud} capability-create capability-create
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName capability-create
+ * @apiDescription Alias for capability-edit
+ */
+
+/**
+ * @api {Cloud} capability-delete capability-delete
+ * @apiVersion 3.1.2
+ * @apiGroup Cloud
+ * @apiName capability-delete
+ * @apiDescription Delete a capability.
+ * @apiParam {String} group capability name in object path form `group.action` (e.g. user.edit)
+ * @apiExample Example Usage
+Reactium.Cloud.run('capability-delete', { capability: 'user.view'})
+ */
