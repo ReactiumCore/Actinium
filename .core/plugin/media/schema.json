@@ -13,13 +13,6 @@
             "delete": false,
             "retrieve": true,
             "update": false
-        },
-        "UPLOAD": {
-            "addField": false,
-            "create": false,
-            "delete": false,
-            "retrieve": true,
-            "update": false
         }
     },
     "SCHEMA": {
@@ -63,29 +56,6 @@
             },
             "uuid": {
                 "type": "String"
-            }
-        },
-        "UPLOAD": {
-            "ID": {
-                "type": "String"
-            },
-            "chunk": {
-                "type": "Array"
-            },
-            "directory": {
-                "type": "String"
-            },
-            "index": {
-                "type": "Number"
-            },
-            "filename": {
-                "type": "String"
-            },
-            "total": {
-                "type": "Number"
-            },
-            "totalChunkCount": {
-                "type": "Number"
             }
         }
     }

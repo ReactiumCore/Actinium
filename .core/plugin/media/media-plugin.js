@@ -31,12 +31,6 @@ Actinium.Hook.register('activate', async ({ ID }) => {
         Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`),
     );
 
-    try {
-        const schema = new Parse.Schema(COLLECTION.UPLOAD);
-        schema.addIndex('chunks', { ID: 1, index: 1 });
-        await schema.save({ useMasterKey: true });
-    } catch (err) {}
-
     Actinium.Collection.register(
         COLLECTION.DIRECTORY,
         PLUGIN_SCHEMA.ACTIONS.DIRECTORY,
@@ -47,12 +41,6 @@ Actinium.Hook.register('activate', async ({ ID }) => {
         COLLECTION.MEDIA,
         PLUGIN_SCHEMA.ACTIONS.MEDIA,
         PLUGIN_SCHEMA.SCHEMA.MEDIA,
-    );
-
-    Actinium.Collection.register(
-        COLLECTION.UPLOAD,
-        PLUGIN_SCHEMA.ACTIONS.UPLOAD,
-        PLUGIN_SCHEMA.SCHEMA.UPLOAD,
     );
 });
 
@@ -104,74 +92,23 @@ Actinium.Hook.register('uninstall', ({ ID }) => {
 // Register Cloud functions
 
 /**
- * @api {Cloud} upload-chunk upload-chunk
+ * @api {Cloud} media-upload media-upload
  * @apiVersion 3.1.3
  * @apiGroup Cloud
- * @apiName upload-chunk
- * @apiDescription Cloud function that uploads a chunk of bytes to the Upload table where it is queued for file creation. Use this cloud function when you want to have progressive file uploads. When all chunks of the file have been uploaded, a new file will be generated.
-
-Permission: `Media.create` _(use the **media.capabilities.create** setting to change)_
-
-Returns: `{ status:Actinium.Media.ENUMS.STATUS, file:Parse.Object('Media') }`
- * @apiParam {Object} upload The configuration object for the chunk upload. Contains information about the file that will be created.
- * @apiParam {Array} .chunk A segment of the file's bytes.
- * @apiParam {String} .directory The directory where the completed file will be saved.
- * @apiParam {String} .filename The file name of the completed file.
- * @apiParam {String} .ID Unique ID of the completed file. This should be the same for each file chunk.
- * @apiParam {Number} .index The index of the chunk. The index is used when putting the chunks together to create the file.
- * @apiParam {Number} .total The total bytes of the completed file. This should be the same for each file chunk.
- * @apiExample Example Usage:
-const upload = {
-    ID: '46e30b13-6d53-4010-8430-1755552cfbe4',
-    chunk: ByteArray,
-    directory: 'uploads',
-    filename: 'avatar.png',
-    index: 0,
-    total: 34469
-};
-
-Actinium.Cloud.run('upload-chunk', upload).then(result => {
-    if (result.status === Actinium.Media.ENUMS.STATUS.COMPLETE) {
-        console.log(result.file);
-    }
-});
- */
-Actinium.Cloud.define(PLUGIN.ID, 'upload-chunk', req => {
-    const cap = Actinium.Setting.get('media.capabilities.create', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap, false)) {
-        return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
-
-    const { params: upload, user } = req;
-
-    upload['index'] = Number(upload.index);
-
-    const options = { sessionToken: user.getSessionToken() };
-
-    return Actinium.Media.chunkUpload(upload, options);
-});
-
-/**
- * @api {Cloud} file-upload file-upload
- * @apiVersion 3.1.3
- * @apiGroup Cloud
- * @apiName file-upload
+ * @apiName media-upload
  * @apiDescription Cloud function that creates a file and adds it to the Media Library.
 
 Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
 
 Returns: `Parse.Object('Media')`
- * @apiParam {Mixed} file The contents of the file. This can be any valid `Actinium.File` file data value.
+ * @apiParam {Mixed} data The contents of the file. This can be any valid `Actinium.File` file data value.
  * @apiParam {Object} meta The meta object for the file upload.
  * @apiParam {String} .directory The directory where the file will be saved. Required.
  * @apiParam {String} .filename The file name. Required.
  * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
  * @apiExample Base64 Example:
 const upload = {
-    file: { base64: "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=" }
+    data: { base64: "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=" }
     meta: {
         directory: 'uploads',
         filename: 'avatar.png',
@@ -181,7 +118,7 @@ const upload = {
 Actinium.Cloud.run('file-upload', upload);
  * @apiExample ByteArray Example:
 const upload = {
-    file: [ 0xBE, 0xEF, 0xCA, 0xFE ],
+    data: [ 0xBE, 0xEF, 0xCA, 0xFE ],
     meta: {
         directory: 'uploads',
         filename: 'avatar.png',
@@ -190,7 +127,7 @@ const upload = {
 
 Actinium.Cloud.run('file-upload', upload);
  */
-Actinium.Cloud.define(PLUGIN.ID, 'file-upload', req => {
+Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
         'Media.create',
     ]);
@@ -199,14 +136,15 @@ Actinium.Cloud.define(PLUGIN.ID, 'file-upload', req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
     }
 
-    if (!op.get(req.params, 'filename'))
-        return Promise.reject(ENUMS.ERRORS.FILE);
-
-    const { file, meta } = req.params;
-    return Media.fileCreate(file, meta, req.user, CloudRunOptions(req));
+    return Actinium.Media.upload(
+        req.params.data,
+        req.params.meta,
+        req.user,
+        CloudRunOptions(req),
+    );
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'file-delete', req => {
+Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
         'Media.create',
     ]);
@@ -336,6 +274,7 @@ const dirs = () => {
         .value()
         .sort();
 };
+
 Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
     if (!req.object.isNew()) return;
     const { directory } = req.object.toJSON();
@@ -345,7 +284,9 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
         .equalTo('directory', directory)
         .first({ useMasterKey: true });
 
-    if (fetch) throw ENUMS.ERRORS.DUPLICATE_DIRECTORY;
+    if (fetch) {
+        throw new Error('directory exists');
+    }
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
