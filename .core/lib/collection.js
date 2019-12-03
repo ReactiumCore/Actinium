@@ -13,7 +13,9 @@ const defaultPublicSetting = {
     addField: false,
 };
 
-const Collection = {};
+const Collection = {
+    loaded: false,
+};
 Collection.register = (
     collection,
     publicSetting = defaultPublicSetting,
@@ -25,7 +27,27 @@ Collection.register = (
 
     collectionPerms[collection] = publicSetting;
 
-    if (Actinium.started === true) {
+    // Update Collection classLevelPermissions on capability updates
+    Actinium.Hook.register('capability-updated', async capability => {
+        if (
+            Actinium.Collection.loaded &&
+            [
+                `${collection}.create`,
+                `${collection}.retrieve`,
+                `${collection}.update`,
+                `${collection}.delete`,
+                `${collection}.addField`,
+            ].includes(capability)
+        ) {
+            await Actinium.Collection.load(collection);
+            LOG(
+                chalk.cyan(`Capability ${capability} edited.`),
+                chalk.magenta(`Reloading CLP for ${collection}`),
+            );
+        }
+    });
+
+    if (Collection.loaded) {
         Collection.load(collection);
     }
 };
@@ -35,13 +57,16 @@ Collection.unregister = collection => {
         // default to private permissions
         collectionPerms[collection] = defaultPublicSetting;
 
-        if (Actinium.started === true) {
+        if (Collection.loaded) {
             Collection.load(collection);
         }
     }
 };
 
 Collection.load = async (collection = false) => {
+    // initial load
+    const loading = !Collection.loaded && !collection;
+
     let entries = [];
     if (collection && collection in collectionPerms) {
         entries.push([collection, collectionPerms[collection]]);
@@ -49,7 +74,16 @@ Collection.load = async (collection = false) => {
         entries = Object.entries(collectionPerms);
     }
 
+    if (loading) {
+        LOG(' ');
+        LOG(chalk.cyan('Loading collection schemas and CLPs...'));
+    }
+
     const actions = entries.reduce((actions, [collection, publicSetting]) => {
+        if (!Collection.loaded && loading) {
+            LOG(chalk.cyan('  ', collection));
+        }
+
         actions[`${collection}Hook`] = () =>
             Actinium.Hook.run(
                 'collection-before-permissions',
@@ -180,6 +214,11 @@ Collection.load = async (collection = false) => {
         const results = await ActionSequence({
             actions,
         });
+
+        if (loading) {
+            Collection.loaded = true;
+            LOG(' ');
+        }
         return results;
     } catch (error) {
         LOG(
