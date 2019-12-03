@@ -1,5 +1,11 @@
-const path = require('path');
-const fs = require('fs-extra');
+/**
+ * @api {Object} Media Media
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media
+ * @apiDescription Utilities for managing the `Media` collection.
+ */
+
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const ENUMS = require('./enums');
@@ -12,15 +18,6 @@ const {
     CloudRunOptions,
     UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
-
-Buffer.prototype.toArray = function() {
-    if (this.length > 0) {
-        const data = new Array(this.length);
-        for (let i = 0; i < this.length; i = i + 1) data[i] = this[i];
-        return data;
-    }
-    return [];
-};
 
 const Media = { ENUMS };
 
@@ -69,30 +66,55 @@ const getMedia = async () => {
     return files;
 };
 
-const load = async () => {
-    const loading = Actinium.Cache.get('Media.loading', false);
-
-    if (loading === true) {
-        return Actinium.Cache.get('Media');
-    }
-
-    Actinium.Cache.set('Media.loading', true);
-
-    const [directories, files] = await Promise.all([
-        getDirectories(),
-        getMedia(),
-    ]);
-
-    Actinium.Cache.set('Media', {
-        directories,
-        files,
-        timestamp: Date.now(),
-        loading: false,
-    });
-
-    return Actinium.Cache.get('Media');
+const isAdmin = userId => {
+    const roles = Actinium.Roles.User.get(userId);
+    return (
+        _.intersection(Object.keys(roles), ['admin', 'super-admin']).length > 0
+    );
 };
 
+/**
+ * @api {Asynchronous} Media.upload(data,meta,user,options) Media.upload
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.upload
+ * @apiDescription Function that creates a file and adds it to the Media Library.
+
+Returns: `Parse.Object('Media')`
+ * @apiParam {Mixed} data The contents of the file. This can be any valid `Actinium.File` file data value.
+ * @apiParam {Object} meta The meta object for the file upload.
+ * @apiParam {String} .directory The directory where the file will be saved. Required.
+ * @apiParam {String} .filename The file name. Required.
+ * @apiParam {Number} [.size] The number of bytes the file contains.
+ * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
+ * @apiParam {Parse.User} user The user object.
+ * @apiParam {Object} options The options object.
+
+ * @apiExample Base64 Example:
+...
+const data = { base64: "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=" };
+const meta = {
+    directory: 'uploads',
+    filename: 'some-file.jpg',
+    size: 128093,
+    other: 'meta values...',
+};
+
+const file = await Actinium.Media.upload(data, meta, user, options);
+...
+ * @apiExample ByteArray Example:
+...
+const data = [ 0xBE, 0xEF, 0xCA, 0xFE ];
+const meta = {
+    directory: 'uploads',
+    filename: 'some-file.jpg',
+    size: 128093,
+    other: 'meta values...',
+};
+
+const file = await Actinium.Media.upload(data, meta, user, options);
+...
+ */
 Media.upload = async (data, meta, user, options) => {
     if (!user) {
         throw new Error('Permission denied');
@@ -109,7 +131,7 @@ Media.upload = async (data, meta, user, options) => {
 
     let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
 
-    let fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+    const fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
         .endsWith('url', fname)
         .limit(1)
         .skip(0)
@@ -141,8 +163,8 @@ Media.upload = async (data, meta, user, options) => {
             size: meta.total,
         },
         user,
+        url,
         uuid: meta.ID,
-        url,
     };
 
     fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(obj, options);
@@ -152,95 +174,110 @@ Media.upload = async (data, meta, user, options) => {
         await Media.directoryCreate(directory, null, options);
     } catch (err) {}
 
-    // TODO: Clean up tmp directory
-
     return fileObj.toJSON();
 };
 
-Media.fileCreate = async (ID, meta, user, options) => {
-    if (!user) {
-        throw new Error('Permission denied');
-        return;
-    }
+/**
+ * @api {Asynchronous} Media.fileDelete(match,user,master) Media.fileDelete
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.fileDelete
+ * @apiDescription Delete a single file or directory containing multiple files.
 
-    let { capabilities, directory, filename } = meta;
-    directory = String(directory).toLowerCase();
-    filename = String(filename).toLowerCase();
+The file to search for will be matched against the following fields: `url, objectId, uuid, filename, directory`
 
-    capabilities = capabilities || ['Media.retrieve'];
+When deleting based on `filename` or `directory` There are a couple protections built in:
 
-    const ext = filename.split('.').pop();
-    let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+1. You must specify `useMasterKey` in the run `options` object.
+2. Only 50 files will be deleted per request.
 
-    let fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .endsWith('url', fname)
-        .find({ useMasterKey: true });
+ * @apiParam {String} match The search string.
+ * @apiParam {Parse.User} user The user object.
+ * @apiParam {Boolean} [master=false] Use master key.
+ * @apiExample Example usage:
+...
+await Actinium.Media.fileDelete('/media/uploads/some-file.jpg', user, options);
+...
+ */
+Media.fileDelete = async (match, user, master) => {
+    if (!user && !master) ENUMS.ERRORS.PERMISSIONS;
 
-    if (fileExists.length > 0) {
-        const farr = filename.split('.');
-        farr.pop();
-        filename = `${uuid()}-${farr.join('.')}.${ext}`;
-        fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
-    }
+    const req = { user, master };
+    const options = CloudRunOptions(req);
 
-    const tmp = await Media.chunks(ID, meta, options);
-    //const bytes = Buffer.from(fs.readFileSync(tmp)).toArray();
-
-    const file = await Actinium.File.create(tmp, directory);
-    const url = decodeURIComponent(
-        String(file.url()).replace(
-            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
-            '/media/',
-        ),
-    );
-
-    const obj = {
-        capabilities,
-        directory,
-        ext,
-        file,
-        filename,
-        meta,
-        user,
-        uuid: ID,
-        url,
-    };
-
-    fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(obj, options);
-
-    // Create the directory
-    try {
-        await Media.directoryCreate(directory, null, options);
-    } catch (err) {}
-
-    // TODO: Clean up tmp directory
-
-    return fileObj.toJSON();
-};
-
-Media.fileDelete = async (ID, user) => {
+    // delete by url
     let obj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .equalTo('objectId', ID)
-        .first({ useMasterKey: true });
+        .equalTo('url', match)
+        .first(options);
 
+    // delete by objectId
     obj =
         obj ||
         (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-            .equalTo('uuid', ID)
-            .first({ useMasterKey: true }));
+            .equalTo('objectId', match)
+            .first(options));
 
-    if (obj && CloudHasCapabilities({ user }, obj.capabilities)) {
-        ID = obj.id;
+    // delete by uuid
+    obj =
+        obj ||
+        (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+            .equalTo('uuid', match)
+            .first(options));
 
-        await obj.destroy();
+    // delete by filename -> dangerous and requires master key and admin
+    obj =
+        obj ||
+        (master &&
+            isAdmin(user.id) &&
+            (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+                .equalTo('filename', match)
+                .limit(50)
+                .skip(0)
+                .find(options)));
 
-        let files = Actinium.Cache.get('Media.files', {});
-        delete files[ID];
+    // delete by directory -> dangerous and requires master key and admin
+    obj =
+        obj ||
+        (master &&
+            isAdmin(user.id) &&
+            (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+                .equalTo('filename', match)
+                .limit(50)
+                .skip(0)
+                .find(options)));
+
+    if (obj) {
+        const objs = Array.isArray(obj) ? obj : [obj];
+        const q = [];
+
+        objs.forEach(obj => {
+            obj = obj.toJSON();
+            if (!CloudHasCapabilities(req, obj.capabilities)) return;
+            const files = Actinium.Cache.get('Media.files', {});
+            delete files[obj.id];
+            q.push(obj);
+        });
+
+        await Parse.Object.destroyAll(q);
 
         Actinium.Cache.set('Media.files', files);
-    }
+    } else throw new Error(ENUMS.ERRORS.FILE_DELETE);
 };
 
+/**
+ * @api {Asynchronous} Media.directoryCreate(directory,capabilities,options) Media.directoryCreate
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.directoryCreate
+ * @apiDescription Create a new Media directory.
+
+ * @apiParam {String} directory The directory path.
+ * @apiParam {Array} [capabilities='[Media.create]'] The capabilities array.
+ * @apiParam {Object} options The options object.
+ * @apiExample Examp usage:
+...
+await Actinium.Media.directoryCreate('avatars', ['Media.create'], options);
+ */
 Media.directoryCreate = async (directory, capabilities, options) => {
     capabilities = capabilities || ['Media.create'];
 
@@ -269,6 +306,23 @@ Media.directoryCreate = async (directory, capabilities, options) => {
     } catch (err) {}
 };
 
+/**
+ * @api {Asynchronous} Media.directoryDelete(directory,user) Media.directoryDelete
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.directoryDelete
+ * @apiDescription Delete a directory from the `MediaDirectory` table.
+
+This will NOT delete the files within the directory.
+
+_Use the `Media.fileDelete()` function for deleting a directory of files._
+ * @apiParam {String} directory The directory path.
+ * @apiParam {Parse.User} user The user object.
+ * @apiExample Example usage:
+...
+await Actinium.Media.directoryDelete('avatars', user);
+...
+ */
 Media.directoryDelete = async (directory, user) => {
     if (!directory) throw ENUMS.ERRORS.DIRECTORY;
     if (!user) throw ENUMS.ERRORS.PERMISSIONS;
@@ -287,7 +341,25 @@ Media.directoryDelete = async (directory, user) => {
     }
 };
 
+/**
+ * @api {Asynchronous} Media.directories(search,user) Media.directories
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.directories
+ * @apiDescription Retrieves the complete list of Media directories.
+Runs the `directory-query` hook allowing you to change or replace the default query.
+The results are reduced based on the capabilities applied to each directory and the current user request.
+
+ * @apiParam {String} [search] Search for a specific directory. Uses `Parse.Query.startsWith()` to execute the query.
+ * @apiParam {Parse.User} user The user object.
+ * @apiExample Example usage:
+...
+await Actinium.Media.directories('uploads', user);
+...
+ */
 Media.directories = (search, user) => {
+    if (!user) return {};
+
     // Filter items by capability & search
     const items = Actinium.Cache.get('Media.directories', []).filter(item => {
         if (
@@ -312,11 +384,36 @@ Media.directories = (search, user) => {
         .sort();
 };
 
-Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
+/**
+ * @api {Function} Media.files({directory,limit,page,search,user}) Media.files
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.files
+ * @apiDescription Retrieves a paginated list of `Media` objects.
+ * @apiParam {String} [directory] Retrieve a specific directory.
+ * @apiParam {String} [search] Search for a specific `url` or `filename`.
+ * @apiParam {Number} [page=1] Return the specified page of the results.
+ * @apiParam {Number} [limit=50] Number of objections to return per page.
+ * @apiExample Example usage:
+const results = Actinium.Media.files({ directory: 'uploads' });
+ * @apiExample Returns
+{
+   files: Object,
+   directories: Array,
+   count: Number
+   page: Number,
+   pages: Number,
+   index: Number,
+   limit: Number,
+   next: Number,
+   prev: Number
+}
+ */
+Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
     if (!user) return {};
 
     // Filter items by capability, directory, & search
-    let items = Object.values(Actinium.Cache.get('Media.files', {})).filter(
+    const items = Object.values(Actinium.Cache.get('Media.files', {})).filter(
         item => {
             if (
                 user.id !== item.user.objectId &&
@@ -337,8 +434,8 @@ Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
         },
     );
 
-    const pages = Math.ceil(items.length / limit);
     const index = limit * page - limit;
+    const pages = Math.ceil(items.length / limit);
     const selection = Array.from(items).splice(index, limit);
     const next = page < pages ? page + 1 : undefined;
     const prev = page > 1 ? page - 1 : undefined;
@@ -356,6 +453,39 @@ Media.files = ({ directory, limit = 100, page = 1, search, user }) => {
     };
 };
 
-Media.load = load;
+/**
+ * @api {Asynchronous} Media.load() Media.load
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.load
+ * @apiDescription Query the Media collection and load the results in memory.
+ * @apiExample Example usage:
+...
+await Actinium.Media.load();
+...
+ */
+Media.load = async () => {
+    const loading = Actinium.Cache.get('Media.loading', false);
+
+    if (loading === true) {
+        return Actinium.Cache.get('Media');
+    }
+
+    Actinium.Cache.set('Media.loading', true);
+
+    const [directories, files] = await Promise.all([
+        getDirectories(),
+        getMedia(),
+    ]);
+
+    Actinium.Cache.set('Media', {
+        directories,
+        files,
+        timestamp: Date.now(),
+        loading: false,
+    });
+
+    return Actinium.Cache.get('Media');
+};
 
 module.exports = Media;

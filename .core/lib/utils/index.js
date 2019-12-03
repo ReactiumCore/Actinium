@@ -1,7 +1,7 @@
 const chalk = require('chalk');
-const op = require('object-path');
 const _ = require('underscore');
 const semver = require('semver');
+const op = require('object-path');
 
 const isLevel = match => {
     match = String(match);
@@ -22,10 +22,12 @@ const levelCheck = (level, match) => {
 
 const userMeetsLevel = (userId, match) => {
     const roles = Actinium.Roles.User.get(userId);
-    return Object.values(roles).reduce(
-        (hasLevel, level) => hasLevel || levelCheck(level, match),
-        false,
-    );
+    return levelCheck(_.max(Object.values(roles)), match);
+
+    // return Object.values(roles).reduce(
+    //     (hasLevel, level) => hasLevel || levelCheck(level, match),
+    //     false,
+    // );
 };
 
 const CloudRunOptions = (req, match = null) => {

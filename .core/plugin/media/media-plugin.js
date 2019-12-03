@@ -105,6 +105,7 @@ Returns: `Parse.Object('Media')`
  * @apiParam {Object} meta The meta object for the file upload.
  * @apiParam {String} .directory The directory where the file will be saved. Required.
  * @apiParam {String} .filename The file name. Required.
+ * @apiParam {Number} [.size] The number of bytes the file contains. 
  * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
  * @apiExample Base64 Example:
 const upload = {
@@ -112,20 +113,22 @@ const upload = {
     meta: {
         directory: 'uploads',
         filename: 'avatar.png',
+        size: 139894
     }
 };
 
-Actinium.Cloud.run('file-upload', upload);
+Actinium.Cloud.run('media-upload', upload);
  * @apiExample ByteArray Example:
 const upload = {
     data: [ 0xBE, 0xEF, 0xCA, 0xFE ],
     meta: {
         directory: 'uploads',
         filename: 'avatar.png',
+        size: 139894
     }
 };
 
-Actinium.Cloud.run('file-upload', upload);
+Actinium.Cloud.run('media-upload', upload);
  */
 Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
@@ -144,6 +147,31 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
     );
 });
 
+/**
+ * @api {Cloud} media-delete media-delete
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName media-delete
+ * @apiDescription Delete a single file or directory containing multiple files.
+
+The file to search for will be matched against the following fields: `url, objectId, uuid, filename, directory`
+
+When deleting based on `filename` or `directory` There are a couple protections built in:
+
+1. You must specify `useMasterKey` in the run `options` object.
+2. Only 50 files will be deleted per request.
+
+Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
+
+ * @apiParam {String} match The search string.
+ * @apiExample Example usage:
+// URL delete
+Actinium.Cloud.run('media-delete', { match: '/uploads/some-file.txt' });
+
+// Directory Delete
+Actinium.Cloud.run('media-delete', { match: '/uploads' }, { useMasterKey: true });
+
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
         'Media.create',
@@ -153,12 +181,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
     }
 
-    const { user } = req;
-    const { ID } = req.params;
+    const { user, master } = req;
+    const { match } = req.params;
 
-    if (!user) ENUMS.ERRORS.PERMISSIONS;
-
-    return Actinium.Media.fileDelete(ID, user);
+    return Actinium.Media.fileDelete(match, user, master);
 });
 
 /**
@@ -170,7 +196,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
 Runs the `directory-query` hook allowing you to change or replace the default query.
 The results are reduced based on the capabilities applied to each directory and the current user request.
 
-capabilities: `Media.retrieve` _(use the **media.capabilities.list** setting to change)_.
+Permission: `Media.retrieve` _(use the **media.capabilities.list** setting to change)_.
 
  * @apiParam {String} [search] Search for a specific directory. Uses `Parse.Query.startsWith()` to execute the query.
  * @apiExample Example usage:
@@ -198,13 +224,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'directories', async req => {
 });
 
 /**
- * @api {Cloud} directory-create director-create
+ * @api {Cloud} directory-create directory-create
  * @apiVersion 3.1.3
  * @apiGroup Cloud
  * @apiName directory-create
  * @apiDescription Create a new Media directory.
 
-capabilities `Media.create` _(use the **media.capabilities.directory** setting to change)_.
+Permission: `Media.create` _(use the **media.capabilities.directory** setting to change)_.
  * @apiParam {String} directory The directory path.
  * @apiParam {Array} [capabilities='[Media.create]'] The capabilities array.
  * @apiExample Example usage:
@@ -235,6 +261,23 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-create', req => {
     );
 });
 
+/**
+ * @api {Cloud} directory-delete directory-delete
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName directory-delete
+ * @apiDescription Delete a directory from the `MediaDirectory` table.
+
+This will NOT delete the files within the directory.
+
+_Use the `media-delete` function for deleting a directory of files._
+
+Permission: `Media.create` _(use the **media.capabilities.directory** setting to change)_
+
+ * @apiParam {String} directory The directory path.
+ * @apiExample Example usage:
+Actinium.Cloud.run('directory-delete', { directory: 'avatars' });
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', req => {
     const cap = Actinium.Setting.get('media.capabilities.directory', [
         'Media.create',
@@ -253,6 +296,35 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', req => {
     return Actinium.Media.directoryDelete(directory, user);
 });
 
+/**
+ * @api {Cloud} media media
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName media
+ * @apiDescription Retrieves a paginated list of `Media` objects.
+
+Permission: `Media.retrieve` _(use the **media.capabilities.retrieve** setting to change)_
+ * @apiParam {String} [directory] Retrieve a specific directory.
+ * @apiParam {String} [search] Search for a specific `url` or `filename`.
+ * @apiParam {Number} [page=1] Return the specified page of the results.
+ * @apiParam {Number} [limit=50] Number of objections to return per page.
+
+ * @apiExample Example usage:
+Actinium.Cloud.run('media', { page: 1, limit: 20 directory: 'avatars', search: 'user-123.jpg'});
+
+ * @apiExample Returns
+{
+    files: Object,
+    directories: Array,
+    count: Number
+    page: Number,
+    pages: Number,
+    index: Number,
+    limit: Number,
+    next: Number,
+    prev: Number
+}
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
     const cap = Actinium.Setting.get('media.capabilities.retrieve', [
         'Media.retrieve',
@@ -284,9 +356,7 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
         .equalTo('directory', directory)
         .first({ useMasterKey: true });
 
-    if (fetch) {
-        throw new Error('directory exists');
-    }
+    if (fetch) throw new Error('directory exists');
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
