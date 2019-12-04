@@ -10,13 +10,13 @@ const {
 const COLLECTION = ENUMS.COLLECTION;
 
 const PLUGIN = require('./meta');
-const PLUGIN_LIB = require('./lib');
+const PLUGIN_SDK = require('./sdk');
 const PLUGIN_ROUTES = require('./routes');
 const PLUGIN_SCHEMA = require('./schema');
 const PLUGIN_BLUEPRINTS = require('./blueprints');
 
-// Create Singleton
-Actinium[COLLECTION.MEDIA] = op.get(Actinium, COLLECTION.MEDIA, PLUGIN_LIB);
+// Create SDK Singleton
+Actinium[COLLECTION.MEDIA] = op.get(Actinium, COLLECTION.MEDIA, PLUGIN_SDK);
 
 // Register Plugin
 Actinium.Plugin.register(PLUGIN, true);
@@ -48,9 +48,8 @@ Actinium.Hook.register('activate', async ({ ID }) => {
 Actinium.Hook.register(
     'blueprint-defaults',
     blueprints => {
-        if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-            PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-        }
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
     },
     -1000,
 );
@@ -74,11 +73,8 @@ Actinium.Hook.register('start', async () => {
 Actinium.Hook.register('install', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
-    if (
-        _.pluck(Actinium.Pulse.definitions, 'id').includes('media-directories')
-    ) {
+    if (_.pluck(Actinium.Pulse.definitions, 'id').includes('media-directories'))
         return;
-    }
 
     Actinium.Pulse.define('media-directories', Actinium.Media.load);
 });
@@ -105,7 +101,7 @@ Returns: `Parse.Object('Media')`
  * @apiParam {Object} meta The meta object for the file upload.
  * @apiParam {String} .directory The directory where the file will be saved. Required.
  * @apiParam {String} .filename The file name. Required.
- * @apiParam {Number} [.size] The number of bytes the file contains. 
+ * @apiParam {Number} [.size] The number of bytes the file contains.
  * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
  * @apiExample Base64 Example:
 const upload = {
@@ -135,9 +131,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
         'Media.create',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     return Actinium.Media.upload(
         req.params.data,
@@ -177,9 +172,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
         'Media.create',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     const { user, master } = req;
     const { match } = req.params;
@@ -209,9 +203,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'directories', async req => {
         'Media.retrieve',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     const { user } = req;
     const { search } = req.params;
@@ -246,9 +239,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-create', req => {
         'Media.create',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     const { directory, capabilities } = req.params;
 
@@ -283,9 +275,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', req => {
         'Media.create',
     ]);
 
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     const { user } = req;
     const { directory } = req.params;
@@ -330,9 +321,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
         'Media.retrieve',
     ]);
 
-    if (!CloudHasCapabilities(req, cap, false)) {
+    if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
-    }
 
     return Actinium.Media.files({ ...req.params, user: req.user });
 });
