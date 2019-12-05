@@ -1,5 +1,7 @@
 # Actinium
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Atomic-Reactor/Actinium.svg)](https://greenkeeper.io/)
+
 A framework for building web applications using Node + Express and MongoDB with the Parse Server SDK.
 
 ## Quick Start
