@@ -199,68 +199,47 @@ When deleting based on `filename` or `directory` There are a couple protections 
 await Actinium.Media.fileDelete('/media/uploads/some-file.jpg', user, options);
 ...
  */
-Media.fileDelete = async (match, user, master) => {
+Media.fileDelete = async (params, user, master) => {
     if (!user && !master) ENUMS.ERRORS.PERMISSIONS;
+
+    if (Object.keys(params).length < 1)
+        throw new Error(ENUMS.ERRORS.FILE_DELETE);
 
     const req = { user, master };
     const options = CloudRunOptions(req);
 
-    // delete by url
-    let obj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .equalTo('url', match)
-        .first(options);
+    const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA);
 
-    // delete by objectId
-    obj =
-        obj ||
-        (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-            .equalTo('objectId', match)
-            .first(options));
+    // Find by objectId
+    if (op.has(params, 'objectId')) {
+        qry.equalTo('objectId', params.objectId);
+    }
 
-    // delete by uuid
-    obj =
-        obj ||
-        (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-            .equalTo('uuid', match)
-            .first(options));
+    // Find by url
+    if (op.has(params, 'url')) {
+        qry.equalTo('url', params.url);
+    }
 
-    // delete by filename -> dangerous and requires master key and admin
-    obj =
-        obj ||
-        (master &&
-            isAdmin(user.id) &&
-            (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-                .equalTo('filename', match)
-                .limit(50)
-                .skip(0)
-                .find(options)));
+    // Find by uuid
+    if (op.has(params, 'uuid')) {
+        qry.equalTo('uuid', params.uuid);
+    }
 
-    // delete by directory -> dangerous and requires master key and admin
-    obj =
-        obj ||
-        (master &&
-            isAdmin(user.id) &&
-            (await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-                .equalTo('filename', match)
-                .limit(50)
-                .skip(0)
-                .find(options)));
+    // Find by filename
+    if (op.has(params, 'filename') && master && isAdmin(user.id)) {
+        qry.equalTo('filename', params.filename);
+    }
 
-    if (obj) {
-        const objs = Array.isArray(obj) ? obj : [obj];
-        const q = [];
+    // Find by directory
+    if (op.has(params, 'directory') && master && isAdmin(user.id)) {
+        qry.equalTo('directory', params.directory);
+    }
 
-        objs.forEach(obj => {
-            obj = obj.toJSON();
-            if (!CloudHasCapabilities(req, obj.capabilities)) return;
-            const files = Actinium.Cache.get('Media.files', {});
-            delete files[obj.id];
-            q.push(obj);
-        });
+    const objs = await qry.find(options);
 
-        await Parse.Object.destroyAll(q);
-
-        Actinium.Cache.set('Media.files', files);
+    if (objs.length > 0) {
+        await Parse.Object.destroyAll(objs, options);
+        return Media.load();
     } else throw new Error(ENUMS.ERRORS.FILE_DELETE);
 };
 
