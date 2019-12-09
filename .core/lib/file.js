@@ -26,15 +26,20 @@ class ActiniumFile extends Parse.File {
  * @apiParam {String} filePath Full path to file.
  * @apiParam {String} [targetPath=''] the "directory" relative path prefix to add to the filename (url encoded). This is useful for
  * saving the file to a specific location in S3 or FSAdapter path.
+ * @apiParam {String} [targetFileName] if provided, will be the filename of the stored file, otherwise the base filename of the source
+ * file will be used.
  */
-ActiniumFile.create = async (filePath, targetPath = '') => {
+ActiniumFile.create = async (filePath, targetPath = '', targetFileName) => {
     if (fs.existsSync(filePath)) {
         const filename = path.basename(filePath);
-        const targetFileName = [targetPath, filename].join('/');
+        const target = [
+            targetPath,
+            targetFileName ? targetFileName : filename,
+        ].join('/');
 
         const { result, mimetype } = await getArrayBuffer(filePath);
         const file = new ActiniumFile(
-            targetFileName,
+            target,
             { base64: result.toString('base64') },
             mimetype,
         );

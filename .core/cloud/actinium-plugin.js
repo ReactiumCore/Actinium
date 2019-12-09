@@ -202,3 +202,64 @@ Parse.Cloud.afterDelete(COLLECTION, async req => {
 });
 
 Parse.Cloud.afterSave(COLLECTION, req => Actinium.Hook.run('afterSave', req));
+
+/**
+ * @api {Cloud} plugin-activate plugin-activate
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName plugin-activate
+ * @apiDescription Activate a plugin
+
+The `activate` hook will be run when a plugin is activated.
+
+ * @apiParam {String} plugin The ID of the plugin to activate.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('plugin-activate', { plugin: 'TEST-PLUGIN' });
+
+// Returns the Plugin object on success
+ */
+
+/**
+ * @api {Cloud} plugin-deactivate plugin-deactivate
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName plugin-deactivate
+ * @apiDescription Deactivate a plugin.
+
+The `deactivate` hook will be run when a plugin is deactivated.
+
+ * @apiParam {String} plugin The ID of the plugin to deactivate.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('plugin-deactivate', { plugin: 'TEST-PLUGIN' });
+
+// Returns the Plugin object on success
+ */
+
+/**
+ * @api {Cloud} plugin-uninstall plugin-uninstall
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName plugin-uninstall
+ * @apiDescription Uninstall a plugin.
+
+The `deactivate` and `uninstall` hooks will be run when a plugin is uninstalled.
+
+_If the server restarts, the plugin will be installed again unless you remove it from the server by either._
+
+
+ * @apiParam {String} plugin The ID of the plugin to uninstall.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('plugin-deactivate', { plugin: 'TEST-PLUGIN' });
+
+// Returns the Plugin object on success
+ */
+
+/**
+ * @api {Cloud} plugins plugins
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName plugins
+ * @apiDescription Retrieves the list of plugins.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('plugins');
+ */
