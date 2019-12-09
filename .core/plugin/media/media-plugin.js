@@ -176,9 +176,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
     const { user, master } = req;
-    const { match } = req.params;
-
-    return Actinium.Media.fileDelete(match, user, master);
+    return Actinium.Media.fileDelete(req.params, user, master);
 });
 
 /**
