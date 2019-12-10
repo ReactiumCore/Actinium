@@ -121,8 +121,13 @@ Plugable.addMetaAsset = (ID, filePath, assetURLType = 'assetURL') => {
             metaAsset.targetFileName,
         );
 
+        const url = String(file.url()).replace(
+            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}`,
+            '',
+        );
+
         const plugin = Actinium.Cache.get(`plugins.${ID}`);
-        op.set(plugin, metaAsset.objectPath, file.url());
+        op.set(plugin, metaAsset.objectPath, url);
         req.object.set('meta', op.get(plugin, 'meta'));
     });
 };

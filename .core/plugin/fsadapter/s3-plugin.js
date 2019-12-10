@@ -43,6 +43,7 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
 });
 
 Actinium.Hook.register('add-meta-asset', async metaAsset => {
+    if (!Plugin.isActive(PLUGIN.ID)) return;
     const parsedFilename = path.parse(metaAsset.targetFileName);
     const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
     const appVer = op.get(config, 'version');
