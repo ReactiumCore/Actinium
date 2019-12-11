@@ -108,7 +108,7 @@ const edit = async req => {
         !CloudHasCapabilities(
             req,
             ['Capability.create', 'Capability.update'],
-            false,
+            true,
         )
     )
         throw new Error('Permission denied');
