@@ -25,6 +25,7 @@ _See: [Hook.run](#api-Actinium-Hook_run) for full example._
 ## Behavior
 Hooks are synchronous and will execute in the order they are registered unless the `order` parameter is specified.
  * @apiParam (Hooks) activate Triggered when a plugin has been activated. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) add-meta-asset Triggered when a new Plugable meta asset is added with addMetaAsset(). The hook is passed the metaAsset object used to create the file asset.
  * @apiParam (Hooks) afterDelete-plugin
  * @apiParam (Hooks) afterDelete-route
  * @apiParam (Hooks) afterSave
@@ -75,7 +76,6 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) user-before-save
  * @apiParam (Hooks) user-fetch Triggered when a user is fetched from the server. The fetched `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) warning Triggered when the startup warnings are logged.
- *
  */
 
 /**

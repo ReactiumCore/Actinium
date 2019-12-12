@@ -14,16 +14,24 @@ const PLUGIN = {
         group: 'utilities',
         settings: true,
     },
+    version: {
+        actinium: '>=3.1.6',
+        plugin: '0.0.1',
+    },
 };
 
 Actinium.Plugin.register(PLUGIN);
+Actinium.Plugin.addLogo(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/reset-logo.svg'),
+);
 Actinium.Plugin.addScript(
     PLUGIN.ID,
-    path.resolve(__dirname, 'assets/reset.js'),
+    path.resolve(__dirname, 'plugin-assets/reset.js'),
 );
 Actinium.Plugin.addStylesheet(
     PLUGIN.ID,
-    path.resolve(__dirname, 'assets/reset-plugin.css'),
+    path.resolve(__dirname, 'plugin-assets/reset-plugin.css'),
 );
 
 Actinium.Hook.register('warn', async () => {

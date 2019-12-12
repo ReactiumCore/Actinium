@@ -93,30 +93,55 @@ Plugable.register = (plugin, active = false) => {
     }
 };
 
-Plugable.addScript = (ID, filePath) => {
+Plugable.addMetaAsset = (ID, filePath, assetURLType = 'assetURL') => {
+    if (
+        typeof assetURLType !== 'string' ||
+        !/[a-zA-Z_\-.]+/.test(assetURLType)
+    ) {
+        throw new Error(
+            `Invalid asset URL type "assetURLType". Must be a string or object path (relative to plugin.meta)`,
+        );
+    }
+
     Actinium.Hook.register('activate', async (pluginObj, req) => {
         if (ID !== pluginObj.ID) return;
+        const metaAsset = {
+            ID,
+            filePath,
+            objectPath: `meta.${assetURLType}`,
+            targetPath: `plugins/${ID}`,
+            targetFileName: path.basename(filePath),
+        };
 
-        const file = await Actinium.File.create(filePath, `plugins/${ID}`);
+        await Actinium.Hook.run('add-meta-asset', metaAsset);
+
+        const file = await Actinium.File.create(
+            metaAsset.filePath,
+            metaAsset.targetPath,
+            metaAsset.targetFileName,
+        );
+
+        const url = String(file.url()).replace(
+            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}`,
+            '',
+        );
+
         const plugin = Actinium.Cache.get(`plugins.${ID}`);
-        op.set(plugin, 'meta.scriptURL', file.url());
+        op.set(plugin, metaAsset.objectPath, url);
         req.object.set('meta', op.get(plugin, 'meta'));
     });
+};
 
-    // @TODO: update hook
+Plugable.addLogo = (ID, filePath) => {
+    Plugable.addMetaAsset(ID, filePath, 'logoURL');
+};
+
+Plugable.addScript = (ID, filePath) => {
+    Plugable.addMetaAsset(ID, filePath, 'scriptURL');
 };
 
 Plugable.addStylesheet = (ID, filePath) => {
-    Actinium.Hook.register('activate', async (pluginObj, req) => {
-        if (ID !== pluginObj.ID) return;
-
-        const file = await Actinium.File.create(filePath, `plugins/${ID}`);
-        const plugin = Actinium.Cache.get(`plugins.${ID}`);
-        op.set(plugin, 'meta.styleURL', file.url());
-        req.object.set('meta', op.get(plugin, 'meta'));
-    });
-
-    // @TODO: update hook
+    Plugable.addMetaAsset(ID, filePath, 'styleURL');
 };
 
 Plugable.init = () => {
@@ -246,3 +271,270 @@ Plugable.activate = ID =>
     Parse.Cloud.run('plugin-activate', { plugin: ID }, { useMasterKey: true });
 
 module.exports = Plugable;
+
+/**
+ * @api {Object} Actinium.Plugin Plugin
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin
+ * @apiDescription Define plugins that extend Actinium functionality.
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.register(Plugin,active) Plugin.register()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.register
+ * @apiDescription Register a plugin object.
+ *
+ * @apiParam {Object} Plugin The plugin object to register.
+ * @apiParam {Active} [active=false] The default active state of plugin.
+ * @apiParam (Plugin) {String} id Unique identifier for the plugin. If the ID has already been defined, it will be overwritten with the current plugin object.
+ * @apiParam (Plugin) {String} [description] Summary of the plugin used when displaying the plugin list. The description can use markdown formatting.
+ * @apiParam (Plugin) {String} [name] Common name for the plugin used when displaying the plugin list.
+ * @apiParam (Plugin) {Number} [order=100] The sort order of the plugin used when establishing the initial loading order of the plugins.
+ * @apiParam (Plugin) {Object} version Version information of the plugin.
+ * @apiParam (Plugin) {String} .actinium The [semver](https://www.npmjs.com/package/semver#ranges) range of Actinium the plugin can work with.
+ * @apiParam (Plugin) {String} .plugin The version of the plugin.
+ * @apiExample Example Usage:
+ * Actinium.Plugin.register({
+ *    ID: 'TEST-PLUGIN',
+ *    description: 'This is my plugin to test if this shit works',
+ *    name: 'My Awesome Test Plugin',
+ *    order: 100,
+ *    version: {
+ *        actinium: '>=3.0.5',
+ *        plugin: '0.0.1',
+ *    },
+ * });
+ */
+
+/**
+  * @api {Function} Plugin.addMetaAsset(ID,filePath,assetURLType) Plugin.addMetaAsset()
+  * @apiVersion 3.1.6
+  * @apiGroup Actinium
+  * @apiName Plugin.addMetaAsset
+  * @apiDescription Register an asset to the Parse file API and store the URL in
+   your plugin meta object. Example usage, for providing a browser js script, a
+  css file, or a plugin manager logo image. This is generally called after you
+  have called `Actinium.Plugin.register()` to register your plugin, and the
+  assets will be added to your plugin on plugin `activation` hook.
+
+  Before your asset is stored, and the URL created, you will have an opportunity
+  to change the targetFileName, when the `add-meta-asset` hook is called. For
+  example the S3 file adapter plugin automatically adds the plugin version or
+  Actinium version to asset filename (and URL) so that the correct asset is
+  cached in your S3 bucket.
+  *
+  * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
+  * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+  * @apiParam {String} [assetURLType=assetURL] string (object path relative to plugin.meta) to store in plugin meta the file URL for the asset. e.g. by default your file URL will be found at `plugin.meta.assetURL` object path.
+  * @apiExample example-plugin.js
+  // A plugin object, see Actinium.Plugin.register() for more information.
+  const PLUGIN = {
+    ID: 'Example',
+    name: 'Example Plugin',
+    description: 'A generic plugin',
+    version: {
+        plugin: 0.0.1,
+        actinium: 3.1.6,
+    },
+  };
+
+  Actinium.Plugin.register(PLUGIN);
+
+  // all these execute on `activation` hook of your plugin
+  // addLogo uses addMetaAsset with assetURLType='logoURL'
+  Actinium.Plugin.addLogo(
+      PLUGIN.ID,
+      path.resolve(__dirname, 'plugin-assets/reset-logo.svg'),
+  );
+  // addLogo uses addMetaAsset with assetURLType='scriptURL'
+  Actinium.Plugin.addScript(
+      PLUGIN.ID,
+      path.resolve(__dirname, 'plugin-assets/reset.js'),
+  );
+  // addLogo uses addMetaAsset with assetURLType='styleURL'
+  Actinium.Plugin.addStylesheet(
+      PLUGIN.ID,
+      path.resolve(__dirname, 'plugin-assets/reset-plugin.css'),
+  );
+  Actinium.Plugin.addMetaAsset(PLUGIN.ID, 'plugin-assets/worker.js', 'webworkerURL');
+ * @apiExample add-meta-asset-hook-example.js
+const path = require('path');
+
+// The full object passed to the `add-meta-asset` is:
+// {
+//     ID, // the plugin id
+//     filePath, // the path to the file to be attached
+//     objectPath, // the meta object path to store the URL (default 'meta.assetURL', 'meta.scriptURL', 'meta.style.URL', 'meta.logoURL')
+//     targetPath, // the target file URI (default plugins/PLUGIN.ID)
+//     targetFileName, // the target file name (default basename of filePath)
+//}
+Actinium.Hook.register('add-meta-asset', async metaAsset => {
+    const parsedFilename = path.parse(metaAsset.targetFileName);
+    // get plugin object
+    const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
+    const version = op.get(plugin, 'version');
+    const { name, ext } = parsedFilename;
+
+    // put the plugin version in the target filename
+    metaAsset.targetFileName = `${name}-${version}${ext}`;
+});
+ */
+
+/**
+ * @api {Function} Plugin.addLogo(ID,filePath) Plugin.addLogo()
+ * @apiVersion 3.1.6
+ * @apiGroup Actinium
+ * @apiName Plugin.addLogo
+ * @apiDescription Register a logo image for your plugin at plugin activation.
+ This calls Plugin.addMetaAsset() with assetURL of `logoURL`. See `Plugin.addMetaAsset()`
+ for more information.
+ Actinium admin (a Reactium instance) will automatically load logoURLs found for active
+ actinium plugins. This logo image will represent your plugin in the plugin manager.
+ *
+ * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
+ * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ */
+
+/**
+ * @api {Function} Plugin.addScript(ID,filePath) Plugin.addScript()
+ * @apiVersion 3.1.6
+ * @apiGroup Actinium
+ * @apiName Plugin.addScript
+ * @apiDescription Register a front-end Reactium plugin script asset for your plugin.
+ This calls Plugin.addMetaAsset() with assetURL of `scriptURL`. See `Plugin.addMetaAsset()`
+ for more information.
+ Actinium admin (a Reactium instance) will automatically load scriptURLs found for active
+ actinium plugins. In this way, you can publish plugin code to the Actinium admin.
+ *
+ * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
+ * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ */
+
+/**
+ * @api {Function} Plugin.addStylesheet(ID,filePath) Plugin.addStylesheet()
+ * @apiVersion 3.1.6
+ * @apiGroup Actinium
+ * @apiName Plugin.addStylesheet
+ * @apiDescription Register a front-end Reactium plugin script asset for your plugin.
+ This calls Plugin.addMetaAsset() with assetURL of `styleURL`. See `Plugin.addMetaAsset()`
+ for more information.
+ Actinium admin (a Reactium instance) will automatically load styleURLs found for active
+ actinium plugins. In this way, you can publish styles for your plugin to be used when
+ your plugin is active in the Actinium admin.
+ *
+ * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
+ * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.get() Plugin.get()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.get
+ * @apiDescription Get the list of plugins.
+ *
+ * @apiParam {String} [id] Retrieves only the specified plugin.
+ *
+ * @apiExample Example Usage: All
+Actinium.Plugin.get();
+
+// Returns {Array}
+[
+    {
+        ID: 'TEST-PLUGIN',
+        description: 'This is my plugin to test if this shit works',
+        name: 'My Awesome Test Plugin',
+        order: 100,
+        version: {
+            actinium: '>=3.0.5',
+            plugin: '0.0.1',
+        },
+    }
+ ]
+  * @apiExample Example Usage: Single
+Actinium.Plugin.get('TEST-PLUGIN');
+
+// Returns {Object}
+{
+    ID: 'TEST-PLUGIN',
+    description: 'This is my plugin to test if this shit works',
+    name: 'My Awesome Test Plugin',
+    order: 100,
+    version: {
+        actinium: '>=3.0.5',
+        plugin: '0.0.1',
+    },
+}
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.isActive(ID) Plugin.isActive()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.isActive
+ * @apiDescription Determine if a plugin is active.
+ *
+ * @apiParam {String} id The ID of the plugin.
+ *
+ * @apiExample Example Usage:
+Actinium.Plugin.isActive('TEST-PLUGIN');
+
+// Returns {Boolean}
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.isValid(ID,strict) Plugin.isValid()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.isValid
+ * @apiDescription Determine if a plugin is valid.
+ *
+ * @apiParam {String} id The ID of the plugin.
+ * @apiParam {Boolean} [strict=false] If `true` the plugin must also be active.
+ *
+ * @apiExample Example Usage:
+Actinium.Plugin.isValid('TEST-PLUGIN', true);
+
+// Returns {Boolean}
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.deactivate(ID) Plugin.deactivate()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.deactivate
+ * @apiDescription Programmatically deactivate a plugin.
+
+ * @apiParam {String} id The ID of the plugin.
+ * @apiParam (Returns) {Promise} plugin Returns a promise containing the deactivated plugin `{Object}`.
+ * @apiExample Example Usage:
+const myFunction = async () => {
+    const plugin = await Actinium.Plugin.deactivate('TEST-PLUGIN');
+
+    if (plugin) {
+        console.log(plugin.ID, 'deactivated');
+    }
+};
+ */
+
+/**
+ * @api {Function} Actinium.Plugin.activate(ID) Plugin.activate()
+ * @apiVersion 3.0.5
+ * @apiGroup Actinium
+ * @apiName Plugin.activate
+ * @apiDescription Programmatically activate a plugin.
+
+ * @apiParam {String} id The ID of the plugin.
+ * @apiParam (Returns) {Promise} plugin Returns a promise containing the activated plugin `{Object}`.
+ * @apiExample Example Usage:
+const myFunction = async () => {
+    const plugin = await Actinium.Plugin.activate('TEST-PLUGIN');
+
+    if (plugin) {
+        console.log(plugin.ID, 'activated');
+    }
+};
+ */
