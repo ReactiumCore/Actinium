@@ -20,30 +20,16 @@ const PLUGIN = {
     },
 };
 
-Actinium.Capability.register(
+const capabilities = [
     '_Role.create',
-    {},
-    Actinium.Enums.priority.highest,
-);
-Actinium.Capability.register(
     '_Role.retrieve',
-    {},
-    Actinium.Enums.priority.highest,
-);
-Actinium.Capability.register(
     '_Role.update',
-    {},
-    Actinium.Enums.priority.highest,
-);
-Actinium.Capability.register(
     '_Role.delete',
-    {},
-    Actinium.Enums.priority.highest,
-);
-Actinium.Capability.register(
     '_Role.addField',
-    {},
-    Actinium.Enums.priority.highest,
+];
+
+capabilities.forEach(cap =>
+    Actinium.Capability.register(cap, {}, Actinium.Enums.priority.highest),
 );
 
 Actinium.Collection.register('_Role', {
@@ -313,6 +299,17 @@ Actinium.Cloud.beforeDelete(COLLECTION, beforeDelete);
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 
 Actinium.Cloud.afterSave(COLLECTION, afterSave);
+
+/**
+ * @api {Cloud} roles roles
+ * @apiVersion 3.0.5
+ * @apiGroup Cloud
+ * @apiName roles
+ * @apiDescription Get the list of roles.
+ * @apiParam {Mixed} search The role ID, level, or name.
+ * @apiExample Example Usage:
+Actinium.Cloud.run('roles', { search: 'super-admin' });
+ */
 
 /**
  * @api {Cloud} role role
