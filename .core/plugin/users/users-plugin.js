@@ -248,7 +248,8 @@ const aclTargets = async req => {
             );
 
             return Boolean(
-                username.startsWith(search) ||
+                !search ||
+                    username.startsWith(search) ||
                     email.startsWith(search) ||
                     firstname.startsWith(search) ||
                     lastname.startsWith(search),
@@ -261,7 +262,8 @@ const aclTargets = async req => {
             const label = String(op.get(role, 'label')).toLowerCase();
 
             return Boolean(
-                String(name).startsWith(search) ||
+                !search ||
+                    String(name).startsWith(search) ||
                     String(label).startsWith(search),
             );
         });
@@ -299,6 +301,9 @@ const aclTargets = async req => {
         qry = new Parse.Query('_User');
     }
 
+    qry.ascending('fname');
+    qry.addAscending('lname');
+    qry.addAscending('username');
     qry.limit(1000);
 
     let users = [];
