@@ -197,7 +197,7 @@ const User = {
             .first(opts);
 
         if (!userObj) {
-            return Promise.reject('invalid user', user);
+            return Promise.reject('invalid user');
         }
 
         roleObj.getUsers().add(userObj);
