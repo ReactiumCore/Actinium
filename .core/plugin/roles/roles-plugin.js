@@ -197,7 +197,7 @@ const User = {
             .first(opts);
 
         if (!userObj) {
-            return Promise.reject('invalid user');
+            return Promise.reject('invalid user', user);
         }
 
         roleObj.getUsers().add(userObj);
@@ -256,7 +256,15 @@ const remove = async req => {
     return list(req);
 };
 
-const afterSave = req => list({ useMasterKey: true });
+const afterSave = async req => {
+    await list({ useMasterKey: true });
+
+    await Actinium.Cloud.run(
+        'acl-targets',
+        { cache: true },
+        { useMasterKey: true },
+    );
+};
 
 const beforeDelete = req => {
     const { name } = req.object.toJSON();

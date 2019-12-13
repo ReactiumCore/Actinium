@@ -70,10 +70,10 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) start Triggered when the server starts up. If you have any database seeding or schema to construct, this is the optimal time to do it.
  * @apiParam (Hooks) uninstall Triggered after a plugin has been uninstalled. The `Plugin` object is passed to the hook.
  * @apiParam (Hooks) update
- * @apiParam (Hooks) user-after-save
- * @apiParam (Hooks) user-before-find
- * @apiParam (Hooks) user-before-login
- * @apiParam (Hooks) user-before-save
+ * @apiParam (Hooks) user-after-save Triggered after a Parse.User object is saved.
+ * @apiParam (Hooks) user-before-find Triggered when the `user-find` cloud function is called.
+ * @apiParam (Hooks) user-before-login Triggered before a sign in attempt.
+ * @apiParam (Hooks) user-before-save Triggered after a Parse.User object is saved.
  * @apiParam (Hooks) user-fetch Triggered when a user is fetched from the server. The fetched `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) warning Triggered when the startup warnings are logged.
  */
