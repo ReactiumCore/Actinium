@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const op = require('object-path');
 const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
 
@@ -278,9 +279,12 @@ const aclTargets = async req => {
     }
 
     // Fetch fresh
-    let roles = Object.values(Actinium.Cache.get('roles', {})).map(role =>
-        mapRole(role),
-    );
+    let roles = _.sortBy(
+        Object.values(Actinium.Cache.get('roles', {})),
+        'level',
+    )
+        .map(role => mapRole(role))
+        .reverse();
 
     let qry;
     const options = CloudRunOptions(req);
