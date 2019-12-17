@@ -227,7 +227,7 @@
                                 )
                             );
                         case 2:
-                            o.a.Plugin.addComponent({
+                            o.a.Zone.addComponent({
                                 id: 'RESET-PLUGIN-SETTINGS',
                                 zone: 'plugin-settings-Reset',
                                 component: l,
