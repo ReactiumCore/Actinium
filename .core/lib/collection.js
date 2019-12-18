@@ -99,7 +99,9 @@ Collection.load = async (collection = false) => {
                     useMasterKey: true,
                 });
             } catch (error) {
-                schema = {};
+                schema = {
+                    classLevelPermissions: {},
+                };
             }
 
             const {
