@@ -191,6 +191,7 @@ The results are reduced based on the capabilities applied to each directory and 
 Permission: `Media.retrieve` _(use the **media.capabilities.list** setting to change)_.
 
  * @apiParam {String} [search] Search for a specific directory. Uses `Parse.Query.startsWith()` to execute the query.
+ * @apiParam {Boolean} [verbose] Return an Array of ParseObjects instead of the default array of strings.
  * @apiExample Example usage:
 Actinium.Cloud.run('directories').then(directories => {
     console.log(directories);
@@ -205,11 +206,14 @@ Actinium.Cloud.define(PLUGIN.ID, 'directories', async req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
     const { user } = req;
-    const { search } = req.params;
+    const { search, verbose } = req.params;
 
-    let directories = Actinium.Media.directories(search, user);
+    let directories =
+        verbose === true
+            ? await Actinium.Media.directoriesFetch(CloudRunOptions(req))
+            : Actinium.Media.directories(search, user);
 
-    await Actinium.Hook.run('directories', directories, user);
+    await Actinium.Hook.run('directories', { directories, req });
 
     return directories;
 });
@@ -240,13 +244,14 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-create', req => {
     if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
-    const { directory, capabilities } = req.params;
+    const { capabilities, directory, permissions = [] } = req.params;
 
     if (!directory) return Promise.reject(ENUMS.ERRORS.DIRECTORY);
 
     return Actinium.Media.directoryCreate(
         directory,
         capabilities,
+        permissions,
         CloudRunOptions(req),
     );
 });

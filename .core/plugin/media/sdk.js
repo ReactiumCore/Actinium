@@ -21,8 +21,8 @@ const {
 
 const Media = { ENUMS };
 
-const getDirectories = async () => {
-    const options = { useMasterKey: true };
+const getDirectories = async options => {
+    options = options || { useMasterKey: true };
     const qry = new Parse.Query(ENUMS.COLLECTION.DIRECTORY)
         .ascending('directory')
         .exists('directory')
@@ -257,32 +257,70 @@ Media.fileDelete = async (params, user, master) => {
 ...
 await Actinium.Media.directoryCreate('avatars', ['Media.create'], options);
  */
-Media.directoryCreate = async (directory, capabilities, options) => {
+Media.directoryCreate = async (
+    directory,
+    capabilities,
+    permissions = [],
+    ...args
+) => {
     capabilities = capabilities || ['Media.create'];
 
+    const options = args.pop();
     const user = await UserFromSession(op.get(options, 'sessionToken'));
 
-    const existing = Actinium.Cache.get('Media.directories', []).includes(
-        directory,
-    );
+    const existing = await new Parse.Query(ENUMS.COLLECTION.DIRECTORY)
+        .equalTo('directory', directory)
+        .first({ useMasterKey: true });
 
-    if (existing) {
-        return true;
+    if (existing) return existing.toJSON();
+
+    const acl = new Parse.ACL();
+    acl.setPublicWriteAccess(false);
+    acl.setRoleWriteAccess('super-admin', true);
+
+    if (permissions.length > 0) {
+        permissions.forEach(perm => {
+            const { label, name, objectId, permission, type } = perm;
+            const action = `${type}-${permission}`;
+
+            switch (action) {
+                case 'role-write':
+                    acl.setRoleWriteAccess(name, true);
+                    acl.setRoleReadAccess(name, true);
+                    break;
+
+                case 'role-read':
+                    acl.setRoleReadAccess(name, true);
+                    break;
+
+                case 'user-write':
+                    acl.setWriteAccess(objectId, true);
+                    acl.setReadAccess(objectId, true);
+                    break;
+
+                case 'user-read':
+                    acl.setReadAccess(objectId, true);
+                    break;
+            }
+        });
+    } else {
+        acl.setPublicReadAccess(true);
+        acl.setRoleWriteAccess('administrator', true);
     }
 
-    try {
-        const obj = await new Parse.Object(ENUMS.COLLECTION.DIRECTORY)
-            .set('directory', directory)
-            .set('capabilities', capabilities)
-            .set('user', user)
-            .save(null, options);
+    const obj = new Parse.Object(ENUMS.COLLECTION.DIRECTORY)
+        .set('directory', directory)
+        .set('capabilities', capabilities)
+        .set('user', user)
+        .setACL(acl);
 
-        await Actinium.Hook.run('directory-create', obj);
+    await Actinium.Hook.run('directory-create', obj);
 
-        await Media.load();
+    await obj.save(null, options);
 
-        return obj.toJSON();
-    } catch (err) {}
+    await Media.load();
+
+    return obj.toJSON();
 };
 
 /**
@@ -363,6 +401,8 @@ Media.directories = (search, user) => {
         .sort();
 };
 
+Media.directoriesFetch = getDirectories;
+
 /**
  * @api {Function} Media.files({directory,limit,page,search,user}) Media.files
  * @apiVersion 3.1.3
@@ -392,6 +432,7 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
     if (!user) return {};
 
     // Filter items by capability, directory, & search
+    const ids = Object.keys(Actinium.Cache.get('Media.files', {}));
     const items = Object.values(Actinium.Cache.get('Media.files', {})).filter(
         item => {
             if (
@@ -420,6 +461,7 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
     const prev = page > 1 ? page - 1 : undefined;
 
     return {
+        empty: ids.length < 1,
         files: _.indexBy(selection, 'objectId'),
         directories: Media.directories(null, user),
         count: items.length,
