@@ -258,7 +258,7 @@ const set = async req => {
         await Actinium.Cloud.run(
             'capability-edit',
             {
-                group: `setting.${group}-get`,
+                capability: `setting.${group}-get`,
                 perms: {
                     allowed: ['anonymous'],
                 },
@@ -270,14 +270,14 @@ const set = async req => {
         const { allowed = [] } = await Actinium.Cloud.run(
             'capability-get',
             {
-                group: `setting.${group}-get`,
+                capability: `setting.${group}-get`,
             },
             CloudRunOptions(req),
         );
         await Actinium.Cloud.run(
             'capability-edit',
             {
-                group: `setting.${group}-get`,
+                capability: `setting.${group}-get`,
                 perms: {
                     allowed: allowed.filter(role => role !== 'anonymous'),
                 },
