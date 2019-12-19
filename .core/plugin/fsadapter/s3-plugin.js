@@ -42,6 +42,19 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     return new S3Adapter(settings);
 });
 
+Actinium.Plugin.addLogo(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/add-files.svg'),
+);
+Actinium.Plugin.addScript(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/s3-adapter.js'),
+);
+Actinium.Plugin.addStylesheet(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/s3-adapter-plugin.css'),
+);
+
 Actinium.Hook.register('add-meta-asset', async metaAsset => {
     if (!Plugin.isActive(PLUGIN.ID)) return;
     const parsedFilename = path.parse(metaAsset.targetFileName);
