@@ -12,7 +12,7 @@ const PLUGIN = {
         plugin: '0.0.1',
     },
     meta: {
-        group: 'mail',
+        group: 'core',
     },
 };
 
