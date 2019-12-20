@@ -22,6 +22,9 @@ const {
 const Media = { ENUMS };
 
 const getDirectories = async options => {
+    const cached = Actinium.Cache.get('media-directories-fetch');
+    if (cached) return cached;
+
     options = options || { useMasterKey: true };
     const qry = new Parse.Query(ENUMS.COLLECTION.DIRECTORY)
         .ascending('directory')
@@ -40,6 +43,7 @@ const getDirectories = async options => {
         results = await qry.find(options);
     }
 
+    Actinium.Cache.set('media-directories-fetch', directories, 5000);
     return directories;
 };
 
@@ -171,7 +175,7 @@ Media.upload = async (data, meta, user, options) => {
 
     // Create the directory
     try {
-        await Media.directoryCreate(directory, null, options);
+        await Media.directorySave({ directory, options });
     } catch (err) {}
 
     return fileObj.toJSON();
@@ -244,35 +248,52 @@ Media.fileDelete = async (params, user, master) => {
 };
 
 /**
- * @api {Asynchronous} Media.directoryCreate(directory,capabilities,options) Media.directoryCreate
+ * @api {Asynchronous} Media.directorySave({capabilities,directory,objectId,options,permissions}) Media.directorySave
  * @apiVersion 3.1.3
  * @apiGroup Actinium
- * @apiName Media.directoryCreate
+ * @apiName Media.directorySave
  * @apiDescription Create a new Media directory.
 
  * @apiParam {String} directory The directory path.
  * @apiParam {Array} [capabilities='[Media.create]'] The capabilities array.
+ * @apiParam {String} objectId Used when updating an existing directory object.
  * @apiParam {Object} options The options object.
- * @apiExample Examp usage:
+ * @apiParam {Array} permissions List of permissions to apply to the directory. If empty the directory is read/write for all users.
+ * @apiExample Example usage:
 ...
-await Actinium.Media.directoryCreate('avatars', ['Media.create'], options);
+await Actinium.Media.directorySave({
+  directory:'avatars',
+  capabilities: ['Media.create'],
+  objectId: 'aatk324t',
+  options: { sessionToken: 'alrkgjao4tqu23qw4' },
+  permissions: [
+    { objectId: "Lxank79qjx", type: "role", permission: "write", name: "super-admin" },
+    { objectId: "s0UJ2Hk7XC", type: "user", permission: "write" }
+  ]
+});
  */
-Media.directoryCreate = async (
+Media.directorySave = async ({
     directory,
     capabilities,
     permissions = [],
-    ...args
-) => {
+    objectId,
+    options,
+}) => {
     capabilities = capabilities || ['Media.create'];
 
-    const options = args.pop();
     const user = await UserFromSession(op.get(options, 'sessionToken'));
 
-    const existing = await new Parse.Query(ENUMS.COLLECTION.DIRECTORY)
-        .equalTo('directory', directory)
-        .first({ useMasterKey: true });
+    const useMasterKey = true;
+    const qry = new Parse.Query(ENUMS.COLLECTION.DIRECTORY);
+    const existing = objectId
+        ? await qry.equalTo('objectId', objectId).first({ useMasterKey })
+        : await qry.equalTo('directory', directory).first({ useMasterKey });
 
-    if (existing) return existing.toJSON();
+    if (existing && !objectId) return existing.toJSON();
+
+    const prevDirectory = existing
+        ? op.get(existing.toJSON(), 'directory')
+        : null;
 
     const acl = new Parse.ACL();
     acl.setPublicWriteAccess(false);
@@ -308,19 +329,57 @@ Media.directoryCreate = async (
         acl.setRoleWriteAccess('administrator', true);
     }
 
-    const obj = new Parse.Object(ENUMS.COLLECTION.DIRECTORY)
-        .set('directory', directory)
-        .set('capabilities', capabilities)
-        .set('user', user)
-        .setACL(acl);
+    const obj = existing
+        ? existing
+        : new Parse.Object(ENUMS.COLLECTION.DIRECTORY);
 
-    await Actinium.Hook.run('directory-create', obj);
+    obj.setACL(acl)
+        .set('directory', directory)
+        .set('capabilities', capabilities);
+
+    if (!existing) obj.set('user', user);
 
     await obj.save(null, options);
+
+    await Media.updateMediaDirectories(prevDirectory, directory);
 
     await Media.load();
 
     return obj.toJSON();
+};
+
+Media.updateMediaDirectories = async (prev, current) => {
+    if (prev === current) return;
+
+    let skip = 0;
+    const limit = 100;
+    const options = { useMasterKey: true };
+    const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA)
+        .startsWith('url', `/media/${prev}`)
+        .limit(limit)
+        .skip(skip);
+
+    let results = await qry.find(options);
+
+    while (results.length > 0) {
+        results = results.map(item => {
+            let { url } = item.toJSON();
+            url = String(url).replace(`/media/${prev}`, `/media/${current}`);
+
+            item.set('url', url);
+            item.set('directory', current);
+
+            return item;
+        });
+
+        await Parse.Object.saveAll(results, options);
+
+        // Get next batch of records
+        skip += limit;
+        qry.skip(skip);
+
+        results = results.length === limit ? await qry.find(options) : [];
+    }
 };
 
 /**
