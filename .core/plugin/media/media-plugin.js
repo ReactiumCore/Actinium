@@ -219,24 +219,30 @@ Actinium.Cloud.define(PLUGIN.ID, 'directories', async req => {
 });
 
 /**
- * @api {Cloud} directory-create directory-create
+ * @api {Cloud} directory-save directory-save
  * @apiVersion 3.1.3
  * @apiGroup Cloud
- * @apiName directory-create
- * @apiDescription Create a new Media directory.
+ * @apiName directory-save
+ * @apiDescription Create or update a new Media directory.
 
 Permission: `Media.create` _(use the **media.capabilities.directory** setting to change)_.
  * @apiParam {String} directory The directory path.
  * @apiParam {Array} [capabilities='[Media.create]'] The capabilities array.
+ * @apiParam {String} objectId Used when updating an existing directory object.
+ * @apiParam {Array} permissions List of permissions to apply to the directory. If empty the directory is read/write for all users.
  * @apiExample Example usage:
-Actinium.Cloud.run('directory-create', {
+Actinium.Cloud.run('directory-save', {
     directory: 'uploads',
     capabilities: ['Media.create']
+    permissions: [
+      { objectId: "Lxank79qjx", type: "role", permission: "write", name: "super-admin" },
+      { objectId: "s0UJ2Hk7XC", type: "user", permission: "write" }
+    ]
 }).then(result => {
     console.log(result);
 });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'directory-create', req => {
+Actinium.Cloud.define(PLUGIN.ID, 'directory-save', req => {
     const cap = Actinium.Setting.get('media.capabilities.directory', [
         'Media.create',
     ]);
@@ -244,16 +250,17 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-create', req => {
     if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
-    const { capabilities, directory, permissions = [] } = req.params;
+    const { capabilities, directory, objectId, permissions = [] } = req.params;
 
     if (!directory) return Promise.reject(ENUMS.ERRORS.DIRECTORY);
 
-    return Actinium.Media.directoryCreate(
+    return Actinium.Media.directorySave({
         directory,
         capabilities,
         permissions,
-        CloudRunOptions(req),
-    );
+        objectId,
+        options: CloudRunOptions(req),
+    });
 });
 
 /**
@@ -341,15 +348,22 @@ const dirs = () => {
 };
 
 Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
-    if (!req.object.isNew()) return;
-    const { directory } = req.object.toJSON();
+    if (req.object.isNew()) {
+        const { directory } = req.object.toJSON();
 
-    // Lookup the directory before we create it
-    const fetch = await new Parse.Query(COLLECTION.DIRECTORY)
-        .equalTo('directory', directory)
-        .first({ useMasterKey: true });
+        // Lookup the directory before we create it
+        const fetch = await new Parse.Query(COLLECTION.DIRECTORY)
+            .equalTo('directory', directory)
+            .first({ useMasterKey: true });
 
-    if (fetch) throw new Error('directory exists');
+        if (fetch) return new Error('directory exists');
+    }
+
+    await Actinium.Hook.run('directory-save', req.object);
+});
+
+Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
+    await Actinium.Hook.run('directory-delete', req.object);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
@@ -366,8 +380,9 @@ Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
 });
 
 Actinium.Cloud.afterSave(COLLECTION.MEDIA, req => {
-    const id = req.object.id;
-    const files = Actinium.Cache.get('Media.files', {});
-    files[id] = req.object.toJSON();
-    Actinium.Cache.set('Media.files', files);
+    Actinium.Media.load();
+});
+
+Actinium.Cloud.afterSave(COLLECTION.DIRECTORY, req => {
+    Actinium.Media.load();
 });
