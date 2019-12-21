@@ -30,6 +30,10 @@ const normalizeCapability = (capabilityObj = {}) => ({
 
 const Capability = {
     defaults: {
+        'admin-ui.view': {
+            allowed: ['user', 'contributor', 'moderator'],
+            exclude: ['anonymous'],
+        },
         'user.admin': {
             exclude: ['user'],
         },
