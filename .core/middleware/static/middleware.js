@@ -6,7 +6,7 @@ Actinium.Middleware.register(
     'static',
     app => {
         fs.ensureDirSync(path.normalize(ENV.STATIC_PATH));
-        app.use(express.static(path.normalize(ENV.STATIC_PATH)));
+        app.use('/api/static', express.static(path.normalize(ENV.STATIC_PATH)));
     },
     -10000,
 );

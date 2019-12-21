@@ -42,17 +42,21 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     await new S3Adapter(settings);
 });
 
+const static = true;
 Actinium.Plugin.addLogo(
     PLUGIN.ID,
     path.resolve(__dirname, 'plugin-assets/add-files.svg'),
+    static,
 );
 Actinium.Plugin.addScript(
     PLUGIN.ID,
     path.resolve(__dirname, 'plugin-assets/s3-adapter.js'),
+    static,
 );
 Actinium.Plugin.addStylesheet(
     PLUGIN.ID,
     path.resolve(__dirname, 'plugin-assets/s3-adapter-plugin.css'),
+    static,
 );
 
 Actinium.Hook.register('add-meta-asset', async metaAsset => {

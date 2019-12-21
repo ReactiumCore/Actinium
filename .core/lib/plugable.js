@@ -1,3 +1,4 @@
+const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const _ = require('underscore');
@@ -93,7 +94,12 @@ Plugable.register = (plugin, active = false) => {
     }
 };
 
-Plugable.addMetaAsset = (ID, filePath, assetURLType = 'assetURL') => {
+Plugable.addMetaAsset = (
+    ID,
+    filePath,
+    assetURLType = 'assetURL',
+    static = false,
+) => {
     if (
         typeof assetURLType !== 'string' ||
         !/[a-zA-Z_\-.]+/.test(assetURLType)
@@ -114,17 +120,34 @@ Plugable.addMetaAsset = (ID, filePath, assetURLType = 'assetURL') => {
         };
 
         await Actinium.Hook.run('add-meta-asset', metaAsset);
+        let url;
+        if (static) {
+            const targetPath = path.resolve(
+                ENV.STATIC_PATH,
+                metaAsset.targetPath,
+            );
+            fs.ensureDirSync(targetPath);
+            fs.copyFileSync(
+                metaAsset.filePath,
+                path.resolve(targetPath, metaAsset.targetFileName),
+            );
+            url = path.join(
+                '/static',
+                metaAsset.targetPath,
+                metaAsset.targetFileName,
+            );
+        } else {
+            const file = await Actinium.File.create(
+                metaAsset.filePath,
+                metaAsset.targetPath,
+                metaAsset.targetFileName,
+            );
 
-        const file = await Actinium.File.create(
-            metaAsset.filePath,
-            metaAsset.targetPath,
-            metaAsset.targetFileName,
-        );
-
-        const url = String(file.url()).replace(
-            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}`,
-            '',
-        );
+            url = String(file.url()).replace(
+                `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}`,
+                '',
+            );
+        }
 
         const plugin = Actinium.Cache.get(`plugins.${ID}`);
         op.set(plugin, metaAsset.objectPath, url);
@@ -132,16 +155,16 @@ Plugable.addMetaAsset = (ID, filePath, assetURLType = 'assetURL') => {
     });
 };
 
-Plugable.addLogo = (ID, filePath) => {
-    Plugable.addMetaAsset(ID, filePath, 'logoURL');
+Plugable.addLogo = (ID, filePath, static = false) => {
+    Plugable.addMetaAsset(ID, filePath, 'logoURL', static);
 };
 
-Plugable.addScript = (ID, filePath) => {
-    Plugable.addMetaAsset(ID, filePath, 'scriptURL');
+Plugable.addScript = (ID, filePath, static = false) => {
+    Plugable.addMetaAsset(ID, filePath, 'scriptURL', static);
 };
 
-Plugable.addStylesheet = (ID, filePath) => {
-    Plugable.addMetaAsset(ID, filePath, 'styleURL');
+Plugable.addStylesheet = (ID, filePath, static = false) => {
+    Plugable.addMetaAsset(ID, filePath, 'styleURL', static);
 };
 
 Plugable.init = () => {
@@ -329,6 +352,7 @@ module.exports = Plugable;
   * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
   * @apiParam {String} filePath Full path to file asset to attach to the plugin.
   * @apiParam {String} [assetURLType=assetURL] string (object path relative to plugin.meta) to store in plugin meta the file URL for the asset. e.g. by default your file URL will be found at `plugin.meta.assetURL` object path.
+  * @apiParam {Boolean} [static=false] when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.
   * @apiExample example-plugin.js
   // A plugin object, see Actinium.Plugin.register() for more information.
   const PLUGIN = {
@@ -396,6 +420,7 @@ Actinium.Hook.register('add-meta-asset', async metaAsset => {
  *
  * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
  * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ * @apiParam {Boolean} [static=false] when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.
  */
 
 /**
@@ -411,6 +436,7 @@ Actinium.Hook.register('add-meta-asset', async metaAsset => {
  *
  * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
  * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ * @apiParam {Boolean} [static=false] when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.
  */
 
 /**
@@ -427,6 +453,7 @@ Actinium.Hook.register('add-meta-asset', async metaAsset => {
  *
  * @apiParam {String} id Unique identifier for the plugin provided to `Actinium.Plugin.register()`
  * @apiParam {String} filePath Full path to file asset to attach to the plugin.
+ * @apiParam {Boolean} [static=false] when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.
  */
 
 /**
