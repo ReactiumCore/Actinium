@@ -39,7 +39,7 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
         if (endpoint) op.set(settings, 's3overrides.endpoint', endpoint);
     }
 
-    return new S3Adapter(settings);
+    await new S3Adapter(settings);
 });
 
 Actinium.Plugin.addLogo(
