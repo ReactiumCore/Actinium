@@ -289,12 +289,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', req => {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
     const { user } = req;
-    const { directory } = req.params;
+    const { directory, content = false } = req.params;
 
     if (!user) return Promise.reject(ENUMS.ERRORS.PERMISSIONS);
     if (!directory) return Promise.reject(ENUMS.ERRORS.DIRECTORY);
 
-    return Actinium.Media.directoryDelete(directory, user);
+    return Actinium.Media.directoryDelete(directory, user, content);
 });
 
 /**
@@ -373,6 +373,8 @@ Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
+    console.log('afterDelete', COLLECTION.MEDIA);
+
     const id = req.object.id;
     const files = Actinium.Cache.get('Media.files', {});
     delete files[id];
