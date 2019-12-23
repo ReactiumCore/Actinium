@@ -93,16 +93,20 @@ Collection.load = async (collection = false) => {
         actions[collection] = async () => {
             const ParseSchema = new Parse.Schema(collection);
             const schemaController = Parse.CoreManager.getSchemaController();
-            let schema;
+            let loadedSchema;
             try {
-                schema = await ParseSchema.get({
+                loadedSchema = await ParseSchema.get({
                     useMasterKey: true,
                 });
             } catch (error) {
-                schema = {
+                loadedSchema = {
                     classLevelPermissions: {},
                 };
             }
+
+            // Whatever ParseSchema.get() is returning, it has writability attributes
+            // set to false. Quickest way around this is stringify and parse
+            const schema = JSON.parse(JSON.stringify(loadedSchema));
 
             const {
                 createPermission,
@@ -147,17 +151,46 @@ Collection.load = async (collection = false) => {
                 {},
             );
 
-            op.set(schema, 'classLevelPermissions.find', retrievePermission);
-            op.set(schema, 'classLevelPermissions.count', retrievePermission);
-            op.set(schema, 'classLevelPermissions.get', retrievePermission);
-            op.set(schema, 'classLevelPermissions.create', createPermission);
-            op.set(schema, 'classLevelPermissions.update', updatePermission);
-            op.set(schema, 'classLevelPermissions.delete', deletePermission);
-            op.set(
-                schema,
-                'classLevelPermissions.addField',
-                addFieldPermission,
-            );
+            try {
+                op.set(
+                    schema,
+                    'classLevelPermissions.find',
+                    retrievePermission,
+                );
+                op.set(
+                    schema,
+                    'classLevelPermissions.count',
+                    retrievePermission,
+                );
+                op.set(schema, 'classLevelPermissions.get', retrievePermission);
+                op.set(
+                    schema,
+                    'classLevelPermissions.create',
+                    createPermission,
+                );
+                op.set(
+                    schema,
+                    'classLevelPermissions.update',
+                    updatePermission,
+                );
+                op.set(
+                    schema,
+                    'classLevelPermissions.delete',
+                    deletePermission,
+                );
+                op.set(
+                    schema,
+                    'classLevelPermissions.addField',
+                    addFieldPermission,
+                );
+            } catch (error) {
+                console.log(
+                    schema.classLevelPermissions.find,
+                    typeof schema.classLevelPermissions.find,
+                );
+                console.log({ collection });
+                console.log(error);
+            }
 
             const { className, classLevelPermissions } = schema;
 

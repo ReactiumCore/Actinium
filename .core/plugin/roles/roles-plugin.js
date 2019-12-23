@@ -146,21 +146,25 @@ const decorateRoles = async (objects = [], options) => {
         let roles = {};
         let item = objects[i];
 
-        await item
-            .get('users')
-            .query()
-            .each(item => {
-                const { avatar, objectId, username } = item.toJSON();
-                users[objectId] = { avatar, objectId, username };
-            }, options);
+        try {
+            await item
+                .get('users')
+                .query()
+                .each(item => {
+                    const { avatar, objectId, username } = item.toJSON();
+                    users[objectId] = { avatar, objectId, username };
+                }, options);
 
-        await item
-            .get('roles')
-            .query()
-            .each(item => {
-                const { level, name, objectId, label } = item.toJSON();
-                roles[objectId] = { label, level, name, objectId };
-            }, options);
+            await item
+                .get('roles')
+                .query()
+                .each(item => {
+                    const { level, name, objectId, label } = item.toJSON();
+                    roles[objectId] = { label, level, name, objectId };
+                }, options);
+        } catch (error) {
+            // relations return undefined if not set
+        }
 
         item.set('userList', users);
         item.set('roleList', roles);
