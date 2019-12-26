@@ -23,9 +23,7 @@ Actinium.Plugin.register(PLUGIN, true);
 
 // Register Capabilities & Schema
 Actinium.Hook.register('activate', async ({ ID }) => {
-    if (ID !== PLUGIN.ID) {
-        return;
-    }
+    if (ID !== PLUGIN.ID) return;
 
     Object.keys(PLUGIN_SCHEMA.ACTIONS.MEDIA).forEach(action =>
         Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`),
@@ -83,6 +81,19 @@ Actinium.Hook.register('install', ({ ID }) => {
 Actinium.Hook.register('uninstall', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
     Actinium.Pulse.remove('media-directories');
+});
+
+// Recycle a deleted
+Actinium.Hook.register('directory-delete', req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    const collection = req.object.className;
+    const object = req.object;
+
+    return Actinium.Recycle.trash(
+        { collection, object },
+        { useMasterKey: true },
+    );
 });
 
 // Register Cloud functions
@@ -363,7 +374,7 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
 });
 
 Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
-    await Actinium.Hook.run('directory-delete', req.object);
+    await Actinium.Hook.run('directory-delete', req);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
