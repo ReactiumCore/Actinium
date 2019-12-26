@@ -1,3 +1,11 @@
+/**
+ * @api {Object} Actinium.Recycle Recycle
+ * @apiVersion 3.0.3
+ * @apiName Recycle
+ * @apiGroup Actinium
+ * @apiDescription Recycle allows you to temporarily store a Parse.Object and is useful for archiving and
+ */
+
 const _ = require('underscore');
 const ENUMS = require('./enums');
 const op = require('object-path');

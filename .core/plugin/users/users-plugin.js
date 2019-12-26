@@ -138,7 +138,11 @@ const save = async req => {
     return Promise.resolve(user);
 };
 
-const validate = req => ({ valid: !!op.get(req, 'user') });
+const validate = req => {
+    if (!op.get(req, 'user')) throw new Error('invalid session token');
+    return;
+    return { valid: true };
+};
 
 const afterSave = req => {
     Actinium.Hook.run('user-after-save', req);
