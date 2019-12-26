@@ -384,8 +384,6 @@ Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
-    console.log('afterDelete', COLLECTION.MEDIA);
-
     const id = req.object.id;
     const files = Actinium.Cache.get('Media.files', {});
     delete files[id];

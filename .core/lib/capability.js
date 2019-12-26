@@ -642,7 +642,7 @@ Actinium.Capability.unregister('sample.edit');
   * @apiGroup Actinium
   * @apiName Capability.get
   * @apiDescription Retrieves the specified capability. If no capability is specified a list of all capability names will be returned.
-  * @apiParam {String|Array} [capability] The string capability to retrieve, or array of capabilities to retrieve, or nothing to get list of names..
+  * @apiParam {Mixed} [capability] The string capability to retrieve, or array of capabilities to retrieve, or nothing to get list of names..
   * @apiExample Example Usage:
 Actinium.Capability.get(['admin-ui.view', 'plugins-ui.view']);
 Actinium.Capability.get('user.edit');
