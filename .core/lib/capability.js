@@ -30,6 +30,10 @@ const normalizeCapability = (capabilityObj = {}) => ({
 
 const Capability = {
     defaults: {
+        'admin-ui.view': {
+            allowed: ['user', 'contributor', 'moderator'],
+            exclude: ['anonymous'],
+        },
         'user.admin': {
             exclude: ['user'],
         },
@@ -161,14 +165,19 @@ const _loadedCapabilities = async () => {
         const { group } = result.toJSON();
         groups[group] = result;
 
-        const allowed = await result
-            .get('allowed')
-            .query()
-            .find({ useMasterKey: true });
-        const excluded = await result
-            .get('excluded')
-            .query()
-            .find({ useMasterKey: true });
+        let allowed = [],
+            excluded = [];
+        const allowedRelation = result.get('allowed');
+        const excludedRelation = result.get('excluded');
+
+        if (allowedRelation)
+            allowed = await allowedRelation
+                .query()
+                .find({ useMasterKey: true });
+        if (excludedRelation)
+            excluded = await excludedRelation
+                .query()
+                .find({ useMasterKey: true });
 
         allowed.forEach(role => {
             const { name } = role.toJSON();
@@ -178,6 +187,7 @@ const _loadedCapabilities = async () => {
             const { name } = role.toJSON();
             excludedList.push(name);
         });
+
         result.set('allowedList', allowedList);
         result.set('excludedList', excludedList);
     }
