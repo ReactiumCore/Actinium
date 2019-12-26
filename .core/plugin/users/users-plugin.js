@@ -139,9 +139,12 @@ const save = async req => {
 };
 
 const validate = req => {
-    if (!op.get(req, 'user')) throw new Error('invalid session token');
-    return;
-    return { valid: true };
+    if (!op.get(req, 'user')) {
+        throw new Error('invalid session token');
+        return;
+    }
+
+    return true;
 };
 
 const afterSave = req => {
