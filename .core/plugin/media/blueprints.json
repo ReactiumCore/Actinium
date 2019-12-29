@@ -22,5 +22,29 @@
             "builtIn": true,
             "namespace": "admin-page"
         }
+    },
+    {
+        "ID": "Media-Editor",
+        "description": "Media editor blueprint",
+        "className": "Blueprint",
+        "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {}
+            },
+            "main": {
+                "zones": [
+                    "admin-header",
+                    "admin-media-editor",
+                    "admin-actions"
+                ],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true,
+            "namespace": "admin-page"
+        }
     }
 ]

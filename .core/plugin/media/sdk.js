@@ -444,6 +444,61 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
 };
 
 /**
+ * @api {Asynchronous} Media.get(params,options) Media.get()
+ * @apiVersion 3.1.7
+ * @apiGroup Actinium
+ * @apiName Media.get
+ * @apiDescription Retrieves a specific `Media` object.
+ * @apiParam {Object} params Parameters object.
+ * @apiParam {String} [params.directory] Retrieve a file by it's directory value. You must also specify `filename`.
+ * @apiParam {String} [params.filename] Retrieve a file by it's filename value. You must also specify `directory`.
+ * @apiParam {String} [params.objectId] Retrieve a file by it's objectId value.
+ * @apiParam {String} [params.uuid] Retrieve a file by it's uuid value.
+ * @apiParam {String} [params.url] Retrieve a file by it's url value.
+ * @apiParam {Object} [options] The Parse options object.
+ * @apiExample Example Usage:
+Actinium.Media.get({ objectId: 'nr3NEdj13R'});
+ */
+Media.get = async (params, options) => {
+    if (Object.keys(params).length < 1) {
+        throw new Error('no search criteria specified.');
+        return;
+    }
+
+    if (op.has(params, 'directory') && !op.has(params, 'filename')) {
+        throw new Error(
+            'filename is required when retrieving a file by the directory value',
+        );
+        return;
+    }
+
+    if (op.has(params, 'filename') && !op.has(params, 'directory')) {
+        throw new Error(
+            'directory is required when retrieving a file by the filename value',
+        );
+        return;
+    }
+
+    const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA).descending('updatedAt');
+
+    const where = {
+        equalTo: ['directory', 'filename', 'objectId', 'uuid'],
+        endsWith: ['url'],
+    };
+
+    Object.entries(where).forEach(([key, fields]) => {
+        fields.forEach(field => {
+            if (!op.has(params, field)) return;
+            qry[key](field, params[field]);
+        });
+    });
+
+    const item = await qry.first(options);
+
+    if (item) return item.toJSON();
+};
+
+/**
  * @api {Asynchronous} Media.load() Media.load
  * @apiVersion 3.1.3
  * @apiGroup Actinium
@@ -476,6 +531,42 @@ Media.load = async () => {
     });
 
     return Actinium.Cache.get('Media');
+};
+
+Media.update = async (params, options) => {
+    const { filedata, ...data } = params;
+    const mediaObj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+        .equalTo('objectId', op.get(data, 'objectId'))
+        .first(options);
+
+    if (!mediaObj) return new Error(`MediaObject: ${objectId} not found`);
+
+    delete data.objectId;
+
+    Object.entries(data).forEach(([key, value]) => mediaObj.set(key, value));
+
+    if (filedata) {
+        const { directory = 'uploads', filename } = data;
+
+        if (!filename) return new Error('filename is a required parameter');
+
+        let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+        const ext = fname.split('.').pop();
+        const file = await new Actinium.File(fname, filedata).save();
+
+        mediaObj.set('file', file);
+        mediaObj.set('ext', ext);
+
+        const url = decodeURIComponent(
+            String(file.url()).replace(
+                `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
+                '/media/',
+            ),
+        );
+        mediaObj.set('url', url);
+    }
+
+    return mediaObj.save(null, options).then(result => result.toJSON());
 };
 
 /**
@@ -521,11 +612,6 @@ const file = await Actinium.Media.upload(data, meta, user, options);
 ...
  */
 Media.upload = async (data, meta, user, options) => {
-    if (!user) {
-        throw new Error('Permission denied');
-        return;
-    }
-
     let { capabilities, directory, filename } = meta;
     directory = String(directory).toLowerCase();
     filename = String(filename).toLowerCase();

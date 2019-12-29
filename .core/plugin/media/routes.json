@@ -1,5 +1,13 @@
 [
     {
+        "route": "/admin/media/edit/:id",
+        "blueprint": "Media-Editor",
+        "meta": {
+            "builtIn": true
+        },
+        "capabilities": ["media-ui.update"]
+    },
+    {
         "route": "/admin/media/:page",
         "blueprint": "Media",
         "meta": {

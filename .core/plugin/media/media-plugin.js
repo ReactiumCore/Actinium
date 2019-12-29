@@ -98,6 +98,17 @@ Actinium.Hook.register('directory-delete', req => {
 
 // Register Cloud functions
 
+Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
+    const cap = Actinium.Setting.get('media.capabilities.upload', [
+        'Media.create',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    return Actinium.Media.update(req.params, CloudRunOptions(req));
+});
+
 /**
  * @api {Cloud} media-upload media-upload
  * @apiVersion 3.1.3
@@ -348,15 +359,34 @@ Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
     return Actinium.Media.files({ ...req.params, user: req.user });
 });
 
-const dirs = () => {
-    const directories = Actinium.Cache.get('Media.directories', []);
-    return _.chain(directories)
-        .pluck('directory')
-        .compact()
-        .uniq()
-        .value()
-        .sort();
-};
+/**
+ * @api {Cloud} media-retrieve media-retrieve
+ * @apiVersion 3.1.7
+ * @apiGroup Cloud
+ * @apiName media-retrieve
+ * @apiDescription Retrieves a specific `Media` object.
+ * @apiParam {String} [directory] Retrieve a file by it's directory value. You must also specify `filename`.
+ * @apiParam {String} [filename] Retrieve a file by it's filename value. You must also specify `directory`.
+ * @apiParam {String} [objectId] Retrieve a file by it's objectId value.
+ * @apiParam {String} [uuid] Retrieve a file by it's uuid value.
+ * @apiParam {String} [url] Retrieve a file by it's url value.
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
+    const cap = Actinium.Setting.get('media.capabilities.retrieve', [
+        'Media.retrieve',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    const options = CloudRunOptions(req);
+
+    return Actinium.Media.get(req.params, options);
+});
+
+Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
+    await Actinium.Hook.run('directory-delete', req);
+});
 
 Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
     if (req.object.isNew()) {
@@ -373,11 +403,37 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
     await Actinium.Hook.run('directory-save', req.object);
 });
 
-Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
-    await Actinium.Hook.run('directory-delete', req);
+Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req => {
+    let { ext, type } = req.object.toJSON();
+    ext = String(ext).toUpperCase();
+
+    if (!type) {
+        type = _.chain(
+            Object.entries(ENUMS.TYPE).map(([type, values]) => {
+                if (values.includes(ext)) return type;
+                return null;
+            }),
+        )
+            .compact()
+            .uniq()
+            .value()[0];
+
+        type = type || 'FILE';
+        req.object.set('type', type);
+    }
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
+    const dirs = () => {
+        const directories = Actinium.Cache.get('Media.directories', []);
+        return _.chain(directories)
+            .pluck('directory')
+            .compact()
+            .uniq()
+            .value()
+            .sort();
+    };
+
     const { directory } = req.object.toJSON();
     let directories = _.without(dirs(), directory).sort();
     Actinium.Cache.set('Media.directories', directories);
@@ -388,6 +444,29 @@ Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
     const files = Actinium.Cache.get('Media.files', {});
     delete files[id];
     Actinium.Cache.set('Media.files', files);
+});
+
+Actinium.Cloud.afterFind(COLLECTION.MEDIA, req => {
+    req.objects.forEach(obj => {
+        let { ext, type } = obj.toJSON();
+        ext = String(ext).toUpperCase();
+
+        type =
+            type ||
+            _.chain(
+                Object.entries(ENUMS.TYPE).map(([type, values]) => {
+                    if (values.includes(ext)) return type;
+                    return null;
+                }),
+            )
+                .compact()
+                .uniq()
+                .value()[0];
+
+        type = type || 'FILE';
+
+        obj.set('type', type);
+    });
 });
 
 Actinium.Cloud.afterSave(COLLECTION.MEDIA, req => {
