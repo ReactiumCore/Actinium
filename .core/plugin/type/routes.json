@@ -1,0 +1,20 @@
+[
+    {
+        "route": "/admin/type/:id",
+        "blueprint": "ContentType",
+        "meta": {
+            "builtIn": true,
+            "order": 0
+        },
+        "capabilities": ["type-ui.view"]
+    },
+    {
+        "route": "/admin/type",
+        "blueprint": "ContentType",
+        "meta": {
+            "builtIn": true,
+            "order": 0
+        },
+        "capabilities": ["type-ui.view"]
+    }
+]
