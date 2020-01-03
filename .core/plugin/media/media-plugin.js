@@ -83,6 +83,21 @@ Actinium.Hook.register('uninstall', ({ ID }) => {
     Actinium.Pulse.remove('media-directories');
 });
 
+// Directory save hook
+Actinium.Hook.register('directory-save', async req => {
+    if (req.object.isNew()) {
+        const { directory } = req.object.toJSON();
+
+        // Lookup the directory before we create it
+        const fetch = await new Parse.Query(COLLECTION.DIRECTORY)
+            .equalTo('directory', directory)
+            .first({ useMasterKey: true });
+
+        if (fetch) throw new Error('directory exists');
+        return;
+    }
+});
+
 // Recycle a deleted
 Actinium.Hook.register('directory-delete', req => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
@@ -419,20 +434,9 @@ Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
     await Actinium.Hook.run('directory-delete', req);
 });
 
-Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
-    if (req.object.isNew()) {
-        const { directory } = req.object.toJSON();
-
-        // Lookup the directory before we create it
-        const fetch = await new Parse.Query(COLLECTION.DIRECTORY)
-            .equalTo('directory', directory)
-            .first({ useMasterKey: true });
-
-        if (fetch) return new Error('directory exists');
-    }
-
-    await Actinium.Hook.run('directory-save', req.object);
-});
+Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, req =>
+    Actinium.Hook.run('directory-save', req),
+);
 
 Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req =>
     Actinium.Hook.run('media-save', req),

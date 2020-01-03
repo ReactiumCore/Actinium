@@ -12,6 +12,7 @@ const uuid = require('uuid/v4');
 const ENUMS = require('./enums');
 const moment = require('moment');
 const op = require('object-path');
+const slugify = require('slugify');
 const stripSlashes = str => String(str).replace(/^\/|\/$/g, '');
 
 const {
@@ -132,7 +133,7 @@ Media.directories = (search, user) => {
     if (!user) return {};
 
     // Filter items by capability & search
-    const items = Actinium.Cache.get('Media.directories', []).filter(item => {
+    let items = Actinium.Cache.get('Media.directories', []).filter(item => {
         if (
             user.id !== item.user.objectId &&
             !CloudHasCapabilities({ user }, item.capabilities)
@@ -152,7 +153,8 @@ Media.directories = (search, user) => {
         .compact()
         .uniq()
         .value()
-        .sort();
+        .sort()
+        .map(item => String(slugify(item)).toLowerCase());
 };
 
 Media.directoriesFetch = getDirectories;
@@ -228,6 +230,10 @@ Media.directorySave = async ({
     objectId,
     options,
 }) => {
+    if (directory) {
+        directory = String(slugify(directory)).toLowerCase();
+    }
+
     capabilities = capabilities || ['Media.create'];
 
     const user = await UserFromSession(op.get(options, 'sessionToken'));
