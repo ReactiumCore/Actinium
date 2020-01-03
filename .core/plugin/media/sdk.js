@@ -6,6 +6,7 @@
  * @apiDescription Utilities for managing the `Media` collection.
  */
 
+const sharp = require('sharp');
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const ENUMS = require('./enums');
@@ -499,6 +500,39 @@ Media.get = async (params, options) => {
 };
 
 /**
+ * @api {Function} Media.fileType(params,options) Media.fileType()
+ * @apiVersion 3.1.7
+ * @apiGroup Actinium
+ * @apiName Media.fileType
+ * @apiDescription Get the type of file the media object is. Returns one of: `IMAGE`, `VIDEO`, `AUDIO`, `FILE`.
+ * @apiParam {String} file The name of the file or URL path.
+ * @apiExample Example Usage:
+const type = Actinium.Media.fileType('something.jpg'); // type: 'IMAGE' will be returned.
+ */
+Media.fileType = filename => {
+    let ext = String(filename)
+        .split('.')
+        .pop();
+    ext = String(ext).toUpperCase();
+
+    let type = _.chain(
+        Object.entries(ENUMS.TYPE).map(([type, values]) => {
+            if (values.includes(ext)) return type;
+            return null;
+        }),
+    )
+        .compact()
+        .uniq()
+        .value()[0];
+
+    type = type || 'FILE';
+    return type;
+};
+
+// TODO: Document Media.image (sharp docs link)
+Media.image = sharp;
+
+/**
  * @api {Asynchronous} Media.load() Media.load
  * @apiVersion 3.1.3
  * @apiGroup Actinium
@@ -533,6 +567,45 @@ Media.load = async () => {
     return Actinium.Cache.get('Media');
 };
 
+/**
+ * @api {Asynchronous} Media.thumbnailGenerate() Media.thumbnailGenerate
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.thumbnailGenerate
+ * @apiDescription Generate a thumbnail from a `Actinium.File` object or image URL.
+ * @apiExample Example usage:
+...
+const thumbnail = await Actinium.Media.thumbnailGenerate('http://somesite/someimage.jpg', { width: 200, height: 200 });
+...
+ */
+Media.thumbnailGenerate = async (
+    file,
+    resizeOptions = { width: 200, height: 200 },
+) => {
+    const url = typeof file === 'string' ? file : file.url();
+    const filename =
+        typeof file === 'string'
+            ? String(file)
+                  .split('/')
+                  .pop()
+            : file.name();
+
+    const imageData = await Parse.Cloud.httpRequest({ url }).then(
+        ({ buffer }) => buffer,
+    );
+
+    const buffer = await sharp(imageData)
+        .resize(resizeOptions)
+        .toBuffer();
+
+    if (!buffer) return;
+
+    const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
+
+    return new Actinium.File(`thumbnail-${filename}`, byteArray).save();
+};
+
+// TODO: Document Media.update function
 Media.update = async (params, options) => {
     const { filedata, ...data } = params;
     const mediaObj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)

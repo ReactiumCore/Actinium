@@ -96,110 +96,29 @@ Actinium.Hook.register('directory-delete', req => {
     );
 });
 
+// Media save
+Actinium.Hook.register('media-save', async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    let { ext, thumbnail, type } = req.object.toJSON();
+    const file = req.object.get('file');
+
+    // Set Type
+    if (!type) {
+        type = Actinium.Media.fileType(file.name());
+        req.object.set('type', type);
+    }
+
+    // Create thumbnail
+    if (type === 'IMAGE' && file && !thumbnail) {
+        thumbnail = await Actinium.Media.thumbnailGenerate(file);
+        if (thumbnail) {
+            req.object.set('thumbnail', thumbnail);
+        }
+    }
+});
+
 // Register Cloud functions
-
-Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
-    const cap = Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
-        return Promise.reject(ENUMS.ERRORS.PERMISSION);
-
-    return Actinium.Media.update(req.params, CloudRunOptions(req));
-});
-
-/**
- * @api {Cloud} media-upload media-upload
- * @apiVersion 3.1.3
- * @apiGroup Cloud
- * @apiName media-upload
- * @apiDescription Cloud function that creates a file and adds it to the Media Library.
-
-Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
-
-Returns: `Parse.Object('Media')`
- * @apiParam {Mixed} data The contents of the file. This can be any valid `Actinium.File` file data value.
- * @apiParam {Object} meta The meta object for the file upload.
- * @apiParam {String} .directory The directory where the file will be saved. Required.
- * @apiParam {String} .filename The file name. Required.
- * @apiParam {Number} [.size] The number of bytes the file contains.
- * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
- * @apiExample Base64 Example:
-const upload = {
-    data: { base64: "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=" }
-    meta: {
-        directory: 'uploads',
-        filename: 'avatar.png',
-        size: 139894
-    }
-};
-
-Actinium.Cloud.run('media-upload', upload);
- * @apiExample ByteArray Example:
-const upload = {
-    data: [ 0xBE, 0xEF, 0xCA, 0xFE ],
-    meta: {
-        directory: 'uploads',
-        filename: 'avatar.png',
-        size: 139894
-    }
-};
-
-Actinium.Cloud.run('media-upload', upload);
- */
-Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
-    const cap = Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
-        return Promise.reject(ENUMS.ERRORS.PERMISSION);
-
-    return Actinium.Media.upload(
-        req.params.data,
-        req.params.meta,
-        req.user,
-        CloudRunOptions(req),
-    );
-});
-
-/**
- * @api {Cloud} media-delete media-delete
- * @apiVersion 3.1.3
- * @apiGroup Cloud
- * @apiName media-delete
- * @apiDescription Delete a single file or directory containing multiple files.
-
-The file to search for will be matched against the following fields: `url, objectId, uuid, filename, directory`
-
-When deleting based on `filename` or `directory` There are a couple protections built in:
-
-1. You must specify `useMasterKey` in the run `options` object.
-2. Only 50 files will be deleted per request.
-
-Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
-
- * @apiParam {String} match The search string.
- * @apiExample Example usage:
-// URL delete
-Actinium.Cloud.run('media-delete', { match: '/uploads/some-file.txt' });
-
-// Directory Delete
-Actinium.Cloud.run('media-delete', { match: '/uploads' }, { useMasterKey: true });
-
- */
-Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
-    const cap = Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
-        return Promise.reject(ENUMS.ERRORS.PERMISSION);
-
-    const { user, master } = req;
-    return Actinium.Media.fileDelete(req.params, user, master);
-});
 
 /**
  * @api {Cloud} directories directories
@@ -360,6 +279,109 @@ Actinium.Cloud.define(PLUGIN.ID, 'media', req => {
 });
 
 /**
+ * @api {Cloud} media-delete media-delete
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName media-delete
+ * @apiDescription Delete a single file or directory containing multiple files.
+
+The file to search for will be matched against the following fields: `url, objectId, uuid, filename, directory`
+
+When deleting based on `filename` or `directory` There are a couple protections built in:
+
+1. You must specify `useMasterKey` in the run `options` object.
+2. Only 50 files will be deleted per request.
+
+Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
+
+ * @apiParam {String} match The search string.
+ * @apiExample Example usage:
+// URL delete
+Actinium.Cloud.run('media-delete', { match: '/uploads/some-file.txt' });
+
+// Directory Delete
+Actinium.Cloud.run('media-delete', { match: '/uploads' }, { useMasterKey: true });
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
+    const cap = Actinium.Setting.get('media.capabilities.upload', [
+        'Media.create',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    const { user, master } = req;
+    return Actinium.Media.fileDelete(req.params, user, master);
+});
+
+// TODO: Document media-update cloud function
+Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
+    const cap = Actinium.Setting.get('media.capabilities.upload', [
+        'Media.create',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    return Actinium.Media.update(req.params, CloudRunOptions(req));
+});
+
+/**
+ * @api {Cloud} media-upload media-upload
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName media-upload
+ * @apiDescription Cloud function that creates a file and adds it to the Media Library.
+
+Permission: `Media.create` _(use the **media.capabilities.upload** setting to change)_
+
+Returns: `Parse.Object('Media')`
+ * @apiParam {Mixed} data The contents of the file. This can be any valid `Actinium.File` file data value.
+ * @apiParam {Object} meta The meta object for the file upload.
+ * @apiParam {String} .directory The directory where the file will be saved. Required.
+ * @apiParam {String} .filename The file name. Required.
+ * @apiParam {Number} [.size] The number of bytes the file contains.
+ * @apiParam {String} [.ID] Unique ID of the file. If empty, a new UUID will be created.
+ * @apiExample Base64 Example:
+const upload = {
+    data: { base64: "V29ya2luZyBhdCBQYXJzZSBpcyBncmVhdCE=" }
+    meta: {
+        directory: 'uploads',
+        filename: 'avatar.png',
+        size: 139894
+    }
+};
+
+Actinium.Cloud.run('media-upload', upload);
+ * @apiExample ByteArray Example:
+const upload = {
+    data: [ 0xBE, 0xEF, 0xCA, 0xFE ],
+    meta: {
+        directory: 'uploads',
+        filename: 'avatar.png',
+        size: 139894
+    }
+};
+
+Actinium.Cloud.run('media-upload', upload);
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'media-upload', req => {
+    const cap = Actinium.Setting.get('media.capabilities.upload', [
+        'Media.create',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    return Actinium.Media.upload(
+        req.params.data,
+        req.params.meta,
+        req.user,
+        CloudRunOptions(req),
+    );
+});
+
+/**
  * @api {Cloud} media-retrieve media-retrieve
  * @apiVersion 3.1.7
  * @apiGroup Cloud
@@ -384,6 +406,15 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
     return Actinium.Media.get(req.params, options);
 });
 
+// TODO: Document media-thumbnail-create cloud function
+Actinium.Cloud.define(PLUGIN.ID, 'media-thumbnail-create', req => {
+    const { url, options } = req.params;
+
+    if (!url) throw new Error('file is a required parameter');
+
+    return Actinium.Media.thumbnailGenerate(url, options);
+});
+
 Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {
     await Actinium.Hook.run('directory-delete', req);
 });
@@ -403,25 +434,9 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, async req => {
     await Actinium.Hook.run('directory-save', req.object);
 });
 
-Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req => {
-    let { ext, type } = req.object.toJSON();
-    ext = String(ext).toUpperCase();
-
-    if (!type) {
-        type = _.chain(
-            Object.entries(ENUMS.TYPE).map(([type, values]) => {
-                if (values.includes(ext)) return type;
-                return null;
-            }),
-        )
-            .compact()
-            .uniq()
-            .value()[0];
-
-        type = type || 'FILE';
-        req.object.set('type', type);
-    }
-});
+Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req =>
+    Actinium.Hook.run('media-save', req),
+);
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
     const dirs = () => {
@@ -448,23 +463,8 @@ Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
 
 Actinium.Cloud.afterFind(COLLECTION.MEDIA, req => {
     req.objects.forEach(obj => {
-        let { ext, type } = obj.toJSON();
-        ext = String(ext).toUpperCase();
-
-        type =
-            type ||
-            _.chain(
-                Object.entries(ENUMS.TYPE).map(([type, values]) => {
-                    if (values.includes(ext)) return type;
-                    return null;
-                }),
-            )
-                .compact()
-                .uniq()
-                .value()[0];
-
-        type = type || 'FILE';
-
+        const file = obj.get('file');
+        const type = Actinium.Media.fileType(file.name());
         obj.set('type', type);
     });
 });
