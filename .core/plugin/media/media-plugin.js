@@ -126,7 +126,7 @@ Actinium.Hook.register('media-save', async req => {
 
     // Create thumbnail
     if (type === 'IMAGE' && file && !thumbnail) {
-        thumbnail = await Actinium.Media.thumbnailGenerate(file);
+        thumbnail = await Actinium.Media.crop({ url: file });
         if (thumbnail) {
             req.object.set('thumbnail', thumbnail);
         }
@@ -421,13 +421,34 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
     return Actinium.Media.get(req.params, options);
 });
 
-// TODO: Document media-thumbnail-create cloud function
-Actinium.Cloud.define(PLUGIN.ID, 'media-thumbnail-create', req => {
-    const { url, options } = req.params;
+// TODO: Document media-image-crop cloud function
+Actinium.Cloud.define(PLUGIN.ID, 'media-image-crop', async req => {
+    let { field, objectId, options, url } = req.params;
 
-    if (!url) throw new Error('file is a required parameter');
+    if (!url) throw new Error('url is a required parameter');
 
-    return Actinium.Media.thumbnailGenerate(url, options);
+    field = field || 'thumbnail';
+
+    const image = await Actinium.Media.crop({ prefix: field, url, options });
+
+    if (objectId) {
+        const cloudopts = CloudRunOptions(req);
+        const obj = await new Parse.Query(COLLECTION.MEDIA)
+            .equalTo('objectId', objectId)
+            .first(cloudopts);
+
+        if (field !== 'thumbnail') {
+            const meta = obj.get('meta') || {};
+            op.set(meta, String(field).replace('meta.', ''), image);
+            obj.set('meta', meta);
+        } else {
+            obj.set(field, image);
+        }
+
+        await obj.save(null, cloudopts);
+    }
+
+    return image;
 });
 
 Actinium.Cloud.beforeDelete(COLLECTION.DIRECTORY, async req => {

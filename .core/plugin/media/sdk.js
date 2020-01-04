@@ -584,31 +584,29 @@ Media.load = async () => {
 const thumbnail = await Actinium.Media.thumbnailGenerate('http://somesite/someimage.jpg', { width: 200, height: 200 });
 ...
  */
-Media.thumbnailGenerate = async (
-    file,
-    resizeOptions = { width: 200, height: 200 },
-) => {
-    const url = typeof file === 'string' ? file : file.url();
-    const filename =
-        typeof file === 'string'
-            ? String(file)
-                  .split('/')
-                  .pop()
-            : file.name();
+Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
+    url = typeof url === 'string' ? url : url.url();
+    prefix = prefix || 'thumbnail';
+
+    const filename = slugify(
+        `${prefix}-${String(decodeURIComponent(url))
+            .split('/')
+            .pop()}`,
+    );
 
     const imageData = await Parse.Cloud.httpRequest({ url }).then(
         ({ buffer }) => buffer,
     );
 
     const buffer = await sharp(imageData)
-        .resize(resizeOptions)
+        .resize(options)
         .toBuffer();
 
     if (!buffer) return;
 
     const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
 
-    return new Actinium.File(`thumbnail-${filename}`, byteArray).save();
+    return new Actinium.File(filename, byteArray).save();
 };
 
 // TODO: Document Media.update function
