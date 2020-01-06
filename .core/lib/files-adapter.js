@@ -1,6 +1,7 @@
 const Plugin = require('./plugable');
 const Hook = require('./hook');
 const Setting = require('./setting');
+const chalk = require('chalk');
 const {
     GridFSBucketAdapter,
 } = require('parse-server/lib/Adapters/Files/GridFSBucketAdapter');
@@ -14,6 +15,7 @@ class FilesAdapterProxy {
 
     async _set(adapter) {
         if (!adapter) {
+            LOG('  Files Adapter set to GridFSBucketAdapter.');
             this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
         } else this._adapter = adapter;
     }
@@ -24,6 +26,7 @@ class FilesAdapterProxy {
 
     // createFile(filename: string, data, contentType: string): Promise {}
     createFile(filename, data, contentType) {
+        console.log('createFile', this._adapter);
         return this._get().createFile(filename, data, contentType);
     }
 
@@ -89,9 +92,14 @@ FilesAdapter.getProxy = config => {
 };
 
 FilesAdapter.update = async () => {
-    const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
-
-    proxy._set(adapter);
+    try {
+        LOG(' ');
+        LOG(chalk.cyan('Updating Files Adapter:'));
+        const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
+        proxy._set(adapter);
+    } catch (error) {
+        console.log('Error setting files-adapter.');
+    }
 };
 
 /**
@@ -122,6 +130,10 @@ FilesAdapter.register = (plugin, installer, order) => {
 
     return Plugin.register(plugin);
 };
+
+Hook.register('start', async () => {
+    FilesAdapter.update();
+});
 
 Hook.register('activate', async ({ ID }) => {
     if (ID in plugins) {

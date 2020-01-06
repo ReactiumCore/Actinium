@@ -160,6 +160,7 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
     if (req.object.isNew()) {
         await Actinium.Hook.run('install', obj, req);
         if (active) {
+            Actinium.Cache.set(`plugins.${obj.ID}.active`, true);
             await Actinium.Hook.run('activate', obj, req);
         }
     } else {
@@ -176,10 +177,12 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
         }
 
         if (active !== prev && active === true) {
+            Actinium.Cache.set(`plugins.${obj.ID}.active`, true);
             await Actinium.Hook.run('activate', obj, req);
         }
 
         if (active !== prev && active === false) {
+            Actinium.Cache.set(`plugins.${obj.ID}.active`, false);
             await Actinium.Hook.run('deactivate', obj, req);
         }
 

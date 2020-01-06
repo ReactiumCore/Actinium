@@ -4,6 +4,7 @@ const op = require('object-path');
 const S3Adapter = require('@parse/s3-files-adapter');
 const AWS = require('aws-sdk');
 const config = require(`${BASE_DIR}/.core/actinium-config`);
+const chalk = require('chalk');
 
 const PLUGIN = {
     ID: 'S3Adapter',
@@ -23,6 +24,9 @@ const PLUGIN = {
 };
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    LOG('  Files Adapter set to S3Adapter.');
+
     const settings = Actinium.Setting.get('S3Adapter', {
         directAccess: config.directAccess,
         bucket: ENV.S3_BUCKET,
@@ -39,7 +43,7 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
         if (endpoint) op.set(settings, 's3overrides.endpoint', endpoint);
     }
 
-    await new S3Adapter(settings);
+    return new S3Adapter(settings);
 });
 
 const static = true;
@@ -60,7 +64,7 @@ Actinium.Plugin.addStylesheet(
 );
 
 Actinium.Hook.register('add-meta-asset', async metaAsset => {
-    if (!Plugin.isActive(PLUGIN.ID)) return;
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     const parsedFilename = path.parse(metaAsset.targetFileName);
     const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
     const appVer = op.get(config, 'version');
