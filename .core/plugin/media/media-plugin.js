@@ -1,6 +1,7 @@
 const op = require('object-path');
 const ENUMS = require('./enums');
 const _ = require('underscore');
+const uuid = require('uuid/v4');
 
 const {
     CloudHasCapabilities,
@@ -125,6 +126,10 @@ Actinium.Hook.register('media-save', async req => {
     }
 
     // Create thumbnail
+    if (op.get(req, 'context.upload')) {
+        thumbnail = undefined;
+    }
+
     if (type === 'IMAGE' && file && !thumbnail) {
         thumbnail = await Actinium.Media.crop({ url: file });
         if (thumbnail) {
@@ -132,6 +137,11 @@ Actinium.Hook.register('media-save', async req => {
         }
     }
 });
+
+// Media deleted
+Actinium.Hook.register('after-media-delete', req =>
+    Actinium.Media.cleanup([req.object], true),
+);
 
 // Register Cloud functions
 
@@ -338,6 +348,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
     if (!CloudHasCapabilities(req, cap))
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
 
+    delete req.params.thumbnail;
+
     return Actinium.Media.update(req.params, CloudRunOptions(req));
 });
 
@@ -459,9 +471,12 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, req =>
     Actinium.Hook.run('directory-save', req),
 );
 
-Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req =>
-    Actinium.Hook.run('media-save', req),
-);
+Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req => {
+    req.context = req.object.get('context') || {};
+    req.object.unset('context');
+
+    return Actinium.Hook.run('media-save', req);
+});
 
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
     const dirs = () => {
@@ -477,6 +492,7 @@ Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
     const { directory } = req.object.toJSON();
     let directories = _.without(dirs(), directory).sort();
     Actinium.Cache.set('Media.directories', directories);
+    Actinium.Hook.run('after-directory-delete', req);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
@@ -484,20 +500,27 @@ Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
     const files = Actinium.Cache.get('Media.files', {});
     delete files[id];
     Actinium.Cache.set('Media.files', files);
+    Actinium.Hook.run('after-media-delete', req);
 });
 
-Actinium.Cloud.afterFind(COLLECTION.MEDIA, req => {
+Actinium.Cloud.afterFind(COLLECTION.MEDIA, async req => {
     req.objects.forEach(obj => {
         const file = obj.get('file');
         const type = Actinium.Media.fileType(file.name());
         obj.set('type', type);
     });
+
+    await Actinium.Hook.run('media-find', req);
+
+    return req.objects;
 });
 
-Actinium.Cloud.afterSave(COLLECTION.MEDIA, req => {
+Actinium.Cloud.afterSave(COLLECTION.MEDIA, async req => {
+    await Actinium.Hook.run('after-media-save', req);
     Actinium.Media.load();
 });
 
-Actinium.Cloud.afterSave(COLLECTION.DIRECTORY, req => {
+Actinium.Cloud.afterSave(COLLECTION.DIRECTORY, async req => {
+    await Actinium.Hook.run('after-directory-save', req);
     Actinium.Media.load();
 });

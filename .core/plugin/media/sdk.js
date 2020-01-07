@@ -113,6 +113,78 @@ const updateMediaDirectories = async (prev, current) => {
     }
 };
 
+Media.cleanup = async (objects, deep = false) => {
+    objects = Array.isArray(objects) ? objects : [objects];
+
+    const cleanup = _.chain(
+        objects.map(item => {
+            const file = item.get('file');
+            const meta = item.get('meta') || {};
+            const thumbnail = item.get('thumbnail');
+
+            const filenames = [file.name()];
+
+            if (thumbnail) {
+                filenames.push(thumbnail.name());
+            }
+
+            if (op.has(meta, 'image') && deep === true) {
+                Object.values(meta.image).forEach(image => {
+                    filenames.push(image.name());
+                });
+            }
+
+            return filenames;
+        }),
+    )
+        .flatten()
+        .compact()
+        .uniq()
+        .value();
+
+    return Promise.all(
+        cleanup.map(filename => Media.deleteFileObject(filename)),
+    );
+};
+
+Media.deleteFileObject = async filename => {
+    filename = decodeURIComponent(filename);
+
+    filename =
+        String(filename).substr(0, 1) === '/'
+            ? String(filename).substr(1)
+            : filename;
+
+    filename = encodeURIComponent(filename);
+
+    const endpoint = [
+        ENV.SERVER_URI,
+        ENV.PARSE_MOUNT,
+        '/files/',
+        filename,
+    ].join('');
+
+    const req = {
+        followRedirects: false,
+        headers: {
+            'X-Parse-Application-Id': ENV.APP_ID,
+            'X-Parse-Master-Key': ENV.MASTER_KEY,
+        },
+        method: 'DELETE',
+        url: endpoint,
+    };
+
+    let result;
+
+    try {
+        result = await Parse.Cloud.httpRequest(req);
+    } catch (err) {
+        /* EMPTY ON PURPOSE */
+    }
+
+    return result;
+};
+
 /**
  * @api {Asynchronous} Media.directories(search,user) Media.directories
  * @apiVersion 3.1.3
@@ -373,10 +445,8 @@ Media.fileDelete = async (params, user, master) => {
     const objs = await qry.find(options);
 
     if (objs.length > 0) {
-        await Parse.Object.destroyAll(objs, options);
+        return Parse.Object.destroyAll(objs, { useMasterKey: true });
     }
-
-    return Media.load();
 };
 
 /**
@@ -550,14 +620,6 @@ await Actinium.Media.load();
 ...
  */
 Media.load = async () => {
-    const loading = Actinium.Cache.get('Media.loading', false);
-
-    if (loading === true) {
-        return Actinium.Cache.get('Media');
-    }
-
-    Actinium.Cache.set('Media.loading', true);
-
     const [directories, files] = await Promise.all([
         getDirectories(),
         getMedia(),
@@ -588,25 +650,41 @@ Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
     url = typeof url === 'string' ? url : url.url();
     prefix = prefix || 'thumbnail';
 
-    const filename = slugify(
-        `${prefix}-${String(decodeURIComponent(url))
-            .split('/')
-            .pop()}`,
-    );
+    url = String(url).replace('undefined/', `${ENV.PARSE_MOUNT}/`);
 
-    const imageData = await Parse.Cloud.httpRequest({ url }).then(
-        ({ buffer }) => buffer,
-    );
+    const filepath = decodeURIComponent(url.split(`/${ENV.APP_ID}/`).pop());
+    const farr = String(filepath).split('/');
+    const fname = farr.pop();
 
-    const buffer = await sharp(imageData)
-        .resize(options)
-        .toBuffer();
+    farr.push(slugify(`${prefix}-${fname}`));
 
-    if (!buffer) return;
+    const filename = String(farr.join('/')).toLowerCase();
 
-    const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
+    try {
+        if (String(url).substr(0, 1) === '/') {
+            url = [ENV.SERVER_URI, String(url).substr(1)].join('/');
+        }
 
-    return new Actinium.File(filename, byteArray).save();
+        const imageData = await Parse.Cloud.httpRequest({ url }).then(
+            ({ buffer }) => buffer,
+        );
+
+        if (!imageData) return;
+
+        const buffer = await sharp(imageData)
+            .resize(options)
+            .toBuffer();
+
+        if (!buffer) return;
+
+        const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
+
+        await Media.deleteFileObject(filename);
+
+        return new Actinium.File(filename, byteArray).save();
+    } catch (err) {
+        /* EMPTY ON PURPOSE */
+    }
 };
 
 // TODO: Document Media.update function
@@ -620,14 +698,23 @@ Media.update = async (params, options) => {
 
     delete data.objectId;
 
-    Object.entries(data).forEach(([key, value]) => mediaObj.set(key, value));
+    const context = {};
+
+    Object.entries(data).forEach(([key, value]) => {
+        op.set(context, key, !!value);
+        mediaObj.set(key, value);
+    });
 
     if (filedata) {
+        context['upload'] = true;
         const { directory = 'uploads', filename } = data;
 
         if (!filename) return new Error('filename is a required parameter');
 
         let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+
+        await Media.deleteFileObject(fname);
+
         const ext = fname.split('.').pop();
         const file = await new Actinium.File(fname, filedata).save();
 
@@ -642,6 +729,8 @@ Media.update = async (params, options) => {
         );
         mediaObj.set('url', url);
     }
+
+    mediaObj.set('context', context);
 
     return mediaObj.save(null, options).then(result => result.toJSON());
 };
@@ -712,6 +801,7 @@ Media.upload = async (data, meta, user, options) => {
         fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
     }
 
+    await Media.deleteFileObject(fname);
     const file = await new Actinium.File(fname, data).save();
 
     const url = decodeURIComponent(
@@ -734,6 +824,17 @@ Media.upload = async (data, meta, user, options) => {
         url,
         uuid: meta.ID,
     };
+
+    op.set(
+        obj,
+        'context',
+        Object.keys(obj).reduce((keys, key) => {
+            keys[key] = true;
+            return keys;
+        }, {}),
+    );
+
+    op.set(obj, 'context.upload', true);
 
     fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(obj, options);
 
