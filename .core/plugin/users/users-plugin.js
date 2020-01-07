@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const uuid = require('uuid/v4');
 const op = require('object-path');
 const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
 
@@ -173,6 +174,10 @@ const createAvatar = async req => {
         return;
     }
 
+    const prevUser = await new Parse.User()
+        .set('objectId', req.object.id)
+        .fetch({ useMasterKey: true });
+
     if (String(avatar).startsWith('data:image')) {
         let typeArr = avatar.split('data:image');
         typeArr.shift();
@@ -190,20 +195,37 @@ const createAvatar = async req => {
         type = type.replace(/\W+/g, '');
         let fileObj;
 
-        try {
-            const fileName = `avatar.${type}`;
-            avatar = avatar.split(';base64,').pop();
+        const ID = req.object.id;
 
-            fileObj = await new Actinium.File(`avatars/${fileName}`, {
-                base64: avatar,
-            }).save();
+        try {
+            const filename = String(`avatar-${ID}.${type}`).toLowerCase();
+            avatar = { base64: avatar.split(';base64,').pop() };
+
+            const prevAvatar = prevUser.get('avatar');
+            if (prevAvatar) {
+                const prevExt = prevAvatar.split('.').pop();
+                const prevFilename = String(
+                    `avatar-${ID}.${prevExt}`,
+                ).toLowerCase();
+                await Actinium.Media.deleteFileObject(prevFilename);
+            }
+
+            fileObj = await new Actinium.File(filename, avatar).save();
         } catch (err) {
             console.log(err);
             return;
         }
 
         if (fileObj) {
-            req.object.set('avatar', fileObj.url());
+            let url = fileObj.url();
+            url = String(url).includes(`${ENV.PARSE_MOUNT}/files/`)
+                ? `${ENV.PARSE_MOUNT}/files/${fileObj
+                      .url()
+                      .split(`${ENV.PARSE_MOUNT}/files/`)
+                      .pop()}`
+                : url;
+
+            req.object.set('avatar', url);
         }
     }
 };
