@@ -30,6 +30,9 @@ FSFilesAdapter.prototype._getLocalFilePath = function(filename) {
 };
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    LOG('  Files Adapter set to FSFilesAdapter.');
+
     let filesSubDirectory = await Actinium.Setting.get(
         'FSFileAdapter.filesSubDirectory',
         op.get(

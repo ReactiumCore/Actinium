@@ -67,6 +67,9 @@ dist
 .package-lock.json
 .DS_Store
 
+# copied public files
+public/plugins
+
 # Generated Documentation
 docs/
 files
