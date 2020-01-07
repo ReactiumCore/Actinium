@@ -26,7 +26,6 @@ class FilesAdapterProxy {
 
     // createFile(filename: string, data, contentType: string): Promise {}
     createFile(filename, data, contentType) {
-        console.log('createFile', this._adapter);
         return this._get().createFile(filename, data, contentType);
     }
 
