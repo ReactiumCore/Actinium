@@ -647,18 +647,14 @@ const thumbnail = await Actinium.Media.thumbnailGenerate('http://somesite/someim
 ...
  */
 Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
-    url = typeof url === 'string' ? url : url.url();
     prefix = prefix || 'thumbnail';
-
+    url = typeof url === 'string' ? url : url.url();
     url = String(url).replace('undefined/', `${ENV.PARSE_MOUNT}/`);
 
-    const filepath = decodeURIComponent(url.split(`/${ENV.APP_ID}/`).pop());
-    const farr = String(filepath).split('/');
     const ext = url.split('.').pop();
-
-    farr.push(`${slugify(prefix)}-${uuid()}.${ext}`);
-
-    const filename = String(farr.join('/')).toLowerCase();
+    const filename = String(
+        `${slugify(prefix)}-${uuid()}.${ext}`,
+    ).toLowerCase();
 
     try {
         if (String(url).substr(0, 1) === '/') {
@@ -678,8 +674,6 @@ Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
         if (!buffer) return;
 
         const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
-
-        await Media.deleteFileObject(filename);
 
         return new Actinium.File(filename, byteArray).save();
     } catch (err) {
@@ -711,19 +705,14 @@ Media.update = async (params, options) => {
 
         if (!filename) return new Error('filename is a required parameter');
 
+        const url = ['/media', directory, filename].join('/');
         const ext = filename.split('.').pop();
         const fname = `${uuid()}.${ext}`;
+
         const file = await new Actinium.File(fname, filedata).save();
 
         mediaObj.set('file', file);
         mediaObj.set('ext', ext);
-
-        const url = decodeURIComponent(
-            String(file.url()).replace(
-                `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
-                '/media/',
-            ),
-        );
         mediaObj.set('url', url);
     }
 
@@ -783,31 +772,9 @@ Media.upload = async (data, meta, user, options) => {
     capabilities = capabilities || ['Media.retrieve'];
 
     const ext = filename.split('.').pop();
-
-    // let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
-    //
-    // const fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-    //     .endsWith('url', fname)
-    //     .limit(1)
-    //     .skip(0)
-    //     .find({ useMasterKey: true });
-    //
-    // if (fileExists.length > 0) {
-    //     const farr = filename.split('.');
-    //     farr.pop();
-    //     filename = `${uuid()}-${farr.join('.')}.${ext}`;
-    //     fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
-    // }
-
     const fname = `${uuid()}.${ext}`;
     const file = await new Actinium.File(fname, data).save();
-
-    const url = decodeURIComponent(
-        String(file.url()).replace(
-            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
-            '/media/',
-        ),
-    );
+    const url = ['/media', directory, filename].join('/');
 
     const obj = {
         capabilities,

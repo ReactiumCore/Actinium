@@ -125,11 +125,19 @@ Actinium.Hook.register('media-save', async req => {
         req.object.set('type', type);
     }
 
-    // Create thumbnail
-    if (op.get(req, 'context.upload')) {
-        thumbnail = undefined;
+    // Clear existing file if uploading a new one
+    if (!req.object.isNew() && op.get(req, 'context.upload')) {
+        const prevObj = await new Parse.Object(COLLECTION.MEDIA)
+            .set('objectId', req.object.id)
+            .fetch({ useMasterKey: true });
+
+        if (prevObj) {
+            await Actinium.Media.cleanup([prevObj]);
+            thumbnail = undefined;
+        }
     }
 
+    // Create thumbnail
     if (type === 'IMAGE' && file && !thumbnail) {
         thumbnail = await Actinium.Media.crop({ url: file });
         if (thumbnail) {
@@ -445,16 +453,34 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-image-crop', async req => {
 
     if (objectId) {
         const cloudopts = CloudRunOptions(req);
-        const obj = await new Parse.Query(COLLECTION.MEDIA)
-            .equalTo('objectId', objectId)
-            .first(cloudopts);
 
-        if (field !== 'thumbnail') {
-            const meta = obj.get('meta') || {};
-            op.set(meta, String(field).replace('meta.', ''), image);
-            obj.set('meta', meta);
-        } else {
+        const obj = await new Parse.Object(COLLECTION.MEDIA)
+            .set('objectId', objectId)
+            .fetch(cloudopts);
+
+        if (field === 'thumbnail') {
+            // Delete previous image
+            const prevTHM = obj.get('thumbnail');
+
+            if (prevTHM) {
+                await Actinium.Media.deleteFileObject(prevTHM.name());
+            }
+
+            // Set new thumbnail
             obj.set(field, image);
+        } else {
+            // Delete previous image
+            const f = String(field).replace('meta.', '');
+            const meta = obj.get('meta') || {};
+            const prevURL = op.get(meta, f);
+
+            if (prevURL) {
+                await Actinium.Media.deleteFileObject(prevURL.name());
+            }
+
+            // Set new image
+            op.set(meta, f, image);
+            obj.set('meta', meta);
         }
 
         await obj.save(null, cloudopts);
