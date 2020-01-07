@@ -654,9 +654,9 @@ Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
 
     const filepath = decodeURIComponent(url.split(`/${ENV.APP_ID}/`).pop());
     const farr = String(filepath).split('/');
-    const fname = farr.pop();
+    const ext = url.split('.').pop();
 
-    farr.push(slugify(`${prefix}-${fname}`));
+    farr.push(`${slugify(prefix)}-${uuid()}.${ext}`);
 
     const filename = String(farr.join('/')).toLowerCase();
 
@@ -711,11 +711,8 @@ Media.update = async (params, options) => {
 
         if (!filename) return new Error('filename is a required parameter');
 
-        let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
-
-        await Media.deleteFileObject(fname);
-
-        const ext = fname.split('.').pop();
+        const ext = filename.split('.').pop();
+        const fname = `${uuid()}.${ext}`;
         const file = await new Actinium.File(fname, filedata).save();
 
         mediaObj.set('file', file);
@@ -781,27 +778,28 @@ Media.upload = async (data, meta, user, options) => {
     let { capabilities, directory, filename } = meta;
     directory = String(directory).toLowerCase();
     filename = String(filename).toLowerCase();
+    filename = slugify(filename);
 
     capabilities = capabilities || ['Media.retrieve'];
 
     const ext = filename.split('.').pop();
 
-    let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+    // let fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+    //
+    // const fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+    //     .endsWith('url', fname)
+    //     .limit(1)
+    //     .skip(0)
+    //     .find({ useMasterKey: true });
+    //
+    // if (fileExists.length > 0) {
+    //     const farr = filename.split('.');
+    //     farr.pop();
+    //     filename = `${uuid()}-${farr.join('.')}.${ext}`;
+    //     fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
+    // }
 
-    const fileExists = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .endsWith('url', fname)
-        .limit(1)
-        .skip(0)
-        .find({ useMasterKey: true });
-
-    if (fileExists.length > 0) {
-        const farr = filename.split('.');
-        farr.pop();
-        filename = `${uuid()}-${farr.join('.')}.${ext}`;
-        fname = [stripSlashes(directory), stripSlashes(filename)].join('/');
-    }
-
-    await Media.deleteFileObject(fname);
+    const fname = `${uuid()}.${ext}`;
     const file = await new Actinium.File(fname, data).save();
 
     const url = decodeURIComponent(
