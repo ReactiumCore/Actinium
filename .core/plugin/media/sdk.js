@@ -13,7 +13,9 @@ const ENUMS = require('./enums');
 const moment = require('moment');
 const op = require('object-path');
 const slugify = require('slugify');
+const stringToBuffer = require('string-to-arraybuffer');
 const stripSlashes = str => String(str).replace(/^\/|\/$/g, '');
+const path = require('path');
 
 const {
     CloudHasCapabilities,
@@ -646,24 +648,37 @@ Media.load = async () => {
 const thumbnail = await Actinium.Media.thumbnailGenerate('http://somesite/someimage.jpg', { width: 200, height: 200 });
 ...
  */
-Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
+Media.crop = async ({
+    ext,
+    prefix,
+    url,
+    options = { width: 400, height: 400 },
+}) => {
     prefix = prefix || 'thumbnail';
     url = typeof url === 'string' ? url : url.url();
     url = String(url).replace('undefined/', `${ENV.PARSE_MOUNT}/`);
 
-    const ext = url.split('.').pop();
+    op.set(options, 'width', Number(op.get(options, 'width')));
+    op.set(options, 'height', Number(op.get(options, 'height')));
+
+    ext = ext || url.split('.').pop();
     const filename = String(
         `${slugify(prefix)}-${uuid()}.${ext}`,
     ).toLowerCase();
 
+    const isDataURL = String(url).startsWith('data');
+
     try {
-        if (String(url).substr(0, 1) === '/') {
+        if (isDataURL !== true && String(url).substr(0, 1) === '/') {
             url = [ENV.SERVER_URI, String(url).substr(1)].join('/');
         }
 
-        const imageData = await Parse.Cloud.httpRequest({ url }).then(
-            ({ buffer }) => buffer,
-        );
+        const imageData =
+            isDataURL === true
+                ? Buffer.from(url.split('base64,').pop(), 'base64')
+                : await Parse.Cloud.httpRequest({ url }).then(
+                      ({ buffer }) => buffer,
+                  );
 
         if (!imageData) return;
 
@@ -673,9 +688,9 @@ Media.crop = async ({ prefix, url, options = { width: 200, height: 200 } }) => {
 
         if (!buffer) return;
 
-        const byteArray = [...buffer.entries()].map(([index, byte]) => byte);
+        const fileData = [...buffer.entries()].map(([index, byte]) => byte);
 
-        return new Actinium.File(filename, byteArray).save();
+        return new Actinium.File(filename, fileData).save();
     } catch (err) {
         /* EMPTY ON PURPOSE */
     }

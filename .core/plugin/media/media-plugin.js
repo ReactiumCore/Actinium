@@ -347,6 +347,45 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete', req => {
     return Actinium.Media.fileDelete(req.params, user, master);
 });
 
+Actinium.Cloud.define(PLUGIN.ID, 'media-delete-thumbnail', async req => {
+    const cap = Actinium.Setting.get('media.capabilities.upload', [
+        'Media.create',
+    ]);
+
+    if (!CloudHasCapabilities(req, cap))
+        return Promise.reject(ENUMS.ERRORS.PERMISSION);
+
+    const { user, master } = req;
+    const { objectId, property } = req.params;
+
+    let file;
+    const options = CloudRunOptions(req);
+    const obj = await new Parse.Object(COLLECTION.MEDIA)
+        .set('objectId', objectId)
+        .fetch(options);
+
+    const isMeta = String(property).startsWith('meta.');
+
+    if (isMeta) {
+        const fld = String(property).substr(5);
+        const meta = obj.get('meta') || {};
+        file = op.get(meta, fld);
+
+        op.del(meta, fld);
+        obj.set('meta', meta);
+    } else {
+        file = obj.get(property);
+        obj.unset(property);
+    }
+
+    if (file) {
+        const filename = file.name();
+        await Actinium.Media.deleteFileObject(filename);
+    }
+
+    return obj.save(null, options);
+});
+
 // TODO: Document media-update cloud function
 Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
@@ -443,13 +482,18 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
 
 // TODO: Document media-image-crop cloud function
 Actinium.Cloud.define(PLUGIN.ID, 'media-image-crop', async req => {
-    let { field, objectId, options, url } = req.params;
+    let { ext, field, objectId, options, url } = req.params;
 
     if (!url) throw new Error('url is a required parameter');
 
     field = field || 'thumbnail';
 
-    const image = await Actinium.Media.crop({ prefix: field, url, options });
+    const image = await Actinium.Media.crop({
+        ext,
+        prefix: field,
+        url,
+        options,
+    });
 
     if (objectId) {
         const cloudopts = CloudRunOptions(req);
