@@ -54,7 +54,7 @@ const getDirectories = async options => {
 const getMedia = async () => {
     const options = { useMasterKey: true };
     const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .ascending(['updatedAt', 'directory', 'file'])
+        .descending('updatedAt')
         .include('file')
         .exists('file')
         .limit(1000)
@@ -476,10 +476,29 @@ const results = Actinium.Media.files({ directory: 'uploads' });
    prev: Number
 }
  */
-Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
+Media.files = async ({
+    directory,
+    limit = 50,
+    page = 1,
+    search,
+    user,
+    tag,
+    type,
+}) => {
     if (!user) return {};
 
-    // Filter items by capability, directory, & search
+    let searchFields = [
+        'ext',
+        'filename',
+        'meta.title',
+        'meta.description',
+        'type',
+        'url',
+    ];
+
+    await Actinium.Hook.run('media-search-fields', searchFields);
+
+    // Filter items by capability, directory, search, tag, type
     const ids = Object.keys(Actinium.Cache.get('Media.files', {}));
     const items = Object.values(Actinium.Cache.get('Media.files', {})).filter(
         item => {
@@ -494,13 +513,52 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
                 return false;
             }
 
-            if (search && !String(item.url).includes(search)) {
-                return false;
+            if (search) {
+                search = String(search).toLowerCase();
+
+                const score = searchFields.reduce((s, field) => {
+                    const val = String(op.get(item, field, '')).toLowerCase();
+                    s += val.includes(search) ? 1 : 0;
+                    return s;
+                }, 0);
+
+                if (score === 0) return false;
+            }
+
+            if (tag) {
+                tag = _.flatten([tag]).map(tag =>
+                    String(slugify(tag)).toLowerCase(),
+                );
+                const tags = op
+                    .get(item, 'meta.tags', [])
+                    .map(t => String(slugify(t)).toLowerCase());
+                if (tags.length < 1) return false;
+
+                const score = _.intersection(tags, tag).length;
+                if (score === 0) return false;
+            }
+
+            if (type) {
+                type = _.flatten([type]).map(type =>
+                    String(type).toUpperCase(),
+                );
+                if (!type.includes(item.type)) return false;
             }
 
             return true;
         },
     );
+
+    if (page === -1 || String(page).toLowerCase() === 'all') {
+        return {
+            empty: ids.length < 1,
+            count: items.length,
+            page: 1,
+            pages: 1,
+            files: _.indexBy(items, 'objectId'),
+            directories: Media.directories(null, user),
+        };
+    }
 
     const index = limit * page - limit;
     const pages = Math.ceil(items.length / limit);
@@ -510,8 +568,6 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
 
     return {
         empty: ids.length < 1,
-        files: _.indexBy(selection, 'objectId'),
-        directories: Media.directories(null, user),
         count: items.length,
         page,
         pages,
@@ -519,6 +575,8 @@ Media.files = ({ directory, limit = 50, page = 1, search, user }) => {
         limit,
         next,
         prev,
+        files: _.indexBy(selection, 'objectId'),
+        directories: Media.directories(null, user),
     };
 };
 
