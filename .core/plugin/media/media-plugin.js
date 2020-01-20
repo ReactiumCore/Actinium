@@ -504,7 +504,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
 /**
  * @api {Asynchronous} media-image-crop media-image-crop
  * @apiVersion 3.1.3
- * @apiGroup Actinium
+ * @apiGroup Cloud
  * @apiName media-image-crop
  * @apiDescription Generate a cropped version of the specified image from an `Actinium.File` object or image URL. Useful for creating thumbnails or responsive image sizes. Returns: `Actinium.File` object.
  * @apiParam {Mixed} url `String` or `Actinium.File` object. The source image url. If the value is an `Actinium.File` object, the `Actinium.File.url()` value used to fetch the image.
