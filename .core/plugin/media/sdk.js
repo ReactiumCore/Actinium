@@ -708,12 +708,12 @@ Media.load = async () => {
  * @apiName Media.crop
  * @apiDescription Generate a cropped version of the specified image from an `Actinium.File` object or image URL. Useful for creating thumbnails or responsive image sizes.
  * @apiParam {String} [prefix='thumbnail'] Used to prefix the new image file name.
- * @apiParam {Mixed} url `String` or `Actinium.File` object. The source image url. If the value is an `Actinium.File` object, the .url() value used to fetch the image.
- * @apiParam {Object} options Sharp image [https://sharp.pixelplumbing.com/api-resize](resize) options. By default, `width` and `height` are set to `400`.
+ * @apiParam {Mixed} url `String` or `Actinium.File` object. The source image url. If the value is an `Actinium.File` object, the `Actinium.File.url()` value used to fetch the image.
+ * @apiParam {Object} options Sharp image [resize](https://sharp.pixelplumbing.com/api-resize) options. By default, `width` and `height` are set to `400`.
  * @apiExample Example usage:
 ...
 const thumbnail = await Actinium.Media.crop({
-    url: 'http://somesite/someimage.jpg'},
+    url: 'http://somesite/someimage.jpg',
     options: { width: 200, height: 200 }
 });
 ...
