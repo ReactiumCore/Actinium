@@ -1,0 +1,13 @@
+{
+    "ID": "Content",
+    "name": "Content Plugin",
+    "description": "Plugin used to manage content.",
+    "version": {
+        "actinium": ">=3.0.5",
+        "plugin": "0.0.1"
+    },
+    "meta": {
+        "group": "core",
+        "builtIn": true
+    }
+}
