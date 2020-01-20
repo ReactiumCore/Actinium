@@ -386,7 +386,28 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-delete-thumbnail', async req => {
     return obj.save(null, options);
 });
 
-// TODO: Document media-update cloud function
+/**
+ * @api {Cloud} media-update media-update
+ * @apiVersion 3.1.3
+ * @apiGroup Cloud
+ * @apiName media-update
+ * @apiDescription Function that updates a Media Object.
+ * @apiParam {Object} params The Media Object data to update.
+ * @apiParam {String} .objectId The `objectId` field is required and is used to fetch the Media Object to update.
+ * @apiParam {String} .filedata If you're trying replace the `file` object via dataurl, you can pass the `filedata` property to accomplish this.
+ * @apiParam {Object} options Parse options object.
+ * @apiExample Example usage:
+const updatedMediaObj = await Parse.Cloud.run('media-update', {
+    objectId: 'tP66wMkNPx',
+    filename: 'different-file-name.jpg',
+    meta: {
+        title: 'A new title',
+        description: 'A new decription',
+    }
+}, {
+    useMasterKey: true,
+});
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'media-update', req => {
     const cap = Actinium.Setting.get('media.capabilities.upload', [
         'Media.create',
@@ -480,7 +501,24 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', req => {
     return Actinium.Media.get(req.params, options);
 });
 
-// TODO: Document media-image-crop cloud function
+/**
+ * @api {Asynchronous} media-image-crop media-image-crop
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName media-image-crop
+ * @apiDescription Generate a cropped version of the specified image from an `Actinium.File` object or image URL. Useful for creating thumbnails or responsive image sizes. Returns: `Actinium.File` object.
+ * @apiParam {Mixed} url `String` or `Actinium.File` object. The source image url. If the value is an `Actinium.File` object, the .url() value used to fetch the image.
+ * @apiParam {String} [objectId] The Parse Object to attach the cropped image to.
+ * @apiParam {String} [field='thumbnail'] The field to attach the new image to. Used when the `objectId` parameter is set.
+ * @apiParam {Object} [options] Sharp image [https://sharp.pixelplumbing.com/api-resize](resize) options. By default, `width` and `height` are set to `400`.
+ * @apiExample Example usage:
+...
+const thumbnail = await Actinium.Cloud.run('media-image-crop', {
+    url: 'http://somesite/someimage.jpg'},
+    options: { width: 200, height: 200 }
+});
+...
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'media-image-crop', async req => {
     let { ext, field, objectId, options, url } = req.params;
 

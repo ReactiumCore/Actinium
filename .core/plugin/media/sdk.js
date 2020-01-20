@@ -665,8 +665,14 @@ Media.fileType = filename => {
     return type;
 };
 
-// TODO: Document Media.image (sharp docs link)
-Media.image = sharp;
+/**
+ * @api {Asynchronous} Media.Image Media.Image
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.Image
+ * @apiDescription Under the hood, Actinium uses [https://sharp.pixelplumbing.com](Sharp) a Node.js image processing library. You can use the API however you like in your own application.
+ */
+Media.Image = sharp;
 
 /**
  * @api {Asynchronous} Media.load() Media.load
@@ -696,14 +702,20 @@ Media.load = async () => {
 };
 
 /**
- * @api {Asynchronous} Media.thumbnailGenerate() Media.thumbnailGenerate
+ * @api {Asynchronous} Media.crop(url,config) Media.crop
  * @apiVersion 3.1.3
  * @apiGroup Actinium
- * @apiName Media.thumbnailGenerate
- * @apiDescription Generate a thumbnail from a `Actinium.File` object or image URL.
+ * @apiName Media.crop
+ * @apiDescription Generate a cropped version of the specified image from an `Actinium.File` object or image URL. Useful for creating thumbnails or responsive image sizes.
+ * @apiParam {String} [prefix='thumbnail'] Used to prefix the new image file name.
+ * @apiParam {Mixed} url `String` or `Actinium.File` object. The source image url. If the value is an `Actinium.File` object, the .url() value used to fetch the image.
+ * @apiParam {Object} options Sharp image [https://sharp.pixelplumbing.com/api-resize](resize) options. By default, `width` and `height` are set to `400`.
  * @apiExample Example usage:
 ...
-const thumbnail = await Actinium.Media.thumbnailGenerate('http://somesite/someimage.jpg', { width: 200, height: 200 });
+const thumbnail = await Actinium.Media.crop({
+    url: 'http://somesite/someimage.jpg'},
+    options: { width: 200, height: 200 }
+});
 ...
  */
 Media.crop = async ({
@@ -754,16 +766,37 @@ Media.crop = async ({
     }
 };
 
-// TODO: Document Media.update function
+/**
+ * @api {Asynchronous} Media.update(data,options) Media.upload
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.update
+ * @apiDescription Function that updates a Media Object.
+ * @apiParam {Object} data The Media Object data to update.
+ * @apiParam {String} .objectId The `objectId` field is required and is used to fetch the Media Object to update.
+ * @apiParam {Mixed} .filedata If you're trying replace the `file` object via dataurl, you can pass the `filedata` property to accomplish this.
+ * @apiParam {Object} options Parse options object.
+ * @apiExample Example usage:
+const updatedMediaObj = await Media.update({
+    objectId: 'tP66wMkNPx',
+    filename: 'different-file-name.jpg',
+    meta: {
+        title: 'A new title',
+        description: 'A new decription',
+    }
+}, {
+    useMasterKey: true,
+});
+ */
 Media.update = async (params, options) => {
-    const { filedata, ...data } = params;
-    const mediaObj = await new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .equalTo('objectId', op.get(data, 'objectId'))
-        .first(options);
+    const { filedata, objectId, ...data } = params;
+    const mediaObj = !objectId
+        ? new Parse.Object(ENUMS.COLLECTION.MEDIA)
+        : await new Parse.Query(ENUMS.COLLECTION.MEDIA)
+              .equalTo('objectId', objectId)
+              .first(options);
 
     if (!mediaObj) return new Error(`MediaObject: ${objectId} not found`);
-
-    delete data.objectId;
 
     const context = {};
 
