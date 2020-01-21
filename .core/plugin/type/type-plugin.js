@@ -163,6 +163,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     contentType.set('uuid', uuid());
     contentType.set('type', op.get(req.params, 'type'));
     contentType.set('fields', op.get(req.params, 'fields'));
+    contentType.set(
+        'regions',
+        op.get(req.params, 'regions', {
+            default: {
+                id: 'default',
+                label: 'Default',
+                slug: 'default',
+            },
+        }),
+    );
 
     const saved = await contentType.save(null, options);
     return saved.toJSON();
@@ -200,6 +210,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
 
     contentType.set('type', type);
     contentType.set('fields', fields);
+    contentType.set(
+        'regions',
+        op.get(req.params, 'regions', {
+            default: {
+                id: 'default',
+                label: 'Default',
+                slug: 'default',
+            },
+        }),
+    );
 
     const saved = await contentType.save(null, options);
     return saved.toJSON();
