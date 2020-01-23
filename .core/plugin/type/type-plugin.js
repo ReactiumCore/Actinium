@@ -191,8 +191,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     if (existing)
         throw new Error(`Type ${type} is not unique in namespace ${namespace}`);
 
+    const collection = `Content-${machineName}`;
+
     contentType.set('uuid', uuid);
     contentType.set('type', machineName);
+    contentType.set('machineName', machineName);
+    contentType.set('collection', collection);
     contentType.set('fields', op.get(req.params, 'fields'));
     contentType.set('meta', {
         ...op.get(req.params, 'meta', {}),
