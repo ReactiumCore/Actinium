@@ -182,8 +182,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     const { type, fields = {} } = req.params;
     if (!type) throw new Error('type parameter required.');
     const machineName = slugify(type).toLowerCase();
+    const namespace = op.get(req.params, 'namespace', getNamespace());
+    const uuid = uuidv5(machineName, namespace);
 
-    contentType.set('uuid', uuidv5(machineName, getNamespace()));
+    const query = new Parse.Query(COLLECTION);
+    query.equalTo('uuid', uuid);
+    const existing = await query.first(options);
+    if (existing)
+        throw new Error(`Type ${type} is not unique in namespace ${namespace}`);
+
+    contentType.set('uuid', uuid);
     contentType.set('type', machineName);
     contentType.set('fields', op.get(req.params, 'fields'));
     contentType.set('meta', {
