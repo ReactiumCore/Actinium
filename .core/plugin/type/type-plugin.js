@@ -113,7 +113,11 @@ Actinium.Collection.register(
         meta: {
             type: 'Object',
         },
+        slugs: {
+            type: 'Array',
+        },
     },
+    ['uuid', 'machineName'],
 );
 
 const beforeSave = async req => {

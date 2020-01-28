@@ -1,9 +1,11 @@
+const _ = require('underscore');
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
 const chalk = require('chalk');
 
 const collectionPerms = {};
 const collectionSchema = {};
+const collectionIndexes = {};
 
 const defaultPublicSetting = {
     create: false,
@@ -20,9 +22,14 @@ Collection.register = (
     collection,
     publicSetting = defaultPublicSetting,
     schema,
+    indexes,
 ) => {
     if (schema) {
         collectionSchema[collection] = schema;
+    }
+
+    if (indexes) {
+        collectionIndexes[collection] = indexes;
     }
 
     collectionPerms[collection] = publicSetting;
@@ -198,6 +205,18 @@ Collection.load = async (collection = false) => {
                 ? collectionSchema[collection]
                 : {};
 
+            const newIndexes = op
+                .get(collectionIndexes, collection, [])
+                .reduce((fieldIndex, fieldName) => {
+                    if (!op.has(schema, ['indexes', fieldName])) {
+                        fieldIndex[fieldName] = {
+                            [fieldName]: 1,
+                        };
+                    }
+
+                    return fieldIndex;
+                }, {});
+
             Object.keys(fields).forEach(field => {
                 const del = op.get(fields, [field, 'delete']) === true;
 
@@ -225,6 +244,7 @@ Collection.load = async (collection = false) => {
                         className: collection,
                         classLevelPermissions,
                         fields,
+                        indexes: newIndexes,
                     },
                     { useMasterKey: true },
                 );
@@ -237,6 +257,7 @@ Collection.load = async (collection = false) => {
                     className: collection,
                     classLevelPermissions,
                     fields,
+                    indexes: newIndexes,
                 },
                 { useMasterKey: true },
             );
