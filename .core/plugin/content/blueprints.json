@@ -9,7 +9,11 @@
                 "meta": {}
             },
             "main": {
-                "zones": ["admin-header", "admin-content", "admin-actions"],
+                "zones": [
+                    "admin-header",
+                    "admin-content-list",
+                    "admin-actions"
+                ],
                 "meta": {}
             }
         },

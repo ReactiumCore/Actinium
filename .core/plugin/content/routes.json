@@ -1,26 +1,18 @@
 [
     {
-        "route": "/admin/content/edit/:id",
+        "route": "/admin/content/:typeMachineName/:slug",
         "blueprint": "Content-Editor",
         "meta": {
             "builtIn": true
         },
-        "capabilities": ["Content.update"]
+        "capabilities": ["content-ui.view"]
     },
     {
-        "route": "/admin/content/new",
-        "blueprint": "Content-Editor",
-        "meta": {
-            "builtIn": true
-        },
-        "capabilities": ["Content.create"]
-    },
-    {
-        "route": "/admin/content/:page",
+        "route": "/admin/content/:type",
         "blueprint": "Content",
         "meta": {
             "builtIn": true
         },
-        "capabilities": ["Content.retrieve"]
+        "capabilities": ["content-ui.view"]
     }
 ]

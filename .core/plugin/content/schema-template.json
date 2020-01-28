@@ -1,0 +1,31 @@
+{
+    "permissions": {
+        "create": false,
+        "retrieve": false,
+        "update": false,
+        "delete": false,
+        "addField": false
+    },
+
+    "schema": {
+        "uuid": {
+            "type": "String"
+        },
+        "type": {
+            "type": "Pointer",
+            "targetClass": "Type"
+        },
+        "slug": {
+            "type": "String"
+        },
+        "user": {
+            "type": "Pointer",
+            "targetClass": "_User"
+        },
+        "meta": {
+            "type": "Object"
+        }
+    },
+
+    "indexes": ["uuid", "slug"]
+}
