@@ -128,6 +128,9 @@ Actinium.start = options =>
                     // Run start-up hook
                     await Actinium.Hook.run('start');
 
+                    // Runtime schema initialization
+                    await Actinium.Hook.run('schema');
+
                     // Run warnings hook
                     await Actinium.Warnings.run();
 

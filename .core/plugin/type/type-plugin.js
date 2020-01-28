@@ -209,10 +209,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
         }
         types = types.map(contentType => {
             const obj = contentType.toJSON();
-            const { type, uuid, meta = {}, machineName } = obj;
+            const { objectId, type, uuid, meta = {}, machineName } = obj;
             const namespace = op.get(obj, 'namespace', getNamespace());
             const label = op.get(meta, 'label', type);
-            return { type: machineName, uuid, label, namespace };
+            return { objectId, type: machineName, uuid, label, namespace };
         });
 
         Actinium.Cache.set(cacheKey, types, 20000);
@@ -278,7 +278,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     if (existing)
         throw new Error(`Type ${type} is not unique in namespace ${namespace}`);
 
-    const collection = `Content-${machineName}`;
+    const collection = `Content_${machineName}`.replace(/[^A-Za-z0-9_]/g, '_');
 
     contentType.set('uuid', uuid);
     contentType.set('type', machineName);
