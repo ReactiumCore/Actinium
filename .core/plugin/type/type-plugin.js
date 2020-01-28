@@ -85,7 +85,6 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
-// All operations on settings are privileged
 Actinium.Collection.register(
     COLLECTION,
     {
@@ -102,6 +101,12 @@ Actinium.Collection.register(
         type: {
             type: 'String',
         },
+        machineName: {
+            type: 'String',
+        },
+        namespace: {
+            type: 'String',
+        },
         fields: {
             type: 'Object',
         },
@@ -111,6 +116,57 @@ Actinium.Collection.register(
     },
 );
 
+const beforeSave = async req => {
+    let { uuid, value, machineName, namespace } = req.object.toJSON();
+    const defaultNamespace = getNamespace();
+
+    const old = await new Parse.Query(COLLECTION)
+        .equalTo('uuid', uuid)
+        .first(CloudRunOptions(req));
+
+    if (!namespace) {
+        namespace = defaultNamespace;
+        req.object.set('namespace', defaultNamespace);
+    }
+
+    if (old) {
+        const {
+            uuid: existingUUID,
+            namespace: existingNamespace,
+        } = old.toJSON();
+
+        // disallow change of uuid
+        if (uuid !== existingUUID) req.object.set('uuid', existingUUID);
+
+        if (namespace !== existingNamespace) {
+            // new namespace is invalid, try default
+            if (existingUUID !== uuidv5(machineName, namespace)) {
+                // fallback to existing, even if empty
+                req.object.set('namespace', existingNamespace);
+                if (existingUUID === uuidv5(machineName, defaultNamespace)) {
+                    req.object.set('namespace', defaultNamespace);
+                }
+            }
+        }
+    } else {
+        if (!uuid) {
+            req.object.set('uuid', uuidv5(machineName, namespace));
+        }
+    }
+};
+
+Parse.Cloud.beforeSave(COLLECTION, async (...params) => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        return beforeSave(...params);
+    }
+});
+
+/**
+ * @api {Asynchronous} types types
+ * @apiDescription Retrieve a list of the existing content types.
+ * @apiName types
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
     let pages = 0,
         total = 0;
@@ -149,9 +205,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
         }
         types = types.map(contentType => {
             const obj = contentType.toJSON();
-            const { type, uuid, meta = {} } = obj;
+            const { type, uuid, meta = {}, machineName } = obj;
+            const namespace = op.get(obj, 'namespace', getNamespace());
             const label = op.get(meta, 'label', type);
-            return { type, uuid, label };
+            return { type: machineName, uuid, label, namespace };
         });
 
         Actinium.Cache.set(cacheKey, types, 20000);
@@ -175,6 +232,32 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
     return Promise.resolve(list);
 });
 
+/**
+ * @api {Asynchronous} type-create type-create
+ * @apiDescription Save a content type definition. This does not alter the
+ content schema directly, but provides the configuration needed to create the
+ field columns when content is created of this type.
+ *
+ * @apiParam {String} type unique label of content type. On save,
+ this will be used to generate the machineName and label of the type.
+ * @apiParam {String} [namespace] the optional uuid to be used as the uuid/v5 namespace
+ of to create the uuid of the new type. This will use the api's configured namespace
+ by default.
+ * @apiParam {Object} regions indexed by region id, this object contains multiple region objects,
+ each with the same id ('default' by default), a label, and a slug. Each field
+ in the `fields` has a `region` property with the id of the region to which it belongs.
+ * @apiParam {Object} fields indexed by fieldId (an uuid), this object
+ contains 1 or more objects that describe the configuration for one "field type"
+  in the content type. The only required properties in each object are
+ `fieldId`, which matches the index, a string `fieldType` which identifies a supported
+ Actinium field type, a string `region`id ("default" region id by default), and
+ a unique `fieldName` which will ultimately be the name of the field in the content schema.
+ * @apiParam {Object} [meta] largely free-form metadata object associated with this content type.
+ Actinium will use this to store the current label of the type.
+ *
+ * @apiName type-create
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     const options = CloudCapOptions(req, [`${COLLECTION}.create`]);
     const contentType = new Parse.Object(COLLECTION);
@@ -195,6 +278,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
 
     contentType.set('uuid', uuid);
     contentType.set('type', machineName);
+    contentType.set('namespace', namespace);
     contentType.set('machineName', machineName);
     contentType.set('collection', collection);
     contentType.set('fields', op.get(req.params, 'fields'));
@@ -217,6 +301,19 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     return saved.toJSON();
 });
 
+/**
+ * @api {Asynchronous} type-retrieve type-retrieve
+ * @apiDescription Retrieve configuration for one content type. You must provide
+ either the uuid or the machineName.
+ * @apiParam {String} [uuid] UUID of content type
+ * @apiParam {String} [machineName] the machine name of the existing content type
+ * @apiParam {String} [namespace] optional namespace. Will be used to derive the
+  uuid from the machine name if the uuid is not known. By default, the current
+  APIs content namespace will be used, and this will not be needed.
+ *
+ * @apiName type-retrieve
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
     const machineName = op.get(req.params, 'machineName');
     const namespace = op.get(req.params, 'namespace', getNamespace());
@@ -236,6 +333,36 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
     return contentType.toJSON();
 });
 
+/**
+ * @api {Asynchronous} type-update type-update
+ * @apiDescription Save an existing content type definition. This does not alter
+ the content schema directly, but provides the configuration needed to create
+ the field columns when content is created of this type. To target the existing
+ content type, you must provide either the uuid or the machineName and optionally
+ the content namespace used during the creation of the type.
+ *
+ * @apiParam {String} [uuid] UUID of content type
+ * @apiParam {String} [machineName] the machine name of the existing content type
+ * @apiParam {String} [namespace] optional namespace. Will be used to derive the
+  uuid from the machine name if the uuid is not known. By default, the current
+  APIs content namespace will be used, and this will not be needed.
+ * @apiParam {String} type unique label of content type. Only the label will be
+ modified, and the machineName will remain the same.
+ * @apiParam {Object} regions indexed by region id, this object contains multiple region objects,
+ each with the same id ('default' by default), a label, and a slug. Each field
+ in the `fields` has a `region` property with the id of the region to which it belongs.
+ * @apiParam {Object} fields indexed by fieldId (an uuid), this object
+ contains 1 or more objects that describe the configuration for one "field type"
+  in the content type. The only required properties in each object are
+ `fieldId`, which matches the index, a string `fieldType` which identifies a supported
+ Actinium field type, a string `region`id ("default" region id by default), and
+ a unique `fieldName` which will ultimately be the name of the field in the content schema.
+ * @apiParam {Object} [meta] largely free-form metadata object associated with this content type.
+ Actinium will use this to store the current label of the type.
+ *
+ * @apiName type-update
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
     const machineName = op.get(req.params, 'machineName');
     const namespace = op.get(req.params, 'namespace', getNamespace());
@@ -276,6 +403,17 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
     return saved.toJSON();
 });
 
+/**
+ * @api {Asynchronous} type-delete type-delete
+ * @apiDescription Delete a content type configuration. Note that this will not delete the content or its schema,
+ only the content type configuration.
+ * @apiParam {String} [uuid] UUID of content type
+ * @apiParam {String} [machineName] the machine name of the existing content type
+ * @apiParam {String} [namespace] optional namespace. Will be used to derive the uuid from the machine name if
+ the uuid is not known. By default, the current APIs content namespace will be used, and this will not be needed.
+ * @apiName type-delete
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'type-delete', async req => {
     const machineName = op.get(req.params, 'machineName');
     const namespace = op.get(req.params, 'namespace', getNamespace());
