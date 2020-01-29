@@ -27,10 +27,19 @@ Actinium.Hook.register('schema', async () => {
     );
     for (const { objectId, type } of types) {
         try {
-            await Actinium.Content.loadSchema(objectId);
+            await Actinium.Content.saveSchema(objectId);
         } catch (error) {
             console.log(`Error updating content schema ${type}`, error);
         }
+    }
+});
+
+Actinium.Hook.register('type-saved', async contentType => {
+    const { objectId, type } = contentType;
+    try {
+        await Actinium.Content.saveSchema(objectId);
+    } catch (error) {
+        console.log(`Error updating content schema ${type}`, error);
     }
 });
 

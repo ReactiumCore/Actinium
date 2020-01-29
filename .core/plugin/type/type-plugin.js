@@ -1,7 +1,7 @@
 const op = require('object-path');
 const _ = require('underscore');
 const uuidv5 = require('uuid/v5');
-const slugify = require('slugify');
+const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const chalk = require('chalk');
 
 const {
@@ -207,14 +207,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
                 break;
             }
         }
-        types = types.map(contentType => {
-            const obj = contentType.toJSON();
-            const { objectId, type, uuid, meta = {}, machineName } = obj;
-            const namespace = op.get(obj, 'namespace', getNamespace());
-            const label = op.get(meta, 'label', type);
-            return { objectId, type: machineName, uuid, label, namespace };
-        });
 
+        types = types.map(contentType => contentType.toJSON());
         Actinium.Cache.set(cacheKey, types, 20000);
     } else {
         total = types.length;
@@ -238,9 +232,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
 
 /**
  * @api {Asynchronous} type-create type-create
- * @apiDescription Save a content type definition. This does not alter the
- content schema directly, but provides the configuration needed to create the
- field columns when content is created of this type.
+ * @apiDescription Save a content type definition.
  *
  * @apiParam {String} type unique label of content type. On save,
  this will be used to generate the machineName and label of the type.
@@ -268,7 +260,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
 
     const { type, fields = {} } = req.params;
     if (!type) throw new Error('type parameter required.');
-    const machineName = slugify(type).toLowerCase();
+    const machineName = slugify(type);
     const namespace = op.get(req.params, 'namespace', getNamespace());
     const uuid = uuidv5(machineName, namespace);
 
@@ -302,7 +294,52 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     );
 
     const saved = await contentType.save(null, options);
-    return saved.toJSON();
+    const savedObj = saved.toJSON();
+
+    await Actinium.Hook.run('type-saved', savedObj);
+
+    return savedObj;
+});
+
+/**
+ * @api {Asynchronous} type-status type-status
+ * @apiDescription Get content type collection, content count, field slugs.
+ * @apiParam {String} [uuid] UUID of content type
+ * @apiParam {String} [machineName] the machine name of the existing content type
+ * @apiParam {String} [namespace] optional namespace. Will be used to derive the
+  uuid from the machine name if the uuid is not known. By default, the current
+  APIs content namespace will be used, and this will not be needed.
+ *
+ * @apiName type-status
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
+    const options = CloudRunOptions(req);
+    const contentType = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params,
+        options,
+    );
+    if (!contentType) return { collection: null, count: 0, fields: [] };
+
+    const { collection } = contentType;
+    const ParseSchema = new Parse.Schema(collection);
+    options.useMasterKey = true;
+
+    let schema = {};
+    try {
+        schema = await ParseSchema.get(options);
+    } catch (e) {}
+
+    const fields = Object.keys(op.get(schema, 'fields', {}));
+    const query = new Parse.Query(collection);
+    const count = await query.count(options);
+
+    return {
+        collection,
+        count,
+        fields,
+    };
 });
 
 /**
@@ -339,9 +376,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
 
 /**
  * @api {Asynchronous} type-update type-update
- * @apiDescription Save an existing content type definition. This does not alter
- the content schema directly, but provides the configuration needed to create
- the field columns when content is created of this type. To target the existing
+ * @apiDescription Save an existing content type definition. To target the existing
  content type, you must provide either the uuid or the machineName and optionally
  the content namespace used during the creation of the type.
  *
@@ -404,7 +439,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
     );
 
     const saved = await contentType.save(null, options);
-    return saved.toJSON();
+    const savedObj = saved.toJSON();
+
+    await Actinium.Hook.run('type-saved', savedObj);
+    return savedObj;
 });
 
 /**
@@ -431,10 +469,18 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-delete', async req => {
 
     query.equalTo('uuid', uuid);
     const contentType = await query.first(options);
-
     if (!contentType) throw new Error('Unable to find type.');
 
+    const typeObj = contentType.toJSON();
+    const trash = await Actinium.Cloud.run(
+        'recycle',
+        { collection: 'Type', object: contentType },
+        options,
+    );
     await contentType.destroy(options);
+
     Actinium.Cache.del('types');
-    return true;
+
+    await Actinium.Hook.run('type-deleted', typeObj);
+    return trash;
 });
