@@ -27,5 +27,20 @@
         }
     },
 
-    "indexes": ["uuid", "slug"]
+    "indexes": ["uuid", "slug"],
+
+    "fieldTypes": {
+        "Text": {
+            "type": "String"
+        },
+        "RichText": {
+            "type": "Object"
+        },
+        "List": {
+            "type": "Array"
+        },
+        "Number": {
+            "type": "Number"
+        }
+    }
 }

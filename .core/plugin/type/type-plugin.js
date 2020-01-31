@@ -345,7 +345,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
 /**
  * @api {Asynchronous} type-retrieve type-retrieve
  * @apiDescription Retrieve configuration for one content type. You must provide
- either the uuid or the machineName.
+ either the id|ID|objectId, uuid or the machineName.
+ * @apiParam {String} [id] Parse objectId of content type
+ * @apiParam {String} [ID] Parse objectId of content type
+ * @apiParam {String} [objectId] Parse objectId of content type
  * @apiParam {String} [uuid] UUID of content type
  * @apiParam {String} [machineName] the machine name of the existing content type
  * @apiParam {String} [namespace] optional namespace. Will be used to derive the
@@ -356,17 +359,25 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
+    const id = op.get(
+        req.params,
+        'id',
+        op.get(req.params, 'ID', op.get(req.params, 'objectId')),
+    );
     const machineName = op.get(req.params, 'machineName');
     const namespace = op.get(req.params, 'namespace', getNamespace());
     const uuid = machineName
         ? uuidv5(machineName, namespace)
         : op.get(req.params, 'uuid');
 
-    if (!uuid) throw new Error('uuid or machineName parameter required.');
+    if (!id && !uuid)
+        throw new Error('id, uuid or machineName parameter required.');
 
     const options = CloudCapOptions(req, [`${COLLECTION}.retrieve`]);
     const query = new Parse.Query(COLLECTION);
-    query.equalTo('uuid', uuid);
+    if (id) query.equalTo('objectId', id);
+    if (uuid) query.equalTo('uuid', uuid);
+
     const contentType = await query.first(options);
 
     if (!contentType) throw new Error('Unable to find type.');
