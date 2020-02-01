@@ -246,7 +246,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
 
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
 
-Actinium.Cloud.define(PLUGIN.ID, 'acl-targets', aclTargets);
+Actinium.Cloud.define(PLUGIN.ID, 'acl-targets', AclTargets);
 
 // Hooks
 Actinium.Hook.register('start', () => {
