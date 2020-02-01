@@ -105,7 +105,142 @@ const UserFromSession = async sessionToken => {
     return session ? session.get('user') : null;
 };
 
+const AclTargets = async req => {
+    const { master, user } = req;
+
+    if (!user && !master) throw new Error('Permission denied');
+
+    let { cache, fresh, search } = req.params;
+    search = search
+        ? String(search)
+              .toLowerCase()
+              .trim()
+        : search;
+
+    const mapUser = user => {
+        const fields = ['objectId', 'username', 'email', 'fname', 'lname'];
+        return fields.reduce((u, field) => {
+            const val = op.get(user, field);
+            if (val) u[field] = val;
+            return u;
+        }, {});
+    };
+
+    const mapRole = role => {
+        const fields = ['objectId', 'name', 'label'];
+        return fields.reduce((r, field) => {
+            const val = op.get(role, field);
+            if (val) r[field] = val;
+            return r;
+        }, {});
+    };
+
+    const filterUsers = (users, search) =>
+        users.filter(user => {
+            const username = String(op.get(user, 'username')).toLowerCase();
+
+            const email = String(op.get(user, 'email')).toLowerCase();
+
+            const firstname = String(
+                [op.get(user, 'fname'), op.get(user, 'lname')].join(' '),
+            ).toLowerCase();
+
+            const lastname = String(
+                firstname
+                    .split(' ')
+                    .reverse()
+                    .join(' '),
+            );
+
+            return Boolean(
+                !search ||
+                    username.startsWith(search) ||
+                    email.startsWith(search) ||
+                    firstname.startsWith(search) ||
+                    lastname.startsWith(search),
+            );
+        });
+
+    const filterRoles = (roles, search) =>
+        roles.filter(role => {
+            const name = String(op.get(role, 'name')).toLowerCase();
+            const label = String(op.get(role, 'label')).toLowerCase();
+
+            return Boolean(
+                !search ||
+                    String(name).startsWith(search) ||
+                    String(label).startsWith(search),
+            );
+        });
+
+    // Use cached
+    const cached = Actinium.Cache.get('acl-targets');
+    if (cached && !fresh) {
+        return {
+            roles: filterRoles(cached.roles, search),
+            users: filterUsers(cached.users, search),
+        };
+    }
+
+    // Fetch fresh
+    let roles = _.sortBy(
+        Object.values(Actinium.Cache.get('roles', {})),
+        'level',
+    )
+        .map(role => mapRole(role))
+        .reverse();
+
+    let qry;
+    const options = CloudRunOptions(req);
+
+    if (search) {
+        // Filter roles
+        roles = filterRoles(roles);
+
+        // Create user queries
+        const regex = new RegExp(search, 'gi');
+        const fields = ['username', 'email', 'fname', 'lname'];
+        const queries = fields.map(fld =>
+            new Parse.Query('_User').matches(fld, regex),
+        );
+
+        qry = Parse.Query.or(...queries);
+    } else {
+        qry = new Parse.Query('_User');
+    }
+
+    qry.ascending('fname');
+    qry.addAscending('lname');
+    qry.addAscending('username');
+    qry.limit(1000);
+
+    let users = [];
+    let results = await qry.find(options);
+
+    while (results.length > 0) {
+        results = results.map(item => mapUser(item.toJSON()));
+        users = users.concat(results);
+
+        if (results.length === 1000) {
+            qry.skip(users.length);
+            results = await qry.find(options);
+        } else {
+            results = [];
+        }
+    }
+
+    if (cache === true && !search) {
+        Actinium.Cache.set('acl-targets', { roles, users });
+    }
+
+    return {
+        roles,
+        users,
+    };
+};
+
 module.exports = {
+    AclTargets,
     CloudRunOptions,
     CloudCapOptions,
     CloudHasCapabilities,
