@@ -238,6 +238,14 @@ Actinium.Cloud.afterSave(COLLECTION, afterSave);
 
 Actinium.Cloud.beforeLogin(beforeLogin);
 
+Actinium.Collection.register(COLLECTION, {
+    create: false,
+    retrieve: false,
+    update: false,
+    delete: false,
+    addField: false,
+});
+
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);

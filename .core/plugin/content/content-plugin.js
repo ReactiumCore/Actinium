@@ -3,6 +3,8 @@ const ENUMS = require('./enums');
 const op = require('object-path');
 const uuidv5 = require('uuid/v5');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
+const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
 
 const {
     CloudHasCapabilities,
@@ -72,90 +74,12 @@ Actinium.Hook.register(
     },
 );
 
-const getRequestContentType = async req => {
-    // retrieve type
-    let typeObj = op.get(req.params, 'type');
-    if (typeObj) {
-        typeObj = await Actinium.Cloud.run('type-retrieve', typeObj, {
-            useMasterKey: true,
-        });
-    }
-    if (!typeObj) throw new Error('type required.');
-    const type = new Parse.Object('Type');
-    type.id = typeObj.objectId;
-
-    // construct content
-    const collection = op.get(typeObj, 'collection');
-    if (!collection) throw new Error('Invalid type. No collection defined.');
-
-    return typeObj;
-};
-
-const getACL = async (perms = [], collection) => {
-    if (perms.length < 1) return null;
-    const groupACL = new Parse.ACL();
-
-    const aclTargets = await Actinium.Cloud.run(
-        'acl-targets',
-        {},
-        { useMasterKey: true },
-    );
-
-    const allRoles = _.indexBy(aclTargets.roles, 'name');
-    const readRoles = _.chain(
-        Actinium.Capability.roles(`${collection}.retrieveAny`).map(name =>
-            op.get(allRoles, name),
-        ),
-    )
-        .compact()
-        .value();
-    const writeRoles = _.chain(
-        Actinium.Capability.roles(`${collection}.updateAny`).map(name =>
-            op.get(allRoles, name),
-        ),
-    )
-        .compact()
-        .value();
-
-    const permission = _.groupBy(perms, 'permission');
-    const writePerms = _.groupBy(op.get(permission, 'write', []), 'type');
-    const readPerms = _.groupBy(op.get(permission, 'read', []), 'type');
-
-    // read
-    op.get(readPerms, 'role', [])
-        .concat(readRoles)
-        .forEach(roleObj => {
-            if (op.has(roleObj, 'name')) {
-                if (roleObj.name === 'anonymous')
-                    groupACL.setPublicReadAccess(true);
-                else groupACL.setRoleReadAccess(roleObj.name, true);
-            }
-        });
-    op.get(readPerms, 'user', []).forEach(userObj => {
-        if (op.has(userObj, 'objectId')) {
-            groupACL.setReadAccess(userObj.objectId, true);
-        }
-    });
-    op.get(writePerms, 'role', [])
-        .concat(writeRoles)
-        .forEach(roleObj => {
-            if (op.has(roleObj, 'name')) {
-                if (roleObj.name === 'anonymous')
-                    groupACL.setPublicWriteAccess(true);
-                else groupACL.setRoleWriteAccess(roleObj.name, true);
-            }
-        });
-    op.get(writePerms, 'user', []).forEach(userObj => {
-        if (op.has(userObj, 'objectId')) {
-            groupACL.setWriteAccess(userObj.objectId, true);
-        }
-    });
-
-    return groupACL;
-};
-
 // Actinium.Cloud.define(PLUGIN.ID, 'test-acl', async req => {
-//     return getACL(req.params.perms || [], 'Content_article');
+//     return getACL(
+//         req.params.permissions || [],
+//         'Content_article.retrieveAny',
+//         'Content_article.updateAny',
+//     );
 // });
 
 /**
@@ -164,7 +88,7 @@ const getACL = async (perms = [], collection) => {
  `type` and `slug`, you can provide any parameter's that conform to the runtime fields saved for that type.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam {String} slug The unique slug for the new content.
- * @apiParam {Array} [permissions] List of permissions to apply to content. If not provided, no ACL will be set.
+ * @apiParam {Array} [permissions=Array] List of permissions to apply to content. If not provided, no ACL will be set.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -176,8 +100,15 @@ const getACL = async (perms = [], collection) => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
+    const masterOptions = { useMasterKey: true };
     // retrieve type
-    const typeObj = await getRequestContentType(req);
+    const typeObj = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params.type,
+        masterOptions,
+    );
+    const type = new Parse.Object('Type');
+    type.id = typeObj.objectId;
 
     // construct content
     const collection = op.get(typeObj, 'collection');
@@ -197,26 +128,25 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
     type.addUnique('slugs', slug);
 
     content.set('slug', slug);
-    content.set('type', type);
+    content.set('type', { objectId: type.id });
     content.set('uuid', uuidv5(slug, namespace));
     content.set('meta', op.get(req.params, 'meta', {}));
 
     // set ACL
-    const perms = op.get(req.params, 'permissions', []);
+    const permissions = op.get(req.params, 'permissions', []);
+    const ACL = await getACL(
+        permissions,
+        `${collection}.retrieveAny`,
+        `${collection}.updateAny`,
+    );
+
     if (req.user) {
         content.set('user', req.user);
-        perms.push([
-            { type: 'user', permission: 'read', objectId: req.user.id },
-        ]);
-        perms.push([
-            { type: 'user', permission: 'write', objectId: req.user.id },
-        ]);
+        groupACL.setReadAccess(req.user.id, true);
+        groupACL.setWriteAccess(req.user.id, true);
     }
 
-    const ACL = await getACL(perms, collection);
-    if (ACL) {
-        content.setACL(ACL);
-    }
+    content.setACL(ACL);
 
     const sanitized = await Actinium.Content.sanitize({
         ...req.params,
@@ -229,8 +159,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
     const options = CloudRunOptions(req);
 
     await content.save(null, options);
-    await type.save(null, options);
-    const contentObj = content.toJSON();
+    await type.save(null, masterOptions);
+    const contentObj = serialize(content);
 
     await Actinium.Hook.run('content-saved', contentObj);
 
@@ -251,8 +181,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
+    const masterOptions = { useMasterKey: true };
     // retrieve type
-    const typeObj = await getRequestContentType(req);
+    const typeObj = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params.type,
+        masterOptions,
+    );
 
     // construct content
     const collection = op.get(typeObj, 'collection');
@@ -284,7 +219,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
     }
 
     if (content) {
-        const obj = content.toJSON();
+        const obj = serialize(content);
         return obj;
     }
 });
@@ -297,7 +232,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The Parse object id of the content.
  * @apiParam {String} [uuid] The uuid of the content.
- * @apiParam {Array} [permissions] List of permissions to apply to content. If unset or empty, ACL will not be updated.
+ * @apiParam {Array} [permissions] List of permissions to apply to content.
+ If unset, ACL will not be updated. If empty array, public read access will be applied.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -307,8 +243,44 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
  * @apiParam (permission) {Object} [name] name of role
  * @apiName content-create
  * @apiGroup Cloud
+ * @apiExample Usage
+ Actinium.Cloud.run('content-update', {
+     // Type object required to look up content
+     // i.e. the collection is determined by the parent Type
+     type: {
+         // one of these 3 required to look up content
+         objectId: 'MvAerDoRQN',
+         machineName: 'article',
+         uuid: '975776a5-7070-5c23-bee6-4e9bba84a431',
+     },
+
+     // one of these 3 required to look up content
+     objectId: 'tEiojmmHA1',
+     slug: 'test-article1',
+     uuid: '5320803c-b709-5327-a06f-b482c8f41b92',
+
+     // optionally set ACL perms (public read access ACL if set empty array)
+     // no ACL change if unset
+     permissions: [],
+
+     // options set the user owner
+     user: {
+         objectId: 'lL1SfyzHiE',
+     },
+
+     // optionally set meta data for the content
+     meta: {},
+
+     // Any additional field as defined in the Type object `fields`.
+     // Can be different from one type to another.
+     title: 'Test Article',
+     body: {
+        text: 'simple text',
+     },
+ });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
+    const masterOptions = { useMasterKey: true };
     const options = CloudRunOptions(req);
     const contentObj = await Actinium.Cloud.run(
         'content-retrieve',
@@ -319,7 +291,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',
         req.params.type,
-        options,
+        masterOptions,
     );
 
     const content = new Parse.Object(typeObj.collection);
@@ -328,27 +300,21 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     content.set('meta', op.get(req.params, 'meta', {}));
 
     // set ACL
-    const perms = op.get(req.params, 'permissions', []);
-    let userId = op.get(contentObj, 'user.objectId');
-    if (
-        op.has(req.params, 'user') &&
-        op.get(req.params, 'user.objectId') !==
-            op.get(contentObj, 'user.objectId')
-    ) {
-        userId = op.get(req.params, 'user.objectId');
-    }
+    const permissions = op.get(req.params, 'permissions');
+    if (Array.isArray(permissions)) {
+        let userId = op.get(contentObj, 'user.objectId');
+        const groupACL = await getACL(
+            permissions,
+            `${typeObj.collection}.retrieveAny`,
+            `${typeObj.collection}.updateAny`,
+        );
 
-    if (userId) {
-        const user = new Parse.User();
-        user.id = userId;
-        content.set('user', user);
-        perms.push([{ type: 'user', permission: 'read', objectId: userId }]);
-        perms.push([{ type: 'user', permission: 'write', objectId: userId }]);
-    }
+        if (userId) {
+            groupACL.setReadAccess(userId, true);
+            groupACL.setWriteAccess(userId, true);
+        }
 
-    const ACL = await getACL(perms, typeObj.collection);
-    if (ACL) {
-        content.setACL(ACL);
+        content.setACL(groupACL);
     }
 
     const sanitized = await Actinium.Content.sanitize({
@@ -368,7 +334,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     for (const options of attempts) {
         const saved = await content.save(null, options);
         if (saved) {
-            savedObj = saved.toJSON();
+            savedObj = serialize(saved);
             break;
         }
     }
@@ -376,6 +342,67 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     await Actinium.Hook.run('content-saved', savedObj);
 
     return savedObj;
+});
+
+/**
+ * @api {Asynchronous} content-delete content-delete
+ * @apiDescription Delete content of a defined Type. To identify the content, you must provided
+the `type` object, and one of `slug`, `objectId`, or `uuid` of the content.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName content-delete
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
+    const masterOptions = { useMasterKey: true };
+    const contentObj = await Actinium.Cloud.run(
+        'content-retrieve',
+        req.params,
+        masterOptions,
+    );
+    if (!contentObj) return;
+
+    const typeObj = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params.type,
+        masterOptions,
+    );
+    const collection = op.get(typeObj, 'collection');
+
+    const content = new Parse.Object(typeObj.collection);
+    content.id = contentObj.objectId;
+
+    const type = new Parse.Object('Type');
+    type.id = typeObj.objectId;
+    await type.fetch(masterOptions);
+
+    const attempts = [
+        CloudRunOptions(req),
+        CloudCapOptions(req, [`${typeObj.collection}.deleteAny`]),
+    ];
+
+    const trash = await Actinium.Cloud.run(
+        'recycle',
+        { collection, object: contentObj },
+        masterOptions,
+    );
+
+    for (const options of attempts) {
+        const destroyed = await content.destroy(options);
+        if (destroyed) {
+            break;
+        }
+    }
+
+    type.remove('slugs', op.get(contentObj, 'slug'));
+    await type.save(null, masterOptions);
+
+    return trash;
 });
 
 /*
