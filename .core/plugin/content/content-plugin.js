@@ -1,10 +1,10 @@
 const _ = require('underscore');
-const ENUMS = require('./enums');
 const op = require('object-path');
 const uuidv5 = require('uuid/v5');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
+const equal = require('fast-deep-equal');
 
 const {
     CloudHasCapabilities,
@@ -17,6 +17,7 @@ const PLUGIN_SDK = require('./sdk');
 const PLUGIN_ROUTES = require('./routes');
 const PLUGIN_SCHEMA = require('./schema-template');
 const PLUGIN_BLUEPRINTS = require('./blueprints');
+const ENUMS = require('./enums');
 
 // Create SDK Singleton
 Actinium.Content = PLUGIN_SDK;
@@ -131,13 +132,14 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
     content.set('type', { objectId: type.id });
     content.set('uuid', uuidv5(slug, namespace));
     content.set('meta', op.get(req.params, 'meta', {}));
+    content.set('status', ENUMS.STATUS.DRAFT);
 
     // set ACL
     const permissions = op.get(req.params, 'permissions', []);
-    const ACL = await getACL(
+    const groupACL = await getACL(
         permissions,
-        `${collection}.retrieveAny`,
-        `${collection}.updateAny`,
+        `${collection}.retrieveAny`, // read
+        `${collection}.updateAny`, // write
     );
 
     if (req.user) {
@@ -145,8 +147,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
         groupACL.setReadAccess(req.user.id, true);
         groupACL.setWriteAccess(req.user.id, true);
     }
-
-    content.setACL(ACL);
+    content.setACL(groupACL);
 
     const sanitized = await Actinium.Content.sanitize({
         ...req.params,
@@ -158,7 +159,20 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
 
     const options = CloudRunOptions(req);
 
+    // Create new revision branch
+    const branch = await Actinium.Recycle.revision(
+        { collection, object: serialize(content) },
+        CloudCapOptions(req, [`${collection}.create`]),
+    );
+    content.set('branches', {
+        master: {
+            history: [branch.id],
+        },
+    });
+    content.set('history', { branch: 'master', revision: 0 });
+
     await content.save(null, options);
+
     await type.save(null, masterOptions);
     const contentObj = serialize(content);
 
@@ -171,12 +185,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @api {Asynchronous} content-retrieve content-retrieve
  * @apiDescription Retrieve one item of content.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {Boolean} [published=false] Get the published content.
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The objectId for the content.
  * @apiParam {String} [uuid] The uuid for the content.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to retreive (default latest)
  * @apiName content-retrieve
  * @apiGroup Cloud
  */
@@ -219,20 +237,40 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
     }
 
     if (content) {
-        const obj = serialize(content);
-        return obj;
+        const contentObj = serialize(content);
+
+        // if content is published, and publshed is requested, return the current content
+        if (op.get(req.params, 'published', false)) {
+            if (content.get('status') === ENUMS.STATUS.PUBLISHED) {
+                return contentObj;
+            }
+
+            throw 'Content not published';
+        }
+
+        // build the current revision
+        const branch = op.get(req.params, 'history.branch', 'master');
+        const revisionIndex = op.get(req.params, 'history.revision');
+
+        const version = Actinium.Content.getVersion(
+            contentObj,
+            branch,
+            revisionIndex,
+            masterOptions,
+        );
+
+        return version;
     }
 });
 
 /**
- * @api {Asynchronous} content-create content-create
- * @apiDescription Update content of a defined Type. In addition to the required parameters of
- `type` and `slug`, you can provide any parameter's that conform to the runtime fields saved for that type.
+ * @api {Asynchronous} content-permissions content-permissions
+ * @apiDescription Update permissions for content.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The Parse object id of the content.
  * @apiParam {String} [uuid] The uuid of the content.
- * @apiParam {Array} [permissions] List of permissions to apply to content.
+ * @apiParam {Array} permissions List of permissions to apply to content.
  If unset, ACL will not be updated. If empty array, public read access will be applied.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
@@ -241,7 +279,56 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
  * @apiParam (permission) {Object} type role or user
  * @apiParam (permission) {Object} [objectId] objectId of user
  * @apiParam (permission) {Object} [name] name of role
- * @apiName content-create
+ * @apiName content-permissions
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
+    const masterOptions = { useMasterKey: true };
+    const options = CloudRunOptions(req);
+    const contentObj = await Actinium.Cloud.run(
+        'content-retrieve',
+        req.params,
+        options,
+    );
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params.type,
+        masterOptions,
+    );
+
+    // TODO separate cloud / SDK function
+    // set ACL
+    // const permissions = op.get(req.params, 'permissions');
+    // if (Array.isArray(permissions)) {
+    //     let userId = op.get(contentObj, 'user.objectId');
+    //     const groupACL = await getACL(
+    //         permissions,
+    //         `${typeObj.collection}.retrieveAny`,
+    //         `${typeObj.collection}.updateAny`,
+    //     );
+    //
+    //     if (userId) {
+    //         groupACL.setReadAccess(userId, true);
+    //         groupACL.setWriteAccess(userId, true);
+    //     }
+    //
+    //     content.setACL(groupACL);
+    // }
+});
+
+/**
+ * @api {Asynchronous} content-update content-update
+ * @apiDescription Update content of a defined Type. In addition to the required parameters of
+ `type` and `slug`, you can provide any parameter's that conform to the runtime fields saved for that type.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName content-update
  * @apiGroup Cloud
  * @apiExample Usage
  Actinium.Cloud.run('content-update', {
@@ -259,15 +346,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
      slug: 'test-article1',
      uuid: '5320803c-b709-5327-a06f-b482c8f41b92',
 
-     // optionally set ACL perms (public read access ACL if set empty array)
-     // no ACL change if unset
-     permissions: [],
-
-     // options set the user owner
-     user: {
-         objectId: 'lL1SfyzHiE',
-     },
-
      // optionally set meta data for the content
      meta: {},
 
@@ -282,62 +360,92 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
 Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     const masterOptions = { useMasterKey: true };
     const options = CloudRunOptions(req);
-    const contentObj = await Actinium.Cloud.run(
+    let contentObj = await Actinium.Cloud.run(
         'content-retrieve',
         req.params,
         options,
     );
     if (!contentObj) throw 'Unable to find content';
+
+    // build the current revision
+    const branchId = op.get(req.params, 'history.branch', 'master');
+    const revisionIndex = op.get(req.params, 'history.revision');
+    const branches = op.get(contentObj, 'branches');
+    const revisions = op.get(branches, [branchId, 'history']);
+
+    if (revisions.length > revisionIndex + 1)
+        throw 'Newer revisions of this content exist. Create a new branch if you wish to update this version.';
+
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',
         req.params.type,
         masterOptions,
     );
 
-    const content = new Parse.Object(typeObj.collection);
-    content.id = contentObj.objectId;
-
-    content.set('meta', op.get(req.params, 'meta', {}));
-
-    // set ACL
-    const permissions = op.get(req.params, 'permissions');
-    if (Array.isArray(permissions)) {
-        let userId = op.get(contentObj, 'user.objectId');
-        const groupACL = await getACL(
-            permissions,
-            `${typeObj.collection}.retrieveAny`,
-            `${typeObj.collection}.updateAny`,
-        );
-
-        if (userId) {
-            groupACL.setReadAccess(userId, true);
-            groupACL.setWriteAccess(userId, true);
-        }
-
-        content.setACL(groupACL);
-    }
-
     const sanitized = await Actinium.Content.sanitize({
         ...req.params,
         type: typeObj,
     });
 
-    for (const { fieldSlug, fieldValue } of sanitized) {
-        if (fieldSlug && fieldValue) content.set(fieldSlug, fieldValue);
-    }
-
     const attempts = [
         CloudRunOptions(req),
         CloudCapOptions(req, [`${typeObj.collection}.updateAny`]),
     ];
+
+    const content = new Parse.Object(typeObj.collection);
+    content.id = contentObj.objectId;
+
+    // verify that save is allowed, but do not apply new values
+    // those will go in revision
     let savedObj;
+    let errors;
     for (const options of attempts) {
-        const saved = await content.save(null, options);
-        if (saved) {
+        let saved;
+
+        try {
+            saved = await content.save(null, options);
             savedObj = serialize(saved);
             break;
+        } catch (error) {
+            errors = error;
         }
     }
+    if (!savedObj) throw errors;
+
+    const diff = {};
+    for (const { fieldSlug, fieldValue } of sanitized) {
+        if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
+            op.set(diff, fieldSlug, fieldValue);
+        }
+    }
+
+    // No change
+    if (Object.keys(diff).length < 1) return contentObj;
+
+    diff.objectId = contentObj.objectId;
+
+    // Create new revision branch
+    const revision = await Actinium.Recycle.revision(
+        {
+            collection: typeObj.collection,
+            object: diff,
+        },
+        masterOptions,
+    );
+
+    branches[branchId].history.push(revision.id);
+    content.set('branches', branches);
+    await content.save(null, masterOptions);
+
+    savedObj = {
+        ...contentObj,
+        ...serialize(content),
+        ...diff,
+        history: {
+            branch: branchId,
+            revision: branches[branchId].history.length - 1,
+        },
+    };
 
     await Actinium.Hook.run('content-saved', savedObj);
 

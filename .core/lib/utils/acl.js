@@ -8,7 +8,7 @@ const { AclTargets } = require('./');
  * @apiParam {Array} permissions list of permissions to apply, when empty array, indicates public read, privileged write
  * @apiParam {String} [readCapability] If provided, will allow read for any roles that have this capability.
  * @apiParam {String} [writeCapability] If provided, will allow write for any roles that have this capability.
- * @apiParam {existingACL} {Parse.ACL} If provided, will be the starting point for the returned ACL, otherwise, returns
+ * @apiParam {Parse.ACL} [existingACL] If provided, will be the starting point for the returned ACL, otherwise, returns
  fresh ACL object.
  * @apiParam (permission) {String} permission "read" or "write"
  * @apiParam (permission) {String} type "role", "user", or "public"

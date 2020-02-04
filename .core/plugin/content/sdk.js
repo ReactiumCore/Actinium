@@ -2,6 +2,7 @@ const schemaTemplate = require('./schema-template');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const _ = require('underscore');
 const op = require('object-path');
+const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 
 const Content = {};
 
@@ -141,7 +142,56 @@ Content.sanitize = async content => {
         );
     }
 
+    if (op.has(content, 'meta') && typeof content.meta === 'object') {
+        fieldData.push({
+            fieldSlug: 'meta',
+            fieldValue: content.meta,
+        });
+    }
+
     return fieldData;
+};
+
+Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
+    if (!op.has(contentObj, ['branches', branch]))
+        throw 'No such branch in history';
+
+    const history = op.get(contentObj, ['branches', branch, 'history'], []);
+
+    const range = [0];
+    if (typeof revisionIndex !== 'undefined' && revisionIndex < history.length)
+        range.push(revisionIndex + 1);
+    if (!history.length) throw 'No revision history in branch';
+
+    const revisionIds = history.slice(...range);
+
+    const revisions = await Parse.Object.fetchAll(
+        revisionIds.map(id => {
+            const rev = new Parse.Object('Recycle');
+            rev.id = id;
+            return rev;
+        }),
+        options,
+    );
+
+    const revsById = _.indexBy(revisions, 'id');
+    const version = revisionIds.reduce((version, id) => {
+        const rev = serialize(op.get(revsById, [id]));
+        version = {
+            ...version,
+            ...op.get(rev, 'object', {}),
+        };
+
+        return version;
+    }, contentObj);
+
+    version.branches = contentObj.branches;
+    version.history = {
+        branch,
+        revision: revisionIds.length - 1,
+    };
+
+    return version;
 };
 
 module.exports = Content;
