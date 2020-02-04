@@ -196,7 +196,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiParam (history) {Number} [revision] index in branch history to retrieve (default length of branch history - 1)
+ * @apiParam (history) {Number} [revision] index in branch history to retrieve
+ (default index of latest revision)
  * @apiName content-retrieve
  * @apiGroup Cloud
  */
@@ -299,24 +300,46 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
         masterOptions,
     );
 
-    // TODO separate cloud / SDK function
+    const collection = op.get(typeObj, 'collection');
+    const content = new Parse.Object(collection);
+    content.id = contentObj.objectId;
+    const permissions = op.get(req.params, 'permissions', []);
+
     // set ACL
-    // const permissions = op.get(req.params, 'permissions');
-    // if (Array.isArray(permissions)) {
-    //     let userId = op.get(contentObj, 'user.objectId');
-    //     const groupACL = await getACL(
-    //         permissions,
-    //         `${typeObj.collection}.retrieveAny`,
-    //         `${typeObj.collection}.updateAny`,
-    //     );
-    //
-    //     if (userId) {
-    //         groupACL.setReadAccess(userId, true);
-    //         groupACL.setWriteAccess(userId, true);
-    //     }
-    //
-    //     content.setACL(groupACL);
-    // }
+    if (Array.isArray(permissions)) {
+        let userId = op.get(contentObj, 'user.objectId');
+        const groupACL = await getACL(
+            permissions,
+            `${typeObj.collection}.retrieveAny`,
+            `${typeObj.collection}.updateAny`,
+        );
+
+        if (userId) {
+            groupACL.setReadAccess(userId, true);
+            groupACL.setWriteAccess(userId, true);
+        }
+
+        content.setACL(groupACL);
+
+        const attempts = [
+            CloudRunOptions(req),
+            CloudCapOptions(req, [`${typeObj.collection}.updateAny`]),
+        ];
+
+        let saved, errors;
+        for (const options of attempts) {
+            try {
+                saved = await content.save(null, options);
+                if (saved) {
+                    return saved.getACL();
+                }
+            } catch (error) {
+                errors = error;
+            }
+        }
+
+        throw errors;
+    }
 });
 
 /**
