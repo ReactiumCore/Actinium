@@ -9,7 +9,9 @@ const equal = require('fast-deep-equal');
 const {
     CloudHasCapabilities,
     CloudRunOptions,
+    CloudMasterOptions,
     CloudCapOptions,
+    UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const PLUGIN = require('./meta');
@@ -101,7 +103,7 @@ Actinium.Hook.register(
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
-    const masterOptions = { useMasterKey: true };
+    const masterOptions = CloudMasterOptions(req);
     // retrieve type
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',
@@ -160,16 +162,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
     const options = CloudRunOptions(req);
 
     // Create new revision branch
-    const branch = await Actinium.Recycle.revision(
-        { collection, object: serialize(content) },
+    const { branches, history } = Actinium.Content.createBranch(
+        content,
+        typeObj,
+        'master',
         CloudCapOptions(req, [`${collection}.create`]),
     );
-    content.set('branches', {
-        master: {
-            history: [branch.id],
-        },
-    });
-    content.set('history', { branch: 'master', revision: 0 });
+
+    content.set('branches', branches);
+    // only set content history on creation and publishing
+    content.set('history', history);
 
     await content.save(null, options);
 
@@ -194,12 +196,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiParam (history) {Number} [revision] index in branch history to retreive (default latest)
+ * @apiParam (history) {Number} [revision] index in branch history to retrieve (default length of branch history - 1)
  * @apiName content-retrieve
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
-    const masterOptions = { useMasterKey: true };
+    const masterOptions = CloudMasterOptions(req);
     // retrieve type
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',
@@ -283,7 +285,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
-    const masterOptions = { useMasterKey: true };
+    const masterOptions = CloudMasterOptions(req);
     const options = CloudRunOptions(req);
     const contentObj = await Actinium.Cloud.run(
         'content-retrieve',
@@ -325,9 +327,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The Parse object id of the content.
  * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (default length of branch history - 1).
+ If you select a revision before the latest revision, a new branch will be created.
  * @apiName content-update
  * @apiGroup Cloud
  * @apiExample Usage
@@ -358,9 +364,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
  });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
-    const masterOptions = { useMasterKey: true };
     const options = CloudRunOptions(req);
-    let contentObj = await Actinium.Cloud.run(
+    const masterOptions = CloudMasterOptions(req);
+    const contentObj = await Actinium.Cloud.run(
         'content-retrieve',
         req.params,
         options,
@@ -368,13 +374,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     if (!contentObj) throw 'Unable to find content';
 
     // build the current revision
-    const branchId = op.get(req.params, 'history.branch', 'master');
+    let branchId = op.get(req.params, 'history.branch', 'master');
     const revisionIndex = op.get(req.params, 'history.revision');
-    const branches = op.get(contentObj, 'branches');
-    const revisions = op.get(branches, [branchId, 'history']);
-
-    if (revisions.length > revisionIndex + 1)
-        throw 'Newer revisions of this content exist. Create a new branch if you wish to update this version.';
+    let currentBranches = op.get(contentObj, 'branches');
+    const revisions = op.get(currentBranches, [branchId, 'history']);
 
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',
@@ -407,21 +410,36 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     }
     if (!savedObj) throw errors;
 
-    const diff = await Actinium.Content.diff(contentObj, req.params);
+    if (revisions.length > revisionIndex + 1) {
+        const { branches, history } = await Actinium.Content.createBranch(
+            contentObj,
+            typeObj,
+            null,
+            masterOptions,
+            req.user,
+        );
 
+        branchId = op.get(history, 'branch');
+        op.set(contentObj, 'branches', branches);
+        op.set(contentObj, 'history', history);
+    }
+
+    const diff = await Actinium.Content.diff(contentObj, req.params);
     if (!diff) return contentObj;
 
     // Create new revision branch
-    const revision = await Actinium.Recycle.revision(
-        {
-            collection: typeObj.collection,
-            object: diff,
-        },
-        masterOptions,
-    );
+    const revObj = {
+        collection: typeObj.collection,
+        object: diff,
+    };
 
-    branches[branchId].history.push(revision.id);
-    content.set('branches', branches);
+    if (req.user) op.set(revObj, 'user', req.user);
+    const revision = await Actinium.Recycle.revision(revObj, masterOptions);
+
+    currentBranches = op.get(contentObj, 'branches');
+    currentBranches[branchId].history.push(revision.id);
+
+    content.set('branches', currentBranches);
     await content.save(null, masterOptions);
 
     savedObj = {
@@ -430,7 +448,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
         ...diff,
         history: {
             branch: branchId,
-            revision: branches[branchId].history.length - 1,
+            revision: currentBranches[branchId].history.length - 1,
         },
     };
 
@@ -454,13 +472,13 @@ the `type` object, and one of `slug`, `objectId`, or `uuid` of the content.
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
-    const masterOptions = { useMasterKey: true };
+    const masterOptions = CloudMasterOptions(req);
     const contentObj = await Actinium.Cloud.run(
         'content-retrieve',
         req.params,
         masterOptions,
     );
-    if (!contentObj) return;
+    if (!contentObj) return contentObj;
 
     const typeObj = await Actinium.Cloud.run(
         'type-retrieve',

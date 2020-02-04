@@ -4,6 +4,8 @@ const _ = require('underscore');
 const op = require('object-path');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const equal = require('fast-deep-equal');
+const uuidv4 = require('uuid/v4');
+const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const Content = {};
 
@@ -152,6 +154,46 @@ Content.sanitize = async content => {
     }
 
     return fieldData;
+};
+
+Content.createBranch = async (content, type, branch, options) => {
+    content = serialize(content);
+    type = serialize(type);
+
+    if (!branch || op.has(content, ['branches', branch])) branch = uuidv4();
+    const user = await UserFromSession(op.get(options, 'sessionToken'));
+    const branches = op.get(content, 'branches', {});
+    const currentBranchId = op.get(content, 'history.branch');
+    const currentRevisionIndex = op.get(content, 'history.revision');
+
+    // get current revision id in case we tagging existing base revision
+    let revisionId = op.get(content, [
+        'branches',
+        currentBranchId,
+        'history',
+        currentRevisionIndex,
+    ]);
+
+    // need to create new base revision for this branch
+    if (currentRevisionIndex !== 0) {
+        op.set(branches, [branch, 'history'], []);
+        op.set(content, 'branches', branches);
+        op.set(content, 'history', { branch });
+
+        const revObj = {
+            collection: op.get(type, 'collection'),
+            object: serialize(content),
+        };
+
+        if (user) op.set(revObj, 'user', user);
+        const revision = await Actinium.Recycle.revision(revObj, options);
+        revisionId = revision.id;
+    }
+
+    op.set(branches, [branch, 'history'], [revisionId]);
+    const history = { branch, revision: 0 };
+
+    return { branches, history };
 };
 
 Content.diff = async (contentObj, changes) => {
