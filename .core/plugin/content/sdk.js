@@ -2,6 +2,10 @@ const schemaTemplate = require('./schema-template');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const _ = require('underscore');
 const op = require('object-path');
+const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+const equal = require('fast-deep-equal');
+const uuidv4 = require('uuid/v4');
+const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const Content = {};
 
@@ -112,6 +116,7 @@ Content.getSchema = async contentTypeObj => {
 
 Content.sanitize = async content => {
     const { type } = content;
+
     const { existingSchema, permittedFields } = await Content.getSchema(type);
     const fieldConfigs = permittedFields;
 
@@ -141,7 +146,118 @@ Content.sanitize = async content => {
         );
     }
 
+    if (op.has(content, 'meta') && typeof content.meta === 'object') {
+        fieldData.push({
+            fieldSlug: 'meta',
+            fieldValue: content.meta,
+        });
+    }
+
     return fieldData;
+};
+
+Content.createBranch = async (content, type, branch, options) => {
+    content = serialize(content);
+    type = serialize(type);
+
+    if (!branch || op.has(content, ['branches', branch])) branch = uuidv4();
+    const user = await UserFromSession(op.get(options, 'sessionToken'));
+    const branches = op.get(content, 'branches', {});
+    const currentBranchId = op.get(content, 'history.branch');
+    const currentRevisionIndex = op.get(content, 'history.revision');
+
+    // get current revision id in case we tagging existing base revision
+    let revisionId = op.get(content, [
+        'branches',
+        currentBranchId,
+        'history',
+        currentRevisionIndex,
+    ]);
+
+    // need to create new base revision for this branch
+    if (currentRevisionIndex !== 0) {
+        op.set(branches, [branch, 'history'], []);
+        op.set(content, 'branches', branches);
+        op.set(content, 'history', { branch });
+
+        const revObj = {
+            collection: op.get(type, 'collection'),
+            object: serialize(content),
+        };
+
+        if (user) op.set(revObj, 'user', user);
+        const revision = await Actinium.Recycle.revision(revObj, options);
+        revisionId = revision.id;
+    }
+
+    op.set(branches, [branch, 'history'], [revisionId]);
+    const history = { branch, revision: 0 };
+
+    return { branches, history };
+};
+
+Content.diff = async (contentObj, changes) => {
+    const sanitized = await Actinium.Content.sanitize({
+        ...changes,
+        type: contentObj.type,
+    });
+    const diff = {};
+    for (const { fieldSlug, fieldValue } of sanitized) {
+        if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
+            op.set(diff, fieldSlug, fieldValue);
+        }
+    }
+
+    // No changes
+    if (Object.keys(diff).length < 1) return false;
+
+    op.set(diff, 'objectId', contentObj.objectId);
+    op.set(diff, 'history', contentObj.history);
+    op.set(diff, 'branches', contentObj.branches);
+
+    return diff;
+};
+
+Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
+    if (!op.has(contentObj, ['branches', branch]))
+        throw 'No such branch in history';
+
+    const history = op.get(contentObj, ['branches', branch, 'history'], []);
+
+    const range = [0];
+    if (typeof revisionIndex !== 'undefined' && revisionIndex < history.length)
+        range.push(revisionIndex + 1);
+    if (!history.length) throw 'No revision history in branch';
+
+    const revisionIds = history.slice(...range);
+
+    const revisions = await Parse.Object.fetchAll(
+        revisionIds.map(id => {
+            const rev = new Parse.Object('Recycle');
+            rev.id = id;
+            return rev;
+        }),
+        options,
+    );
+
+    const revsById = _.indexBy(revisions, 'id');
+    const version = revisionIds.reduce((version, id) => {
+        const rev = serialize(op.get(revsById, [id]));
+        version = {
+            ...version,
+            ...op.get(rev, 'object', {}),
+        };
+
+        return version;
+    }, contentObj);
+
+    version.branches = contentObj.branches;
+    version.history = {
+        branch,
+        revision: revisionIds.length - 1,
+    };
+
+    return version;
 };
 
 module.exports = Content;

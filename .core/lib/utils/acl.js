@@ -2,12 +2,31 @@ const op = require('object-path');
 const _ = require('underscore');
 const { AclTargets } = require('./');
 
+/**
+ * @api {Function} getACL(permissions,readCapability,writeCapability,existingACL) getACL()
+ * @apiDescription Generate or augment a Parse.ACL object.
+ * @apiParam {Array} permissions list of permissions to apply, when empty array, indicates public read, privileged write
+ * @apiParam {String} [readCapability] If provided, will allow read for any roles that have this capability.
+ * @apiParam {String} [writeCapability] If provided, will allow write for any roles that have this capability.
+ * @apiParam {Parse.ACL} [existingACL] If provided, will be the starting point for the returned ACL, otherwise, returns
+ fresh ACL object.
+ * @apiParam (permission) {String} permission "read" or "write"
+ * @apiParam (permission) {String} type "role", "user", or "public"
+ * @apiParam (permission) {String} [objectId] Required if permission type is "user". The objectId of the user.
+ * @apiParam (permission) {String} [name] Required if permission type is "role". The name of the role.
+ * @apiParam (permission) {Boolean} [allowed=true] Access to true or false, default true.
+ * @apiName getACL
+ * @apiGroup Utils
+ */
 const getACL = async (perms = [], readCap, writeCap, groupACL) => {
     if (!groupACL || !(groupACL instanceof Parse.ACL)) {
         groupACL = new Parse.ACL(groupACL);
     }
 
-    if (perms.length < 1) return groupACL;
+    if (perms.length < 1) {
+        groupACL.setPublicReadAccess(true);
+        groupACL.setPublicWriteAccess(false);
+    }
 
     const aclTargets = await AclTargets({
         master: true,

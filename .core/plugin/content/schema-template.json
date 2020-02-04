@@ -12,11 +12,22 @@
             "type": "String"
         },
         "type": {
-            "type": "Pointer",
-            "targetClass": "Type"
+            "type": "Object"
         },
         "slug": {
             "type": "String"
+        },
+        "status": {
+            "type": "String"
+        },
+        "publish": {
+            "type": "Object"
+        },
+        "history": {
+            "type": "Object"
+        },
+        "branches": {
+            "type": "Object"
         },
         "user": {
             "type": "Pointer",

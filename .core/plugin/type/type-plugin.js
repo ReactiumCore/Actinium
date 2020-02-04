@@ -3,6 +3,7 @@ const _ = require('underscore');
 const uuidv5 = require('uuid/v5');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const chalk = require('chalk');
+const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 
 const {
     CloudHasCapabilities,
@@ -121,7 +122,7 @@ Actinium.Collection.register(
 );
 
 const beforeSave = async req => {
-    let { uuid, value, machineName, namespace } = req.object.toJSON();
+    let { uuid, value, machineName, namespace } = serialize(req.object);
     const defaultNamespace = getNamespace();
 
     const old = await new Parse.Query(COLLECTION)
@@ -134,10 +135,9 @@ const beforeSave = async req => {
     }
 
     if (old) {
-        const {
-            uuid: existingUUID,
-            namespace: existingNamespace,
-        } = old.toJSON();
+        const { uuid: existingUUID, namespace: existingNamespace } = serialize(
+            old,
+        );
 
         // disallow change of uuid
         if (uuid !== existingUUID) req.object.set('uuid', existingUUID);
@@ -208,7 +208,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
             }
         }
 
-        types = types.map(contentType => contentType.toJSON());
+        types = types.map(contentType => serialize(contentType));
         Actinium.Cache.set(cacheKey, types, 20000);
     } else {
         total = types.length;
@@ -294,7 +294,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     );
 
     const saved = await contentType.save(null, options);
-    const savedObj = saved.toJSON();
+    const savedObj = serialize(saved);
 
     await Actinium.Hook.run('type-saved', savedObj);
 
@@ -382,7 +382,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
 
     if (!contentType) throw new Error('Unable to find type.');
 
-    return contentType.toJSON();
+    return serialize(contentType);
 });
 
 /**
@@ -450,7 +450,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
     );
 
     const saved = await contentType.save(null, options);
-    const savedObj = saved.toJSON();
+    const savedObj = serialize(saved);
 
     await Actinium.Hook.run('type-saved', savedObj);
     return savedObj;
@@ -482,10 +482,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-delete', async req => {
     const contentType = await query.first(options);
     if (!contentType) throw new Error('Unable to find type.');
 
-    const typeObj = contentType.toJSON();
+    const typeObj = serialize(contentType);
     const trash = await Actinium.Cloud.run(
         'recycle',
-        { collection: 'Type', object: contentType },
+        { collection: 'Type', object: typeObj },
         options,
     );
     await contentType.destroy(options);

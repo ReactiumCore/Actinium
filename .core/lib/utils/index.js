@@ -62,6 +62,12 @@ const CloudRunOptions = (req, match = null) => {
     return options;
 };
 
+const CloudMasterOptions = req => {
+    const options = CloudRunOptions(req);
+    options['useMasterKey'] = true;
+    return options;
+};
+
 const CloudHasCapabilities = (req, capability, strict = true) => {
     const { master } = req;
 
@@ -244,6 +250,7 @@ module.exports = {
     CloudRunOptions,
     CloudCapOptions,
     CloudHasCapabilities,
+    CloudMasterOptions,
     UserFromSession,
     userMeetsLevel,
 };
