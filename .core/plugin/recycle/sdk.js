@@ -9,8 +9,10 @@ const create = ({ type = 'delete', collection, object, user }, options) => {
 
     if (typeof object.toJSON === 'function') object = object.toJSON();
 
+    const ACL = op.get(object, 'ACL');
+
     return new Parse.Object(COLLECTION).save(
-        { type, collection, object, user },
+        { ACL, type, collection, object, user },
         options,
     );
 };
