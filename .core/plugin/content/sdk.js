@@ -3,6 +3,7 @@ const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const _ = require('underscore');
 const op = require('object-path');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+const equal = require('fast-deep-equal');
 
 const Content = {};
 
@@ -113,6 +114,7 @@ Content.getSchema = async contentTypeObj => {
 
 Content.sanitize = async content => {
     const { type } = content;
+
     const { existingSchema, permittedFields } = await Content.getSchema(type);
     const fieldConfigs = permittedFields;
 
@@ -150,6 +152,28 @@ Content.sanitize = async content => {
     }
 
     return fieldData;
+};
+
+Content.diff = async (contentObj, changes) => {
+    const sanitized = await Actinium.Content.sanitize({
+        ...changes,
+        type: contentObj.type,
+    });
+    const diff = {};
+    for (const { fieldSlug, fieldValue } of sanitized) {
+        if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
+            op.set(diff, fieldSlug, fieldValue);
+        }
+    }
+
+    // No changes
+    if (Object.keys(diff).length < 1) return false;
+
+    op.set(diff, 'objectId', contentObj.objectId);
+    op.set(diff, 'history', contentObj.history);
+    op.set(diff, 'branches', contentObj.branches);
+
+    return diff;
 };
 
 Content.getVersion = async (contentObj, branch, revisionIndex, options) => {

@@ -382,11 +382,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
         masterOptions,
     );
 
-    const sanitized = await Actinium.Content.sanitize({
-        ...req.params,
-        type: typeObj,
-    });
-
     const attempts = [
         CloudRunOptions(req),
         CloudCapOptions(req, [`${typeObj.collection}.updateAny`]),
@@ -412,17 +407,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
     }
     if (!savedObj) throw errors;
 
-    const diff = {};
-    for (const { fieldSlug, fieldValue } of sanitized) {
-        if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
-            op.set(diff, fieldSlug, fieldValue);
-        }
-    }
+    const diff = await Actinium.Content.diff(contentObj, req.params);
 
-    // No change
-    if (Object.keys(diff).length < 1) return contentObj;
-
-    diff.objectId = contentObj.objectId;
+    if (!diff) return contentObj;
 
     // Create new revision branch
     const revision = await Actinium.Recycle.revision(
