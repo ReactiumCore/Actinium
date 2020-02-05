@@ -187,7 +187,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @api {Asynchronous} content-retrieve content-retrieve
  * @apiDescription Retrieve one item of content.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
- * @apiParam {Boolean} [published=false] Get the published content.
+ * @apiParam {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
  * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The objectId for the content.
@@ -243,12 +244,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
         const contentObj = serialize(content);
 
         // if content is published, and publshed is requested, return the current content
-        if (op.get(req.params, 'published', false)) {
-            if (content.get('status') === ENUMS.STATUS.PUBLISHED) {
-                return contentObj;
-            }
-
-            throw 'Content not published';
+        if (op.get(req.params, 'current', false)) {
+            return contentObj;
         }
 
         // build the current revision
@@ -264,6 +261,93 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
 
         return version;
     }
+});
+
+/**
+ * @api {Asynchronous} content-set-current content-set-current
+ * @apiDescription Take content from a specified branch or revision,
+ and make it the "official" version of the content. If no `history` is param is
+ specified the latest master branch revision will be used.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName content-set-current
+ * @apiGroup Cloud
+ * @apiExample Usage
+ Actinium.Cloud.run('content-set-current', {
+     // Type object required to look up content
+     // i.e. the collection is determined by the parent Type
+     type: {
+         // one of these 3 required to look up content
+         objectId: 'MvAerDoRQN',
+         machineName: 'article',
+         uuid: '975776a5-7070-5c23-bee6-4e9bba84a431',
+     },
+
+     // one of these 3 required to look up content
+     objectId: 'tEiojmmHA1',
+     slug: 'test-article1',
+     uuid: '5320803c-b709-5327-a06f-b482c8f41b92',
+
+     history: { branch: 'master' }
+ });
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
+    const masterOptions = CloudMasterOptions(req);
+    const options = CloudRunOptions(req);
+    const contentObj = await Actinium.Cloud.run(
+        'content-retrieve',
+        req.params,
+        options,
+    );
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Cloud.run(
+        'type-retrieve',
+        req.params.type,
+        masterOptions,
+    );
+
+    const attempts = [
+        CloudRunOptions(req),
+        CloudCapOptions(req, [`${typeObj.collection}.updateAny`]),
+    ];
+
+    const content = new Parse.Object(typeObj.collection);
+    content.id = contentObj.objectId;
+
+    const sanitized = await Actinium.Content.sanitize({
+        ...req.params,
+        type: typeObj,
+    });
+
+    for (const { fieldSlug, fieldValue } of sanitized) {
+        if (fieldSlug && fieldValue) content.set(fieldSlug, fieldValue);
+    }
+
+    content.set('history', contentObj.history);
+
+    let saved, errors;
+    for (const options of attempts) {
+        try {
+            saved = await content.save(null, options);
+            if (saved) {
+                saved = await content.fetch(masterOptions);
+                const savedObj = serialize(saved);
+                return savedObj;
+            }
+        } catch (error) {
+            errors = error;
+        }
+    }
+
+    throw errors;
 });
 
 /**
@@ -346,6 +430,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
  * @api {Asynchronous} content-update content-update
  * @apiDescription Update content of a defined Type. In addition to the required parameters of
  `type` and `slug`, you can provide any parameter's that conform to the runtime fields saved for that type.
+ Changes to content will be staged as a new delta revision. If no `history` (branch and revision index) are provided
+ A new revision will be added in the master branch. To commit a revision to your content
+ collection, use `content-set-current`.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The Parse object id of the content.
@@ -355,7 +442,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiParam (history) {Number} [revision] index in branch history to update (default length of branch history - 1).
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
  If you select a revision before the latest revision, a new branch will be created.
  * @apiName content-update
  * @apiGroup Cloud
@@ -384,6 +471,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
      body: {
         text: 'simple text',
      },
+
+     // Update the latest master revision
+     history: { branch: 'master' }
  });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
