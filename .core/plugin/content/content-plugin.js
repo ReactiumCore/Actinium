@@ -323,7 +323,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
     content.id = contentObj.objectId;
 
     const sanitized = await Actinium.Content.sanitize({
-        ...req.params,
+        ...contentObj,
         type: typeObj,
     });
 
