@@ -30,6 +30,7 @@ Actinium.Middleware = require('./lib/middleware');
 Actinium.Pulse = require('./lib/pulse');
 Actinium.Capability = require('./lib/capability');
 Actinium.Collection = require('./lib/collection');
+Actinium.Utils = require('./lib/utils');
 
 Actinium.init = async options => {
     console.log('');

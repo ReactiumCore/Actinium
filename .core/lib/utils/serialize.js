@@ -1,10 +1,10 @@
 const op = require('object-path');
 
 /**
- * @api {Function} serialize(ParseObject) serialize()
+ * @api {Function} Utils.serialize(ParseObject) Utils.serialize()
  * @apiParam {ParseObject} data Parse object you wish to serialize to JSON.
- * @apiName serialize
- * @apiGroup Utils
+ * @apiName Utils.serialize
+ * @apiGroup Actinium
  * @apiExample Usage
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 

@@ -11,12 +11,16 @@ const {
     CloudRunOptions,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
+const SDK = require('./sdk');
+
 const {
     UNINSTALLED_NAMESPACE,
     PLUGIN_BLUEPRINTS,
     PLUGIN_ROUTES,
     PLUGIN,
 } = require('./enums');
+
+Actinium.Type = SDK;
 
 const COLLECTION = PLUGIN.ID;
 
@@ -172,62 +176,7 @@ Parse.Cloud.beforeSave(COLLECTION, async (...params) => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
-    let pages = 0,
-        total = 0;
-
-    let { page = 0, limit = 1000, refresh = false } = req.params;
-
-    page = Math.max(page, 0);
-    limit = Math.min(limit, 1000);
-    let cacheKey = ['types', page, limit, 'types'];
-
-    let types = page < 1 && !refresh ? Actinium.Cache.get(cacheKey, []) : [];
-
-    if (types.length < 1) {
-        const skip = page > 0 ? page * limit - limit : 0;
-        const query = new Parse.Query(COLLECTION);
-        const options = CloudRunOptions(req);
-
-        // Pagination
-        total = await query.count(options);
-
-        // Find
-        query.skip(skip);
-        query.limit(limit);
-
-        let results = await query.find(options);
-
-        while (results.length > 0) {
-            types = types.concat(results);
-
-            if (page < 1) {
-                query.skip(types.length);
-                results = await query.find(options);
-            } else {
-                break;
-            }
-        }
-
-        types = types.map(contentType => serialize(contentType));
-        Actinium.Cache.set(cacheKey, types, 20000);
-    } else {
-        total = types.length;
-    }
-
-    pages = Math.ceil(total / limit);
-
-    const list = {
-        timestamp: Date.now(),
-        limit,
-        page,
-        pages,
-        total,
-        types,
-    };
-
-    await Actinium.Hook.run('type-list', list);
-
-    return Promise.resolve(list);
+    return Actinium.Type.list(req.params, CloudRunOptions(req));
 });
 
 /**
@@ -256,49 +205,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'types', async req => {
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
     const options = CloudCapOptions(req, [`${COLLECTION}.create`]);
-    const contentType = new Parse.Object(COLLECTION);
-
-    const { type, fields = {} } = req.params;
-    if (!type) throw new Error('type parameter required.');
-    const machineName = slugify(type);
-    const namespace = op.get(req.params, 'namespace', getNamespace());
-    const uuid = uuidv5(machineName, namespace);
-
-    const query = new Parse.Query(COLLECTION);
-    query.equalTo('uuid', uuid);
-    const existing = await query.first(options);
-    if (existing)
-        throw new Error(`Type ${type} is not unique in namespace ${namespace}`);
-
-    const collection = `Content_${machineName}`.replace(/[^A-Za-z0-9_]/g, '_');
-
-    contentType.set('uuid', uuid);
-    contentType.set('type', machineName);
-    contentType.set('namespace', namespace);
-    contentType.set('machineName', machineName);
-    contentType.set('collection', collection);
-    contentType.set('fields', op.get(req.params, 'fields'));
-    contentType.set('meta', {
-        ...op.get(req.params, 'meta', {}),
-        label: type,
-    });
-    contentType.set(
-        'regions',
-        op.get(req.params, 'regions', {
-            default: {
-                id: 'default',
-                label: 'Default',
-                slug: 'default',
-            },
-        }),
-    );
-
-    const saved = await contentType.save(null, options);
-    const savedObj = serialize(saved);
-
-    await Actinium.Hook.run('type-saved', savedObj);
-
-    return savedObj;
+    return Actinium.Type.create(req.params, options);
 });
 
 /**
@@ -315,31 +222,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-create', async req => {
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
     const options = CloudRunOptions(req);
-    const contentType = await Actinium.Cloud.run(
-        'type-retrieve',
-        req.params,
-        options,
-    );
-    if (!contentType) return { collection: null, count: 0, fields: [] };
-
-    const { collection } = contentType;
-    const ParseSchema = new Parse.Schema(collection);
-    options.useMasterKey = true;
-
-    let schema = {};
-    try {
-        schema = await ParseSchema.get(options);
-    } catch (e) {}
-
-    const fields = Object.keys(op.get(schema, 'fields', {}));
-    const query = new Parse.Query(collection);
-    const count = await query.count(options);
-
-    return {
-        collection,
-        count,
-        fields,
-    };
+    return Actinium.Type.status(req.params, options);
 });
 
 /**
@@ -359,30 +242,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
-    const id = op.get(
-        req.params,
-        'id',
-        op.get(req.params, 'ID', op.get(req.params, 'objectId')),
-    );
-    const machineName = op.get(req.params, 'machineName');
-    const namespace = op.get(req.params, 'namespace', getNamespace());
-    const uuid = machineName
-        ? uuidv5(machineName, namespace)
-        : op.get(req.params, 'uuid');
-
-    if (!id && !uuid)
-        throw new Error('id, uuid or machineName parameter required.');
-
-    const options = CloudCapOptions(req, [`${COLLECTION}.retrieve`]);
-    const query = new Parse.Query(COLLECTION);
-    if (id) query.equalTo('objectId', id);
-    if (uuid) query.equalTo('uuid', uuid);
-
-    const contentType = await query.first(options);
-
-    if (!contentType) throw new Error('Unable to find type.');
-
-    return serialize(contentType);
+    return Actinium.Type.retrieve(req.params, CloudRunOptions(req));
 });
 
 /**
@@ -414,46 +274,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-retrieve', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
-    const machineName = op.get(req.params, 'machineName');
-    const namespace = op.get(req.params, 'namespace', getNamespace());
-    const uuid = machineName
-        ? uuidv5(machineName, namespace)
-        : op.get(req.params, 'uuid');
-    const { type, fields = {} } = req.params;
-    if (!uuid) throw new Error('uuid or machineName parameter required.');
-
-    const options = CloudCapOptions(req, [`${COLLECTION}.update`]);
-    const query = new Parse.Query(COLLECTION);
-    query.equalTo('uuid', uuid);
-    const contentType = await query.first(options);
-
-    if (!contentType) throw new Error('Unable to find type.');
-
-    let meta = contentType.get('meta') || {};
-    meta = {
-        ...meta,
-        ...op.get(req.params, 'meta'),
-        ...(type ? { label: type } : {}),
-    };
-
-    contentType.set('meta', meta);
-    contentType.set('fields', fields);
-    contentType.set(
-        'regions',
-        op.get(req.params, 'regions', {
-            default: {
-                id: 'default',
-                label: 'Default',
-                slug: 'default',
-            },
-        }),
-    );
-
-    const saved = await contentType.save(null, options);
-    const savedObj = serialize(saved);
-
-    await Actinium.Hook.run('type-saved', savedObj);
-    return savedObj;
+    return Actinium.Type.update(req.params, CloudRunOptions(req));
 });
 
 /**
@@ -468,30 +289,5 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'type-delete', async req => {
-    const machineName = op.get(req.params, 'machineName');
-    const namespace = op.get(req.params, 'namespace', getNamespace());
-    const uuid = machineName
-        ? uuidv5(machineName, namespace)
-        : op.get(req.params, 'uuid');
-    if (!uuid) throw new Error('uuid or machineName parameter required.');
-
-    const options = CloudCapOptions(req, [`${COLLECTION}.delete`]);
-    const query = new Parse.Query(COLLECTION);
-
-    query.equalTo('uuid', uuid);
-    const contentType = await query.first(options);
-    if (!contentType) throw new Error('Unable to find type.');
-
-    const typeObj = serialize(contentType);
-    const trash = await Actinium.Cloud.run(
-        'recycle',
-        { collection: 'Type', object: typeObj },
-        options,
-    );
-    await contentType.destroy(options);
-
-    Actinium.Cache.del('types');
-
-    await Actinium.Hook.run('type-deleted', typeObj);
-    return trash;
+    return Actinium.Type.delete(req.params, CloudRunOptions(req));
 });

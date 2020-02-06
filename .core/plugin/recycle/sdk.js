@@ -9,7 +9,8 @@ const create = ({ type = 'delete', collection, object, user }, options) => {
 
     if (typeof object.toJSON === 'function') object = object.toJSON();
 
-    const ACL = op.get(object, 'ACL');
+    let ACL = op.get(object, 'ACL', {});
+    if (ACL && !(ACL instanceof Parse.ACL)) ACL = new Parse.ACL(ACL);
 
     return new Parse.Object(COLLECTION).save(
         { ACL, type, collection, object, user },
