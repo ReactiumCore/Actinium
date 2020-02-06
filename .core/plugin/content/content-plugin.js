@@ -309,6 +309,70 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
     return Actinium.Content.restore(req.params, options);
 });
 
+/**
+ * @api {Asynchronous} content-publish content-publish
+ * @apiDescription Set revision to current version and publish content.
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName content-publish()
+ * @apiGroup Actinium
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
+    const canPublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.publish`, 'publish-content'],
+        false,
+    );
+
+    if (!canPublish) throw 'You do not have permission to publish content.';
+
+    return Actinium.Content.publish(
+        req.params,
+        Actinium.Utils.CloudMasterOptions(req),
+    );
+});
+
+/**
+ * @api {Asynchronous} Content.unpublish(params,options) Content.unpublish()
+ * @apiDescription Unpublish current version of content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.unpublish()
+ * @apiGroup Actinium
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
+    const canUnpublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.unpublish`, 'unpublish-content'],
+        false,
+    );
+
+    if (!canUnpublish) throw 'You do not have permission to unpublish content.';
+
+    return Actinium.Content.unpublish(
+        req.params,
+        Actinium.Utils.CloudMasterOptions(req),
+    );
+});
+
 /*
 1. CLP (Class Level Permissions) is primarily guard against using Parse Cloud REST API improperly
 - capabilities can be used to guard cloud functions, but not direct Parse API use (such as REST)

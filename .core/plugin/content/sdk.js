@@ -851,4 +851,84 @@ Content.restore = async (params, options) => {
     return contentObj;
 };
 
+/**
+ * @api {Asynchronous} Content.publish(params,options) Content.publish()
+ * @apiDescription Set revision to current version and publish content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.publish()
+ * @apiGroup Actinium
+ */
+Content.publish = async (params, options) => {
+    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+
+    const contentObj = await Content.setCurrent(params, options);
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const collection = op.get(typeObj, 'collection');
+    const content = new Parse.Object(collection);
+    content.id = contentObj.objectId;
+    content.set('status', ENUMS.STATUS.PUBLISHED);
+    op.set(contentObj, 'status', ENUMS.STATUS.PUBLISHED);
+
+    await content.save(null, options);
+
+    Actinium.Hook.run('content-published', contentObj, typeObj);
+    return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.unpublish(params,options) Content.unpublish()
+ * @apiDescription Unpublish current version of content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.unpublish()
+ * @apiGroup Actinium
+ */
+Content.unpublish = async (params, options) => {
+    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const contentObj = await Actinium.Cloud.run(
+        'content-retrieve',
+        {
+            ...params,
+            current: true,
+        },
+        options,
+    );
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const collection = op.get(typeObj, 'collection');
+    const content = new Parse.Object(collection);
+    content.id = contentObj.objectId;
+    content.set('status', ENUMS.STATUS.DRAFT);
+    op.set(contentObj, 'status', ENUMS.STATUS.DRAFT);
+
+    await content.save(null, options);
+
+    Actinium.Hook.run('content-unpublished', contentObj, typeObj);
+    return contentObj;
+};
+
 module.exports = Content;
