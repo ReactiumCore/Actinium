@@ -40,6 +40,11 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) capability-registered Run when a new capability is created. The
  * @apiParam (Hooks) capability-unregistered
  * @apiParam (Hooks) capability-updated
+ * @apiParam (Hooks) content-schema-field-types Triggered when content type fields are mapped to Parse field types. Use this hook when you defined custom field types.
+ * @apiParam (Hooks) content-schema-permissions Triggered when content schemas are created, sets default class level permissions.
+ * @apiParam (Hooks) content-schema-indexes Triggered when content schemas are created, sets default indexes.
+ * @apiParam (Hooks) content-field-sanitize Triggered when field data is sanitized.
+ * @apiParam (Hooks) content-saved Triggered when content is edited.
  * @apiParam (Hooks) collection-before-permissions
  * @apiParam (Hooks) deactivate Triggered when a plugin has been deactivated. The `Plugin` object is passed to the hook.
  * @apiParam (Hooks) directories Triggered after the list of upload directories is retrieved. Passes the `Array` of directories as the only paramter.

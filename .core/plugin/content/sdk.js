@@ -116,6 +116,15 @@ Content.getSchema = async contentTypeObj => {
     }
 };
 
+/**
+ * @api {Asynchronous} Content.sanitize(content) Content.sanitize()
+ * @apiDescription Based on content provided, will return array of sanitized content fields
+ based on the field types in the content type. (Array of `{fieldSlug, fieldValue}`)
+ * @apiParam {Object} content content data to sanitize
+ * @apiParam (content) {Object} type The Type object of the content.
+ * @apiName Content.sanitize
+ * @apiGroup Actinium
+ */
 Content.sanitize = async content => {
     const { type } = content;
 
@@ -158,6 +167,17 @@ Content.sanitize = async content => {
     return fieldData;
 };
 
+/**
+ * @api {Asynchronous} Content.createBranch(content,type,branch,options) Content.createBranch()
+ * @apiDescription Create a new revision branch based on the current revision of some content.
+ Returns new branches and fresh history objects.
+ * @apiParam {Object} content A specific version of your content.
+ * @apiParam {Object} type The Type object of the content.
+ * @apiParam {String} [branch=master] the new branch name. If not provided or already taken, will be generated uuid.
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiName Content.createBranch
+ * @apiGroup Actinium
+ */
 Content.createBranch = async (content, type, branch, options) => {
     content = serialize(content);
     type = serialize(type);
@@ -200,6 +220,14 @@ Content.createBranch = async (content, type, branch, options) => {
     return { branches, history };
 };
 
+/**
+ * @api {Asynchronous} Content.diff(content,changes) Content.diff()
+ * @apiDescription Compares content object to proposed changes, and returns difference.
+ * @apiParam {Object} content your content object
+ * @apiParam {Object} changes proposed changes to the content
+ * @apiName Content.diff
+ * @apiGroup Actinium
+ */
 Content.diff = async (contentObj, changes) => {
     const sanitized = await Actinium.Content.sanitize({
         ...changes,
@@ -222,6 +250,16 @@ Content.diff = async (contentObj, changes) => {
     return diff;
 };
 
+/**
+ * @api {Asynchronous} Content.getVersion(content,branch,revision,options) Content.getVersion()
+ * @apiDescription Given a content object, fetch a specific revision of that content.
+ * @apiParam {Object} content your content object
+ * @apiParam {String} [branch=master] the revision branch of current content
+ * @apiParam {Number} [revision] index in branch history to retrieve (default latest)
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiName Content.getVersion
+ * @apiGroup Actinium
+ */
 Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
     if (!op.has(contentObj, ['branches', branch]))
         throw 'No such branch in history';
