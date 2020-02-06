@@ -286,6 +286,29 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
     return Actinium.Content.delete(req.params, options);
 });
 
+/**
+ * @api {Asynchronous} content-restore content-restore
+ * @apiDescription Restore deleted content of a defined Type (if still in recycle).
+ To identify the content, you must provided the `type` object, and `objectId` of
+ the content. Restores main record for content as well as any revisions.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} objectId The Parse object id of the deleted content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName content-restore
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
+    const options = Actinium.Utils.CloudHasCapabilities(req, [
+        `${collection}.createAny`,
+    ])
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    return Actinium.Content.restore(req.params, options);
+});
+
 /*
 1. CLP (Class Level Permissions) is primarily guard against using Parse Cloud REST API improperly
 - capabilities can be used to guard cloud functions, but not direct Parse API use (such as REST)

@@ -756,4 +756,61 @@ Content.delete = async (params, options) => {
     return trash;
 };
 
+/**
+ * @api {Asynchronous} Content.restore(params,options) Content.restore()
+ * @apiDescription Restore deleted content of a defined Type (if still in recycle).
+ To identify the content, you must provided the `type` object, and `objectId` of
+ the content. Restores main record for content as well as any revisions.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} objectId The Parse object id of the deleted content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName Content.restore
+ * @apiGroup Actinium
+ */
+Content.restore = async (params, options) => {
+    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+    const collection = op.get(typeObj, 'collection');
+
+    // restore master record
+    await Actinium.Recycle.restore(
+        {
+            collection,
+            objectId: op.get(params, 'objectId'),
+        },
+        options,
+    );
+
+    const contentObj = await Actinium.Cloud.run(
+        'content-retrieve',
+        {
+            type: params.type,
+            objectId: params.objectId,
+            current: true,
+        },
+        masterOptions,
+    );
+
+    // restore all revisions
+    const revisions = _.chain(Object.values(op.get(contentObj, 'branches', {})))
+        .pluck('history')
+        .flatten()
+        .uniq()
+        .value()
+        .map(objectId => {
+            const rev = new Parse.Object('Recycle');
+            rev.id = objectId;
+            rev.set('type', 'revision');
+            return rev;
+        });
+
+    await Parse.Object.saveAll(revisions, masterOptions);
+
+    return contentObj;
+};
+
 module.exports = Content;
