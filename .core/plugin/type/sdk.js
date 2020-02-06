@@ -245,6 +245,31 @@ Type.retrieve = async (params, options) => {
 };
 
 /**
+ * @api {Asynchronous} Type.getCollection(params,options) Type.getCollection()
+ * @apiDescription Get collection of a content type. You must provide
+ either the id|ID|objectId, uuid or the machineName.
+ * @apiParam (params) {String} [id] Parse objectId of content type
+ * @apiParam (params) {String} [ID] Parse objectId of content type
+ * @apiParam (params) {String} [objectId] Parse objectId of content type
+ * @apiParam (params) {String} [uuid] UUID of content type
+ * @apiParam (params) {String} [machineName] the machine name of the existing content type
+ * @apiParam (params) {String} [namespace] optional namespace. Will be used to derive the
+  uuid from the machine name if the uuid is not known. By default, the current
+  APIs content namespace will be used, and this will not be needed.
+ * @apiParam {Object} options Parse query options object
+ *
+ * @apiName Type.getCollection
+ * @apiGroup Actinium
+ */
+Type.getCollection = async params => {
+    const typeObj = await Actinium.Type.retrieve(
+        params,
+        Actinium.Utils.OptionsAddMaster(),
+    );
+    return op.get(typeObj, 'collection');
+};
+
+/**
  * @api {Asynchronous} Type.status(params,options) Type.status()
  * @apiDescription Get content type collection, content count, field slugs.
  * @apiParam (params) {String} [uuid] UUID of content type

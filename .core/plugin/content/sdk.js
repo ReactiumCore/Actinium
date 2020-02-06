@@ -360,10 +360,10 @@ Content.create = async (params, options) => {
         `${collection}.updateAny`, // write
     );
 
-    if (op.get(params, user)) {
-        content.set('user', op.get(params, user));
-        groupACL.setReadAccess(op.get(params, user).id, true);
-        groupACL.setWriteAccess(op.get(params, user).id, true);
+    if (op.get(params, 'user')) {
+        content.set('user', op.get(params, 'user'));
+        groupACL.setReadAccess(op.get(params, 'user').id, true);
+        groupACL.setWriteAccess(op.get(params, 'user').id, true);
     }
     content.setACL(groupACL);
 
@@ -679,7 +679,7 @@ Content.update = async (params, options) => {
             typeObj,
             null,
             masterOptions,
-            req.user,
+            params.user,
         );
 
         branchId = op.get(history, 'branch');
@@ -696,7 +696,7 @@ Content.update = async (params, options) => {
         object: diff,
     };
 
-    if (req.user) op.set(newRevision, 'user', req.user);
+    if (params.user) op.set(newRevision, 'user', params.user);
     const revision = await Actinium.Recycle.revision(
         newRevision,
         masterOptions,

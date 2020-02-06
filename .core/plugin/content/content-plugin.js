@@ -114,6 +114,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.retrieveAny`,
     ])
@@ -160,6 +163,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
  });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.updateAny`,
     ])
@@ -189,6 +195,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.updateAny`,
     ])
@@ -249,6 +258,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
  });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.updateAny`,
     ])
@@ -277,6 +289,9 @@ the `type` object, and one of `slug`, `objectId`, or `uuid` of the content.
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.deleteAny`,
     ])
@@ -300,6 +315,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.createAny`,
     ])
@@ -326,6 +344,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const canPublish = Actinium.Utils.CloudHasCapabilities(
         req,
         [`${collection}.publish`, 'publish-content'],
@@ -359,6 +380,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
     const canUnpublish = Actinium.Utils.CloudHasCapabilities(
         req,
         [`${collection}.unpublish`, 'unpublish-content'],
