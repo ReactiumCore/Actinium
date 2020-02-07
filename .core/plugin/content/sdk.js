@@ -1,7 +1,9 @@
 const schemaTemplate = require('./schema-template');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
+const moment = require('moment');
 const _ = require('underscore');
 const op = require('object-path');
+const chalk = require('chalk');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const equal = require('fast-deep-equal');
 const uuidv4 = require('uuid/v4');
@@ -50,11 +52,11 @@ Content.getSchema = async contentTypeObj => {
     type = await type.fetch(options);
 
     if (type) {
-        const typeObj = type.toJSON();
+        const typeObj = serialize(type);
         const { collection, machineName, fields } = typeObj;
         const sample = await new Parse.Query(collection).first(options);
         let sampleObj = {};
-        if (sample) sampleObj = sample.toJSON();
+        if (sample) sampleObj = serialize(sample);
 
         const ParseSchema = new Parse.Schema(collection);
         const schemaController = Parse.CoreManager.getSchemaController();
@@ -323,7 +325,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiGroup Actinium
  */
 Content.create = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     // retrieve type
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
     const type = new Parse.Object('Type');
@@ -419,7 +421,7 @@ Content.create = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.retrieve = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     // retrieve type
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
@@ -504,7 +506,7 @@ Actinium.Content.setCurrent({
 }, { sessionToken: 'lkjasfdliewaoijfesoij'});
  */
 Content.setCurrent = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     const contentObj = await Actinium.Content.retrieve(params, options);
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
@@ -560,7 +562,7 @@ Content.setCurrent = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.setPermissions = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     const contentObj = await Actinium.Content.retrieve(params, options);
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
@@ -653,7 +655,7 @@ Content.setPermissions = async (params, options) => {
  }, { sessionToken: 'lkjasdljadsfoijaef'});
  */
 Content.update = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     const contentObj = await Actinium.Content.retrieve(params, options);
     if (!contentObj) throw 'Unable to find content';
 
@@ -742,9 +744,8 @@ record.
  * @apiGroup Actinium
  */
 Content.delete = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
-    const contentObj = await Actinium.Cloud.run(
-        'content-retrieve',
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(
         {
             ...params,
             current: true,
@@ -767,11 +768,9 @@ Content.delete = async (params, options) => {
     const destroyed = await content.destroy(options);
 
     // Add master record as trash
-    const trash = await Actinium.Cloud.run(
-        'recycle',
-        { collection, object: contentObj },
-        masterOptions,
-    );
+    const trashParams = { collection, object: contentObj };
+    if (params.user) trashParams.user = params.user;
+    const trash = await Actinium.Recycle.trash(trash, masterOptions);
 
     // target all revisions for cleanup
     const revisions = _.chain(Object.values(op.get(contentObj, 'branches', {})))
@@ -810,7 +809,7 @@ Content.delete = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.restore = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
     const collection = op.get(typeObj, 'collection');
 
@@ -823,8 +822,7 @@ Content.restore = async (params, options) => {
         options,
     );
 
-    const contentObj = await Actinium.Cloud.run(
-        'content-retrieve',
+    const contentObj = await Actinium.Content.retrieve(
         {
             type: params.type,
             objectId: params.objectId,
@@ -870,7 +868,7 @@ Content.restore = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.publish = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
+    const masterOptions = Actinium.Utils.MasterOptions(options);
 
     const contentObj = await Content.setCurrent(params, options);
     if (!contentObj) throw 'Unable to find content';
@@ -907,15 +905,15 @@ Content.publish = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.unpublish = async (params, options) => {
-    const masterOptions = Actinium.Utils.OptionsAddMaster(options);
-    const contentObj = await Actinium.Cloud.run(
-        'content-retrieve',
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(
         {
             ...params,
             current: true,
         },
         options,
     );
+
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
@@ -929,6 +927,172 @@ Content.unpublish = async (params, options) => {
 
     Actinium.Hook.run('content-unpublished', contentObj, typeObj);
     return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.schedule(params,options) Content.schedule()
+ * @apiDescription Schedule the publishing / unpublishing of content. If `history` is provided, that revision will be
+ made current and published on optional `sunrise`. On optional `sunset`, the current version of the content will be unpublished.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {String} [sunrise] Optional ISO8601 + UTC Offset datetime string (moment.format()) for sunrise of content. e.g. 2020-02-07T11:15:04-05:00
+ * @apiParam (params) {String} [sunset] Optional ISO8601 + UTC Offset datetime string (moment.format()) for sunset of content. e.g. 2020-02-07T11:15:04-05:00
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.schedule
+ * @apiGroup Actinium
+ * @apiExample Usage
+const moment = require('moment');
+const now = moment();
+
+// publish version 3 of master branch a month from now
+// unpublish the article in 2 months
+Actinium.Content.schedule({
+  type: { machineName: 'article' },
+  slug: 'my-article',
+  history: { branch: 'master', revision: 3 },
+  sunrise: now.add(1, 'month').format(),
+  sunset: now.add(2, 'month').format(),
+}, Actinium.Utils.MasterOptions());
+ */
+Content.schedule = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+    const collection = op.get(typeObj, 'collection');
+    const jobId = `${collection}-scheduled`;
+
+    // new schedule
+    const sunriseISO = op.get(params, 'sunrise');
+    if (sunriseISO) {
+        const sunrise = moment(sunriseISO);
+        if (sunrise.format() !== sunriseISO)
+            throw 'Invalid sunrise provided. Valid ISO8601 + UTC offset such as 2020-02-07T11:15:04-05:00. Use moment >=v2.20.0 moment.format().';
+    }
+
+    const sunsetISO = op.get(params, 'sunset');
+    if (sunsetISO) {
+        const sunset = moment(sunsetISO);
+        if (sunset.format() !== sunsetISO)
+            throw 'Invalid sunset provided. Valid ISO8601 + UTC offset such as 2020-02-07T11:15:04-05:00. Use moment >=v2.20.0 moment.format().';
+    }
+
+    let publish = op.get(contentObj, 'publish', {}) || {};
+    const history = op.get(contentObj, 'history');
+    publish[uuidv4()] = { sunrise: sunriseISO, sunset: sunsetISO, history };
+
+    const content = new Parse.Object(collection);
+    content.id = contentObj.objectId;
+    content.set('publish', publish);
+    await content.save(null, options);
+
+    const pulseDefs = Actinium.Pulse.definitions;
+};
+
+/**
+ * @api {Asynchronous} Content.publishScheduled() Content.publishScheduled()
+ * @apiDescription Manually run content scheduler. Publishes or unpublishes any
+ content that is scheduled.
+ * @apiName Content.publishScheduled
+ * @apiGroup Actinium
+ */
+Content.publishScheduled = async () => {
+    const options = Actinium.Utils.MasterOptions();
+    const { types = [] } = await Actinium.Type.list({}, options);
+    LOG(chalk.cyan('Content Scheduler:'));
+    for (const type of types) {
+        const { collection } = type;
+        const query = new Parse.Query(collection);
+        query.notEqualTo('publish', undefined);
+        query.notEqualTo('publish', null);
+
+        const items = await query.find(options);
+        LOG(`(${items.length})` + chalk.cyan(` ${collection}:`));
+
+        const now = moment();
+
+        for (const item of items) {
+            const publish = item.get('publish');
+
+            let updated = false;
+            for (const [id, instructions] of Object.entries(publish)) {
+                const { sunrise, sunset, history } = instructions;
+
+                // sunrise
+                if (sunrise) {
+                    if (now.isAfter(moment(sunrise))) {
+                        LOG(' - ', chalk.cyan('Publishing'), item.get('slug'));
+
+                        await Actinium.Content.publish(
+                            {
+                                type,
+                                objectId: item.id,
+                                history,
+                            },
+                            options,
+                        );
+                        op.del(publish, [id, 'sunrise']);
+                        updated = true;
+                    }
+                }
+
+                if (sunset) {
+                    if (now.isAfter(moment(sunset))) {
+                        LOG(
+                            ' - ',
+                            chalk.cyan('Unpublishing'),
+                            item.get('slug'),
+                        );
+
+                        await Actinium.Content.unpublish(
+                            {
+                                type,
+                                objectId: item.id,
+                            },
+                            options,
+                        );
+                        op.del(publish, [id, 'sunset']);
+                        updated = true;
+                    }
+                }
+
+                if (
+                    !op.get(publish, [id, 'sunrise']) &&
+                    !op.get(publish, [id, 'sunset'])
+                ) {
+                    op.del(publish, [id]);
+                    updated = true;
+                }
+            }
+
+            const remainingInstructions = Object.keys(publish);
+            if (updated || remainingInstructions.length < 1) {
+                const obj = new Parse.Object(collection);
+                obj.id = item.id;
+
+                // instructions remain
+                if (remainingInstructions.length > 0) {
+                    obj.set('publish', publish);
+                }
+                // no more publishing tasks
+                else {
+                    obj.set('publish');
+                }
+                await obj.save(null, options);
+            }
+        }
+        LOG(' - ', 'Done');
+    }
 };
 
 module.exports = Content;

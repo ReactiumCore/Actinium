@@ -19,6 +19,18 @@ Actinium.Content = PLUGIN_SDK;
 // Register Plugin
 Actinium.Plugin.register(PLUGIN, true);
 
+Actinium.Hook.register('start', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    Actinium.Pulse.define(
+        'scheduled-publish',
+        {
+            schedule: Actinium.Setting.get('publish-frequency', '*/30 * * * *'),
+        },
+        Actinium.Content.publishScheduled,
+    );
+});
+
 Actinium.Hook.register('schema', async () => {
     const { types = [] } = await Actinium.Type.list({}, { useMasterKey: true });
 
@@ -292,6 +304,11 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
     const collection = await Actinium.Type.getCollection(
         op.get(req.params, 'type'),
     );
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
     const options = Actinium.Utils.CloudHasCapabilities(req, [
         `${collection}.deleteAny`,
     ])
@@ -392,6 +409,69 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
     if (!canUnpublish) throw 'You do not have permission to unpublish content.';
 
     return Actinium.Content.unpublish(
+        req.params,
+        Actinium.Utils.CloudMasterOptions(req),
+    );
+});
+
+/**
+ * @api {Asynchronous} content-schedule content-schedule
+ * @apiDescription Schedule the publishing / unpublishing of content. If `history` is provided, that revision will be
+ made current and published on optional `sunrise`. On optional `sunset`, the current version of the content will be unpublished.
+ The requesting user must have publish and unpublish capabilities.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam {String} [sunrise] Optional ISO8601 + UTC Offset datetime string (moment.format()) for sunrise of content. e.g. 2020-02-07T11:15:04-05:00
+ * @apiParam {String} [sunset] Optional ISO8601 + UTC Offset datetime string (moment.format()) for sunset of content. e.g. 2020-02-07T11:15:04-05:00
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName content-schedule()
+ * @apiGroup Cloud
+ * @apiExample Usage
+const moment = require('moment');
+const now = moment();
+
+// publish version 3 of master branch a month from now
+// unpublish the article in 2 months
+Actinium.Cloud.run(
+  'content-schedule',
+  {
+    type: { machineName: 'article' },
+    slug: 'my-article',
+    history: { branch: 'master', revision: 3 },
+    sunrise: now.add(1, 'month').format(),
+    sunset: now.add(2, 'month').format(),
+  }
+);
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-schedule', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
+    const canPublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.publish`, 'publish-content'],
+        false,
+    );
+    const canUnpublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.unpublish`, 'unpublish-content'],
+        false,
+    );
+
+    if (!canPublish)
+        throw `You must have ${collection}.publish or publish-content capability to schedule content.`;
+    if (!canUnpublish)
+        throw `You must have ${collection}.unpublish or unpublish-content capability to schedule content.`;
+
+    return Actinium.Content.schedule(
         req.params,
         Actinium.Utils.CloudMasterOptions(req),
     );

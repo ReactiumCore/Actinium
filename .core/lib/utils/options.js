@@ -69,13 +69,13 @@ const CloudRunOptions = (req, match = null) => {
 };
 
 /**
- * @api {Function} Utils.OptionsAddMaster(options) Utils.OptionsAddMaster
+ * @api {Function} Utils.MasterOptions(options) Utils.MasterOptions
  * @apiDescription Creates or updates a Parse request options object to useMasterKey:true
  * @apiParam {Object} [options] options object to add master to, if applicable
- * @apiName Utils.OptionsAddMaster
+ * @apiName Utils.MasterOptions
  * @apiGroup Actinium
  */
-const OptionsAddMaster = (options = {}) => {
+const MasterOptions = (options = {}) => {
     options['useMasterKey'] = true;
     return options;
 };
@@ -89,7 +89,7 @@ const OptionsAddMaster = (options = {}) => {
  * @apiGroup Actinium
  */
 const CloudMasterOptions = req => {
-    return OptionsAddMaster(CloudRunOptions(req));
+    return MasterOptions(CloudRunOptions(req));
 };
 
 /**
@@ -193,7 +193,7 @@ module.exports = {
     levelCheck,
     userMeetsLevel,
     CloudRunOptions,
-    OptionsAddMaster,
+    MasterOptions,
     CloudMasterOptions,
     CloudHasCapabilities,
     CloudCapOptions,

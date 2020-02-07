@@ -21,7 +21,7 @@ const serialize = data => {
 
     const obj = data.toJSON();
     Object.entries(obj).forEach(([key, value]) => {
-        if (typeof value.toJSON !== 'undefined') {
+        if (value && typeof value.toJSON !== 'undefined') {
             obj[key] = value.toJSON();
         }
 

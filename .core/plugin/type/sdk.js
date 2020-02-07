@@ -264,7 +264,7 @@ Type.retrieve = async (params, options) => {
 Type.getCollection = async params => {
     const typeObj = await Actinium.Type.retrieve(
         params,
-        Actinium.Utils.OptionsAddMaster(),
+        Actinium.Utils.MasterOptions(),
     );
     return op.get(typeObj, 'collection');
 };
