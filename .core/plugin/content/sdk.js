@@ -959,8 +959,8 @@ Actinium.Content.schedule({
   type: { machineName: 'article' },
   slug: 'my-article',
   history: { branch: 'master', revision: 3 },
-  sunrise: now.add(1, 'month').format(),
-  sunset: now.add(2, 'month').format(),
+  sunrise: now.clone().add(1, 'month').format(),
+  sunset: now.clone().add(2, 'month').format(),
 }, Actinium.Utils.MasterOptions());
  */
 Content.schedule = async (params, options) => {
