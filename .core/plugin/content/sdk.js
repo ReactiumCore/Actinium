@@ -305,6 +305,74 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
 };
 
 /**
+ * @api {Asynchronous} Content.list(params,options) Content.list()
+ * @apiDescription Retrieve one item of content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
+ * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
+ * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam (params) {Number} [limit=1000] Limit page results
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName Content.list
+ * @apiGroup Actinium
+ * @apiExample Usage
+Actinium.Content.list({
+    "type": {
+        "machineName": "article"
+    },
+    "orderBy":"title",
+    "direction": "ascending",
+    "limit": 1,
+    "status": "DRAFT"
+});
+ */
+Content.list = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const collection = await Actinium.Type.getCollection(
+        params.type,
+        masterOptions,
+    );
+
+    const page = Math.max(op.get(params, 'page', 1), 1);
+    const limit = Math.min(op.get(params, 'limit', 1000), 1000);
+    const skip = page * limit - limit;
+    const orderBy = op.get(params, 'orderBy', 'createdAt');
+
+    let direction = op.get(params, 'direction', 'descending');
+    const directions = ['ascending', 'descending'];
+    if (!directions.includes(direction)) direction = 'descending';
+
+    let status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
+    if (!Object.values(ENUMS.STATUS).includes(status))
+        status = ENUMS.STATUS.PUBLISHED;
+
+    const qry = new Parse.Query(collection)
+        [direction](orderBy)
+        .limit(limit)
+        .skip(skip)
+        .equalTo('status', status);
+
+    const count = await qry.count(options);
+    const pages = Math.ceil(count / limit);
+    const next = page + 1 <= pages ? page + 1 : null;
+    const prev = page - 1 > 0 ? page + 1 : null;
+    const results = await qry.find(options);
+
+    return {
+        count,
+        next,
+        page,
+        pages,
+        prev,
+        results: results.map(item => serialize(item)),
+    };
+};
+
+/**
  * @api {Asynchronous} Content.create(params,options) Content.create()
  * @apiDescription Create new content of a defined Type. In addition to the required parameters of
  `type` and `slug`, you can provide any parameter's that conform to the runtime fields saved for that type.

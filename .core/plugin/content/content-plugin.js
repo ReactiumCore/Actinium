@@ -111,6 +111,43 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
 });
 
 /**
+ * @api {Asynchronous} content-list content-list
+ * @apiDescription Retrieve one item of content.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
+ * @apiParam {String} [orderBy=createdAt] Field to order the results by.
+ * @apiParam {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam {Number} [limit=1000] Limit page results
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName content-list
+ * @apiGroup Actinium
+ * @apiExample Usage
+Actinium.Cloud.run('content-list', {
+    "type": {
+        "machineName": "article"
+    },
+    "orderBy":"title",
+    "direction": "ascending",
+    "limit": 1,
+    "status": "DRAFT"
+});
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-list', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+    const options = Actinium.Utils.CloudHasCapabilities(req, [
+        `${collection}.retrieveAny`,
+    ])
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    return Actinium.Content.list(req.params, options);
+});
+
+/**
  * @api {Asynchronous} content-retrieve content-retrieve
  * @apiDescription Retrieve one item of content.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
