@@ -112,7 +112,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
 
 /**
  * @api {Asynchronous} content-list content-list
- * @apiDescription Retrieve one item of content.
+ * @apiDescription Get list of content of a specific Type.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
  * @apiParam {String} [orderBy=createdAt] Field to order the results by.

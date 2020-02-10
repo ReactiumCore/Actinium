@@ -306,7 +306,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
 
 /**
  * @api {Asynchronous} Content.list(params,options) Content.list()
- * @apiDescription Retrieve one item of content.
+ * @apiDescription Get list of content of a specific Type.
  * @apiParam {Object} params parameters for content
  * @apiParam {Object} options Parse Query options (controls access)
  * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
