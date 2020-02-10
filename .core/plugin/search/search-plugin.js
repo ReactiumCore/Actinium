@@ -1,5 +1,6 @@
 const lunr = require('lunr');
 const _ = require('underscore');
+const chalk = require('chalk');
 
 const PLUGIN = {
     ID: 'Search',
@@ -14,6 +15,15 @@ Actinium.Plugin.register(PLUGIN, true);
 
 Actinium.Hook.register('start', async () => {
     Actinium.Search = require('./sdk');
+
+    const options = Actinium.Utils.MasterOptions();
+    const { types } = await Actinium.Type.list({}, options);
+    LOG(' ');
+    LOG(chalk.cyan('Indexing Content:'));
+    for (const type of types) {
+        LOG(' -', type.collection);
+        await Actinium.Search.index({ type }, options);
+    }
 });
 
 const indexes = {};
