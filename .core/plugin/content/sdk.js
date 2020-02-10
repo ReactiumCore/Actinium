@@ -59,7 +59,6 @@ Content.getSchema = async contentTypeObj => {
         if (sample) sampleObj = serialize(sample);
 
         const ParseSchema = new Parse.Schema(collection);
-        const schemaController = Parse.CoreManager.getSchemaController();
         const allFields = Object.values(fields).map(field => {
             field.fieldSlug = slugify(field.fieldName);
             return field;
@@ -246,6 +245,7 @@ Content.diff = async (contentObj, changes) => {
     if (Object.keys(diff).length < 1) return false;
 
     op.set(diff, 'objectId', contentObj.objectId);
+    op.set(diff, 'slug', contentObj.slug);
     op.set(diff, 'history', contentObj.history);
     op.set(diff, 'branches', contentObj.branches);
 
@@ -326,6 +326,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  */
 Content.create = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
+
     // retrieve type
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
     const type = new Parse.Object('Type');
@@ -378,11 +379,11 @@ Content.create = async (params, options) => {
     }
 
     // Create new revision branch
-    const { branches, history } = Actinium.Content.createBranch(
+    const { branches, history } = await Actinium.Content.createBranch(
         content,
         typeObj,
         'master',
-        CloudCapOptions(req, [`${collection}.create`]),
+        options,
     );
 
     content.set('branches', branches);
@@ -722,7 +723,7 @@ Content.update = async (params, options) => {
 
     await Actinium.Hook.run('content-saved', contentRevision);
 
-    return savedObj;
+    return contentRevision;
 };
 
 /**
@@ -770,7 +771,7 @@ Content.delete = async (params, options) => {
     // Add master record as trash
     const trashParams = { collection, object: contentObj };
     if (params.user) trashParams.user = params.user;
-    const trash = await Actinium.Recycle.trash(trash, masterOptions);
+    const trash = await Actinium.Recycle.trash(trashParams, masterOptions);
 
     // target all revisions for cleanup
     const revisions = _.chain(Object.values(op.get(contentObj, 'branches', {})))
@@ -814,7 +815,7 @@ Content.restore = async (params, options) => {
     const collection = op.get(typeObj, 'collection');
 
     // restore master record
-    await Actinium.Recycle.restore(
+    const restored = await Actinium.Recycle.restore(
         {
             collection,
             objectId: op.get(params, 'objectId'),
@@ -822,14 +823,14 @@ Content.restore = async (params, options) => {
         options,
     );
 
-    const contentObj = await Actinium.Content.retrieve(
-        {
-            type: params.type,
-            objectId: params.objectId,
-            current: true,
-        },
-        masterOptions,
-    );
+    const contentObj = serialize(restored);
+
+    // update type to restore the slug
+    const type = new Parse.Object('Type');
+    type.id = typeObj.objectId;
+    await type.fetch(masterOptions);
+    type.addUnique('slugs', op.get(contentObj, 'slug'));
+    await type.save(null, masterOptions);
 
     // restore all revisions
     const revisions = _.chain(Object.values(op.get(contentObj, 'branches', {})))
@@ -841,6 +842,7 @@ Content.restore = async (params, options) => {
             const rev = new Parse.Object('Recycle');
             rev.id = objectId;
             rev.set('type', 'revision');
+            rev.set('object.objectId', contentObj.objectId);
             return rev;
         });
 
@@ -1094,5 +1096,339 @@ Content.publishScheduled = async () => {
         LOG(' - ', 'Done');
     }
 };
+
+Actinium.Harness.test(
+    'Content.create()',
+    async assert => {
+        const createParams = {
+            type: {
+                machineName: 'test_content',
+            },
+            slug: 'a-test-content',
+            title: 'A Title',
+            body_text: {
+                text: 'Some body text',
+            },
+            something_else: 'foo',
+        };
+
+        let content = await Actinium.Content.create(
+            createParams,
+            Actinium.Utils.MasterOptions(),
+        );
+
+        assert.equal(content.slug, createParams.slug, 'Slug should match');
+        assert.equal(content.title, createParams.title, 'Title should match');
+        assert.deepEqual(
+            content.body_text,
+            createParams.body_text,
+            'Body object should match',
+        );
+        assert.notEqual(
+            content.something_else,
+            createParams.something_else,
+            'something_else field should be ignored.',
+        );
+    },
+    // Setup
+    async () => {
+        const options = Actinium.Utils.MasterOptions();
+        let collection;
+        try {
+            const type = await Actinium.Type.retrieve(
+                { machineName: 'test_content' },
+                options,
+            );
+            collection = type.collection;
+        } catch (error) {}
+
+        try {
+            if (!collection) {
+                await Actinium.Type.create(
+                    {
+                        type: 'Test Content',
+                        fields: {
+                            '07b5a9a3-0a77-4925-8642-07549715d5bb': {
+                                fieldId: '07b5a9a3-0a77-4925-8642-07549715d5bb',
+                                fieldType: 'Text',
+                                fieldName: 'Title',
+                                defaultValue: null,
+                                pattern: null,
+                                helpText: null,
+                                region: 'default',
+                            },
+                            'f9f9b96f-1fcd-44b7-bd34-576ca5c79470': {
+                                fieldId: 'f9f9b96f-1fcd-44b7-bd34-576ca5c79470',
+                                fieldType: 'RichText',
+                                fieldName: 'Body Text',
+                                helpText: null,
+                                region: 'efde4c06-9e3f-40b3-b098-2a1d3e6275cc',
+                            },
+                        },
+                        regions: {
+                            default: {
+                                id: 'default',
+                                label: 'Header',
+                                slug: 'header',
+                            },
+                            'efde4c06-9e3f-40b3-b098-2a1d3e6275cc': {
+                                id: 'efde4c06-9e3f-40b3-b098-2a1d3e6275cc',
+                                label: 'Body',
+                                slug: 'body',
+                            },
+                        },
+                    },
+                    options,
+                );
+                await new Promise(resolve => setTimeout(resolve, 250));
+            }
+        } catch (error) {
+            console.log('setup error', error);
+        }
+    },
+);
+
+Actinium.Harness.test('Content.update()', async assert => {
+    const updateParams = {
+        // query
+        type: {
+            machineName: 'test_content',
+        },
+        slug: 'a-test-content',
+
+        body_text: {
+            text: 'Updated',
+        },
+    };
+
+    let content = await Actinium.Content.update(
+        updateParams,
+        Actinium.Utils.MasterOptions(),
+    );
+
+    assert.deepEqual(
+        content.body_text,
+        updateParams.body_text,
+        'Body object should match',
+    );
+    assert.equal(
+        op.get(content, 'branches.master.history.length'),
+        2,
+        'Should have 2 revisions in master.',
+    );
+});
+
+Actinium.Harness.test('Content.setCurrent()', async assert => {
+    const params = {
+        // query
+        type: {
+            machineName: 'test_content',
+        },
+        slug: 'a-test-content',
+    };
+
+    let current = await Actinium.Content.retrieve(
+        {
+            ...params,
+            current: true,
+        },
+        Actinium.Utils.MasterOptions(),
+    );
+
+    assert.equal(
+        op.get(current, 'history.branch'),
+        'master',
+        'Should be master branch',
+    );
+
+    assert.equal(
+        op.get(current, 'history.revision'),
+        0,
+        'Should be first revision',
+    );
+
+    assert.deepEqual(op.get(current, 'body_text'), {
+        text: 'Some body text',
+    });
+
+    await Actinium.Content.setCurrent(params, Actinium.Utils.MasterOptions());
+
+    current = await Actinium.Content.retrieve(
+        {
+            ...params,
+            current: true,
+        },
+        Actinium.Utils.MasterOptions(),
+    );
+
+    assert.equal(
+        op.get(current, 'history.branch'),
+        'master',
+        'Should be master branch',
+    );
+
+    assert.equal(
+        op.get(current, 'history.revision'),
+        1,
+        'Should be second revision',
+    );
+
+    assert.deepEqual(op.get(current, 'body_text'), {
+        text: 'Updated',
+    });
+});
+
+Actinium.Harness.test('Content.publish()', async assert => {
+    const params = {
+        // query
+        type: {
+            machineName: 'test_content',
+        },
+        slug: 'a-test-content',
+        history: { branch: 'master', revision: 0 },
+    };
+
+    await Actinium.Content.publish(params, Actinium.Utils.MasterOptions());
+
+    let current = await Actinium.Content.retrieve(
+        {
+            ...params,
+            current: true,
+        },
+        Actinium.Utils.MasterOptions(),
+    );
+
+    assert.equal(
+        op.get(current, 'history.branch'),
+        'master',
+        'Should be master branch',
+    );
+
+    assert.equal(
+        op.get(current, 'history.revision'),
+        0,
+        'Should be second revision',
+    );
+
+    assert.deepEqual(op.get(current, 'body_text'), {
+        text: 'Some body text',
+    });
+
+    assert.equal(op.get(current, 'status'), ENUMS.STATUS.PUBLISHED);
+});
+
+Actinium.Harness.test('Content.unpublish()', async assert => {
+    const params = {
+        // query
+        type: {
+            machineName: 'test_content',
+        },
+        slug: 'a-test-content',
+    };
+
+    await Actinium.Content.unpublish(params, Actinium.Utils.MasterOptions());
+
+    let current = await Actinium.Content.retrieve(
+        params,
+        Actinium.Utils.MasterOptions(),
+    );
+
+    assert.equal(op.get(current, 'status'), ENUMS.STATUS.DRAFT);
+});
+
+Actinium.Harness.test(
+    'Content.delete() and Content.restore()',
+    async assert => {
+        const params = {
+            // query
+            type: {
+                machineName: 'test_content',
+            },
+            slug: 'a-test-content',
+        };
+
+        const type = await Actinium.Type.retrieve(
+            params.type,
+            Actinium.Utils.MasterOptions(),
+        );
+        const { collection } = type;
+
+        let content = await Actinium.Content.retrieve(
+            params,
+            Actinium.Utils.MasterOptions(),
+        );
+
+        await Actinium.Content.delete(params, Actinium.Utils.MasterOptions());
+
+        const trashedQuery = new Parse.Query('Recycle');
+        trashedQuery.equalTo('collection', collection);
+        trashedQuery.equalTo('object.slug', 'a-test-content');
+        const trashed = await trashedQuery.find(Actinium.Utils.MasterOptions());
+        assert.equal(trashed.length, 3, 'Main item and 2 revisions.');
+        assert.ok(trashed.find(trash => trash.get('type') === 'delete'));
+
+        await Actinium.Content.restore(content, Actinium.Utils.MasterOptions());
+
+        const revisionQuery = new Parse.Query('Recycle');
+        revisionQuery.equalTo('collection', collection);
+        revisionQuery.equalTo('object.slug', 'a-test-content');
+        const recycled = await revisionQuery.find(
+            Actinium.Utils.MasterOptions(),
+        );
+        const revisions = recycled.filter(
+            revision => revision.get('type') === 'revision',
+        );
+        assert.equal(revisions.length, 2, '2 revisions');
+    },
+);
+
+Actinium.Harness.test(
+    'Content Teardown',
+    async assert => {},
+    null,
+    // Teardown
+    async () => {
+        try {
+            const options = Actinium.Utils.MasterOptions();
+            const { objectId, collection } = await Actinium.Type.retrieve(
+                { machineName: 'test_content' },
+                options,
+            );
+
+            // destroy all items in test_content collection
+            const contentQuery = new Parse.Query(collection);
+            let items = await contentQuery.find(options);
+            await Parse.Object.destroyAll(items, options);
+
+            // destroy/archive Type
+            await Actinium.Type.delete(
+                {
+                    machineName: 'test_content',
+                },
+                options,
+            );
+
+            // delete test_content schema
+            const ParseSchema = new Parse.Schema(collection);
+            const schema = await ParseSchema.get(options);
+            if (schema) await ParseSchema.delete(options);
+
+            // delete revisions
+            let recycleQuery = new Parse.Query('Recycle');
+            recycleQuery.equalTo('collection', collection);
+            items = await recycleQuery.find(options);
+            await Parse.Object.destroyAll(items, options);
+
+            // delete archived Type
+            recycleQuery = new Parse.Query('Recycle');
+            recycleQuery.equalTo('collection', 'Type');
+            recycleQuery.equalTo('object.objectId', objectId);
+            items = await recycleQuery.find(options);
+            await Parse.Object.destroyAll(items, options);
+        } catch (error) {
+            console.log('teardown error', error);
+        }
+    },
+);
 
 module.exports = Content;

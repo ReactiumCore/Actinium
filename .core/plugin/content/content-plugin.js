@@ -96,13 +96,17 @@ Actinium.Hook.register(
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
     if (req.user) {
         req.params.user = req.user;
     }
 
     return Actinium.Content.create(
         req.params,
-        Actinium.Utils.CloudRunOptions(req),
+        Actinium.Utils.CloudCapOptions(req, [`${collection}.create`]),
     );
 });
 

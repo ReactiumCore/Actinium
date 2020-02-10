@@ -28,7 +28,6 @@ const purge = async (params, options) => {
 
 const restore = async (params, options) => {
     const { results = [] } = await retrieve(params, options);
-
     if (results.length < 1) return;
 
     const { collection, object } = results[0];
@@ -36,6 +35,9 @@ const restore = async (params, options) => {
     if (!collection || !object) return;
 
     delete object.objectId;
+    if (op.get(object, 'ACL')) {
+        object.ACL = new Parse.ACL(object.ACL);
+    }
 
     return new Parse.Object(collection).save(object, options);
 };
@@ -58,7 +60,7 @@ const retrieve = async (params, options) => {
     }
 
     if (op.has(params, 'objectId')) {
-        qry.equalTo('object.objectId', params.object);
+        qry.equalTo('object.objectId', params.objectId);
     }
 
     const count = await qry.count(options);
