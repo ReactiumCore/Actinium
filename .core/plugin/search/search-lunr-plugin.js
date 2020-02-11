@@ -45,11 +45,10 @@ Actinium.Hook.register('search', async (req, context) => {
             Math.min(op.get(req, 'params.limit', 1000), 1000),
             1,
         );
-        const skip = page * limit - limit;
 
         const searchResult = indexes[index].search(search);
         const resultPages = _.chunk(searchResult, limit);
-        const resultPage = op.get(resultPages, page - 1);
+        const resultPage = op.get(resultPages, page - 1, []);
         const count = searchResult.length;
 
         const bySlug = _.indexBy(resultPage, 'ref');
