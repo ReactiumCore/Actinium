@@ -1,6 +1,7 @@
-const lunr = require('lunr');
-const _ = require('underscore');
 const chalk = require('chalk');
+const _ = require('underscore');
+const op = require('object-path');
+const flatten = require('tree-flatten');
 
 const PLUGIN = {
     ID: 'Search',
@@ -19,53 +20,47 @@ Actinium.Hook.register('start', async () => {
     const options = Actinium.Utils.MasterOptions();
     const { types } = await Actinium.Type.list({}, options);
     LOG(' ');
-    LOG(chalk.cyan('Indexing Content:'));
+    LOG(chalk.cyan.bold('Indexing Content:'));
     for (const type of types) {
         LOG(' -', type.collection);
         await Actinium.Search.index({ type }, options);
     }
 });
 
-const indexes = {};
-Actinium.Hook.register('search-index', async (type, permittedFields) => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        const { collection } = type;
-
-        const qry = new Parse.Query(collection);
-        const options = Actinium.Utils.MasterOptions();
-        const builder = new lunr.Builder();
-        builder.ref('slug');
-        Object.keys(permittedFields).forEach(field => builder.field(field));
-
-        let results = await qry.find(options);
-        let itemCount = 0;
-        while (results.length > 0) {
-            itemCount += results.length;
-            results.forEach(item => {
-                builder.add(Actinium.Utils.serialize(item));
-            });
-            qry.skip(itemCount);
-            results = await qry.find(options);
+Actinium.Hook.register(
+    'search-index-item-normalize',
+    async (item, params, type, permittedFields, indexConfig) => {
+        for (const [fieldName, fieldValue] of Object.entries(item)) {
+            if (op.has(permittedFields, fieldName)) {
+                const { fieldType } = op.get(permittedFields, fieldName);
+                switch (fieldType) {
+                    case 'RichText': {
+                        const plaintext = _.chain(
+                            flatten(
+                                { children: op.get(fieldValue, 'value', []) },
+                                'children',
+                            ),
+                        )
+                            .pluck('text')
+                            .compact()
+                            .value()
+                            .join(' ');
+                        item[fieldName] = plaintext;
+                        break;
+                    }
+                }
+            }
         }
+    },
+);
 
-        indexes[collection] = builder.build();
-    }
-});
-
-Actinium.Hook.register('search', async (index, search, req, context) => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        if (!(index in indexes)) throw 'No such index';
-        const bySlug = _.indexBy(indexes[index].search(search), 'ref');
-        const query = new Parse.Query(index);
-        query.containedIn('slug', Object.keys(bySlug));
-        const results = await query.find(Actinium.Utils.CloudRunOptions(req));
-        context.results = results.map(item => ({
-            ...Actinium.Utils.serialize(item),
-            search: bySlug[item.get('slug')],
-        }));
-    }
-});
-
+/**
+ * @api {Asynchronous} search-index search-index
+ * @apiDescription Trigger index of a content type. User must have `Search.index` capability.
+ * @apiName search-index
+ * @apiParam {Object} type Params required to lookup content type with `type-retrieve`
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'search-index', async req => {
     if (!Actinium.Utils.CloudHasCapabilities(req, ['Search.index']))
         throw 'Unauthorized';
@@ -73,6 +68,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'search-index', async req => {
     return Actinium.Search.index(req.params);
 });
 
+/**
+ * @api {Asynchronous} search search
+ * @apiDescription Search content.
+ * @apiParam {String} index The index to search
+ * @apiParam {String} search The search terms
+ * @apiParam {Number} [page=1] Page number of results
+ * @apiParam {Number} [limit=1000] Limit page results
+ * @apiName search
+ * @apiGroup Cloud
+ */
 Actinium.Cloud.define(PLUGIN.ID, 'search', async req => {
     return Actinium.Search.search(req);
 });

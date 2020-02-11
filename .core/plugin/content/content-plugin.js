@@ -117,6 +117,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
  * @apiParam {String} [orderBy=createdAt] Field to order the results by.
  * @apiParam {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam {Number} [page=1] Page number of results
  * @apiParam {Number} [limit=1000] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
