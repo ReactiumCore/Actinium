@@ -67,7 +67,7 @@ Actinium.Hook.register(
                 break;
             case 'RichText':
                 if (typeof field.fieldValue !== 'object')
-                    field.fieldValue = { text: '' };
+                    field.fieldValue = { children: [] };
                 break;
             case 'List':
                 if (!Array.isArray(field.fieldValue)) field.fieldValue = [];
@@ -304,7 +304,11 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
      // Can be different from one type to another.
      title: 'Test Article',
      body: {
-        text: 'simple text',
+        children: [
+            {
+                text: 'simple text',
+            },
+        ],
      },
 
      // Update the latest master revision

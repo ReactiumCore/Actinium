@@ -35,16 +35,15 @@ Actinium.Hook.register(
                 const { fieldType } = op.get(permittedFields, fieldName);
                 switch (fieldType) {
                     case 'RichText': {
+                        const children = op.get(fieldValue, 'children', []);
                         const plaintext = _.chain(
-                            flatten(
-                                { children: op.get(fieldValue, 'value', []) },
-                                'children',
-                            ),
+                            flatten({ children }, 'children'),
                         )
                             .pluck('text')
                             .compact()
                             .value()
                             .join(' ');
+
                         item[fieldName] = plaintext;
                         break;
                     }

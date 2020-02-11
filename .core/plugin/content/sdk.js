@@ -716,7 +716,11 @@ Content.setPermissions = async (params, options) => {
      // Can be different from one type to another.
      title: 'Test Article',
      body: {
-        text: 'simple text',
+        children: [
+            {
+                text: 'simple text',
+            },
+        ],
      },
 
      // Update the latest master revision
