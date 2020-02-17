@@ -6,7 +6,20 @@ const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
 const equal = require('fast-deep-equal');
 
-const PLUGIN = require('./meta');
+const PLUGIN = {
+    ID: 'Content',
+    name: 'Content Plugin',
+    description: 'Plugin used to manage content.',
+    version: {
+        actinium: '>=3.0.5',
+        plugin: '0.0.1',
+    },
+    meta: {
+        group: 'core',
+        builtIn: true,
+    },
+};
+
 const PLUGIN_SDK = require('./sdk');
 const PLUGIN_ROUTES = require('./routes');
 const PLUGIN_SCHEMA = require('./schema-template');
@@ -25,10 +38,26 @@ Actinium.Hook.register('start', async () => {
     Actinium.Pulse.define(
         'scheduled-publish',
         {
-            schedule: Actinium.Setting.get('publish-frequency', '*/30 * * * *'),
+            schedule: Actinium.Setting.get(ENUMS.CRON_SETTING, '*/30 * * * *'),
         },
         Actinium.Content.publishScheduled,
     );
+    Actinium.Content.publishScheduled();
+});
+
+Actinium.Hook.register('setting-set', async (key, value) => {
+    if (key === ENUMS.CRON_SETTING) {
+        Actinium.Pulse.replace(
+            'scheduled-publish',
+            {
+                schedule: Actinium.Setting.get(
+                    ENUMS.CRON_SETTING,
+                    '*/30 * * * *',
+                ),
+            },
+            Actinium.Content.publishScheduled,
+        );
+    }
 });
 
 Actinium.Hook.register('schema', async () => {
@@ -226,6 +255,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
 
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
     return Actinium.Content.setCurrent(req.params, options);
 });
 
@@ -257,6 +290,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
+
+    if (req.user) {
+        console.log('user', req.user);
+        req.params.changeUser = req.user;
+        console.log('changeUser', req.params.changeUser);
+    }
 
     return Actinium.Content.setPermissions(req.params, options);
 });
@@ -377,7 +416,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
  * @apiName content-restore
  * @apiGroup Cloud
  */
-Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
+Actinium.Cloud.define(PLUGIN.ID, 'content-restore', async req => {
     const collection = await Actinium.Type.getCollection(
         op.get(req.params, 'type'),
     );
@@ -386,6 +425,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
 
     return Actinium.Content.restore(req.params, options);
 });
@@ -417,6 +460,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
     );
 
     if (!canPublish) throw 'You do not have permission to publish content.';
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
 
     return Actinium.Content.publish(
         req.params,
@@ -453,6 +500,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
     );
 
     if (!canUnpublish) throw 'You do not have permission to unpublish content.';
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
 
     return Actinium.Content.unpublish(
         req.params,
@@ -500,6 +551,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-schedule', async req => {
     const collection = await Actinium.Type.getCollection(
         op.get(req.params, 'type'),
     );
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
 
     const canPublish = Actinium.Utils.CloudHasCapabilities(
         req,

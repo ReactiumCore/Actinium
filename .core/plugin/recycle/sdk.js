@@ -39,6 +39,17 @@ const restore = async (params, options) => {
         object.ACL = new Parse.ACL(object.ACL);
     }
 
+    Object.entries(object).forEach(([key, value]) => {
+        // restore pointer
+        if (
+            typeof value === 'object' &&
+            'className' in value &&
+            'objectId' in value
+        ) {
+            object[key].__type = 'Pointer';
+        }
+    });
+
     return new Parse.Object(collection).save(object, options);
 };
 

@@ -14,9 +14,7 @@ const PLUGIN = {
 
 Actinium.Plugin.register(PLUGIN, true);
 
-Actinium.Hook.register('start', async () => {
-    Actinium.Search = require('./sdk');
-
+const indexContent = async () => {
     const options = Actinium.Utils.MasterOptions();
     const { types } = await Actinium.Type.list({}, options);
     LOG(' ');
@@ -24,6 +22,33 @@ Actinium.Hook.register('start', async () => {
     for (const type of types) {
         LOG(' -', type.collection);
         await Actinium.Search.index({ type }, options);
+    }
+};
+
+const CRON_SETTING = 'index-frequency';
+Actinium.Hook.register('start', async () => {
+    Actinium.Search = require('./sdk');
+    indexContent();
+
+    // By default, index at midnight everyday
+    Actinium.Pulse.define(
+        'content-search-indexing',
+        {
+            schedule: Actinium.Setting.get(CRON_SETTING, '0 0 * * *'),
+        },
+        indexContent,
+    );
+});
+
+Actinium.Hook.register('setting-set', async (key, value) => {
+    if (key === CRON_SETTING) {
+        Actinium.Pulse.replace(
+            'content-search-indexing',
+            {
+                schedule: Actinium.Setting.get(CRON_SETTING, '0 0 * * *'),
+            },
+            indexContent,
+        );
     }
 });
 

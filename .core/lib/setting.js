@@ -43,11 +43,16 @@ Actinium.Setting.set('site', { title: 'My Awesome Site', hostname: 'mysite.com' 
 Actinium.Setting.set('site.hostname', 'mysite.com');
  */
 Setting.set = async (key, value) => {
+    const options = Actinium.Utils.MasterOptions();
     const karr = String(key).split('.');
     const rootKey = karr.shift();
 
     if (karr.length > 0) {
-        const obj = await Parse.Cloud.run('setting-get', { key: rootKey });
+        const obj = await Parse.Cloud.run(
+            'setting-get',
+            { key: rootKey },
+            options,
+        );
 
         if (obj) {
             op.set(obj, `value.${karr.join('.')}`, value);
@@ -55,11 +60,7 @@ Setting.set = async (key, value) => {
         }
     }
 
-    return Parse.Cloud.run(
-        'setting-set',
-        { key: rootKey, value },
-        { useMasterKey: true },
-    );
+    return Parse.Cloud.run('setting-set', { key: rootKey, value }, options);
 };
 
 /**

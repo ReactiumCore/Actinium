@@ -76,8 +76,10 @@ const CloudRunOptions = (req, match = null) => {
  * @apiGroup Actinium
  */
 const MasterOptions = (options = {}) => {
-    options['useMasterKey'] = true;
-    return options;
+    return {
+        ...options,
+        useMasterKey: true,
+    };
 };
 
 /**

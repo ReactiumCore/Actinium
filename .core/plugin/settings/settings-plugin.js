@@ -210,6 +210,8 @@ Actinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostn
 const set = async req => {
     const { key = '', value, public: publicSetting = false } = req.params;
     const [group, ...settingPath] = key.split('.');
+    if (!group) return;
+
     const strict = false;
 
     // permission to create new or update this setting
@@ -354,6 +356,7 @@ Actinium.Cloud.run('setting-get', { key: 'site'});
 const get = async req => {
     const { key = '' } = req.params;
     const [group, ...settingPath] = key.split('.');
+    if (!group) return;
 
     const strict = false;
 
@@ -421,9 +424,9 @@ const beforeSave = async req => {
         if (!_.isEqual(previous, value)) {
             Actinium.Hook.run('setting-change', group, value, previous);
         }
-    } else {
-        Actinium.Hook.run('setting-set', group, value);
     }
+
+    Actinium.Hook.run('setting-set', group, value);
 };
 
 const settingsACL = async () => {

@@ -13,6 +13,110 @@ const ENUMS = require('./enums');
 
 const Content = {};
 
+Content.Log = {};
+
+/**
+ * @api {Asynchronous} Content.Log.add(params,options) Content.Log.add()
+ * @apiParam {Object} params parameters for log
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {String} [user] Parse user object
+ * @apiParam (params) {String} [userId] Parse user object id (alternative)
+ * @apiParam (params) {String} contentId objectId of the content
+ * @apiParam (params) {String} collection the Parse collection of the content
+ * @apiParam (params) {String} changeType the type of change being logged
+ * @apiParam (params) {Object} meta meta data for the change log
+ * @apiName Content.Log.add
+ * @apiGroup Actinium
+ */
+Content.Log.add = async (params, options) => {
+    const userId = op.get(
+        params,
+        'user.id',
+        op.get(params, 'user.objectId', op.get(params, 'userId')),
+    );
+    const contentId = op.get(params, 'contentId');
+    const collection = op.get(params, 'collection');
+    const changeType = op.get(params, 'changeType');
+    const meta = op.get(params, 'meta', {});
+
+    if (!contentId) throw 'contentId required';
+    if (!collection) throw 'collection required';
+    if (!changeType) throw 'changeType required';
+
+    await Actinium.Hook.run('changelog-types', ENUMS.CHANGES);
+    if (!(changeType in ENUMS.CHANGES)) throw 'Invalid change type.';
+
+    const change = new Parse.Object('Changelog');
+
+    change.set('contentId', contentId);
+    change.set('collection', collection);
+    change.set('userId', userId);
+    change.set('changeType', changeType);
+    change.set('meta', meta);
+
+    await change.save(null, options);
+
+    const obj = serialize(change);
+    return obj;
+};
+
+/**
+ * @api {Asynchronous} Content.Log.list(params,options) Content.Log.list()
+ * @apiParam {Object} params parameters for log
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
+ * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam (params) {Number} [limit=1000] Limit page results
+ * @apiParam (params) {String} [userId] Parse user object id (alternative)
+ * @apiParam (params) {String} [contentId] objectId of the content
+ * @apiParam (params) {String} [collection] the Parse collection of the content
+ * @apiParam (params) {String} [changeType] the type of change being logged
+ * @apiParam (params) {Object} meta meta data for the change log
+ * @apiName Content.Log.list
+ * @apiGroup Actinium
+ */
+Content.Log.list = async (params, options) => {
+    const page = Math.max(op.get(params, 'page', 1), 1);
+    const limit = Math.min(op.get(params, 'limit', 1000), 1000);
+    const skip = page * limit - limit;
+
+    const orderBy = op.get(params, 'orderBy', 'createdAt');
+    let direction = op.get(params, 'direction', 'descending');
+    const directions = ['ascending', 'descending'];
+    if (!directions.includes(direction)) direction = 'descending';
+
+    const userId = op.get(params, 'userId');
+    const collection = op.get(params, 'collection');
+    const contentId = op.get(params, 'contentId');
+    const changeType = op.get(params, 'changeType');
+
+    const qry = new Parse.Query(collection);
+    if (contentId) qry.equalTo('contentId', contentId);
+    if (collection) qry.equalTo('collection', collection);
+    if (changeType) qry.equalTo('changeType', changeType);
+    if (userId) qry.equalTo('userId', userId);
+
+    const count = await qry.count(options);
+
+    qry[direction](orderBy)
+        .limit(limit)
+        .skip(skip);
+
+    const pages = Math.ceil(count / limit);
+    const next = page + 1 <= pages ? page + 1 : null;
+    const prev = page - 1 > 0 ? page + 1 : null;
+    const results = await qry.find(options);
+
+    return {
+        count,
+        next,
+        page,
+        pages,
+        prev,
+        results: results.map(item => serialize(item)),
+    };
+};
+
 Content.initFieldSchemaTypes = async () => {
     await Actinium.Hook.run(
         'content-schema-field-types',
@@ -350,13 +454,15 @@ Content.list = async (params, options) => {
     if (!Object.values(ENUMS.STATUS).includes(status))
         status = ENUMS.STATUS.PUBLISHED;
 
-    const qry = new Parse.Query(collection)
-        [direction](orderBy)
+    const qry = new Parse.Query(collection);
+
+    const count = await qry.count(options);
+
+    qry[direction](orderBy)
         .limit(limit)
         .skip(skip)
         .equalTo('status', status);
 
-    const count = await qry.count(options);
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 ? page + 1 : null;
@@ -462,6 +568,24 @@ Content.create = async (params, options) => {
 
     await type.save(null, masterOptions);
     const contentObj = serialize(content);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.CREATED,
+            meta: {
+                history: history,
+            },
+        },
+        masterOptions,
+    );
 
     await Actinium.Hook.run('content-saved', contentObj);
 
@@ -600,6 +724,25 @@ Content.setCurrent = async (params, options) => {
         if (saved) {
             saved = await content.fetch(masterOptions);
             const savedObj = serialize(saved);
+
+            const userId = op.get(
+                params,
+                'user.objectId',
+                op.get(params, 'user.id', op.get(params, 'userId')),
+            );
+            await Actinium.Content.Log.add(
+                {
+                    contentId: contentObj.objectId,
+                    collection: typeObj.collection,
+                    userId,
+                    changeType: ENUMS.CHANGES.SET_REVISION,
+                    meta: {
+                        history: contentObj.history,
+                    },
+                },
+                masterOptions,
+            );
+
             return savedObj;
         }
     } catch (error) {
@@ -660,8 +803,28 @@ Content.setPermissions = async (params, options) => {
         let saved, errors;
         try {
             saved = await content.save(null, options);
+            const ACL = saved.getACL();
+
+            const changeUserId = op.get(
+                params,
+                'changeUser.objectId',
+                op.get(params, 'changeUser.id'),
+            );
+            await Actinium.Content.Log.add(
+                {
+                    contentId: contentObj.objectId,
+                    collection,
+                    userId: changeUserId,
+                    changeType: ENUMS.CHANGES.SET_ACL,
+                    meta: {
+                        ACL,
+                    },
+                },
+                masterOptions,
+            );
+
             if (saved) {
-                return saved.getACL();
+                return ACL;
             }
         } catch (error) {
             errors = error;
@@ -783,15 +946,35 @@ Content.update = async (params, options) => {
     content.set('branches', currentBranches);
     await content.save(null, masterOptions);
 
+    const revHistory = {
+        branch: branchId,
+        revision: currentBranches[branchId].history.length - 1,
+    };
+
     contentRevision = {
         ...contentRevision,
         ...serialize(content),
         ...diff,
-        history: {
-            branch: branchId,
-            revision: currentBranches[branchId].history.length - 1,
-        },
+        history: revHistory,
     };
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.REVISED,
+            meta: {
+                history: revHistory,
+            },
+        },
+        masterOptions,
+    );
 
     await Actinium.Hook.run('content-saved', contentRevision);
 
@@ -859,6 +1042,21 @@ Content.delete = async (params, options) => {
         });
     await Parse.Object.saveAll(revisions, masterOptions);
 
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType: ENUMS.CHANGES.TRASH,
+        },
+        masterOptions,
+    );
+
     // update type to free up the slug
     type.remove('slugs', op.get(contentObj, 'slug'));
     await type.save(null, masterOptions);
@@ -918,6 +1116,25 @@ Content.restore = async (params, options) => {
             return rev;
         });
 
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType: ENUMS.CHANGES.RESTORE,
+            meta: {
+                originalId: op.get(params, 'objectId'),
+                history: op.get(contentObj, 'history'),
+            },
+        },
+        masterOptions,
+    );
+
     await Parse.Object.saveAll(revisions, masterOptions);
 
     return contentObj;
@@ -933,6 +1150,8 @@ Content.restore = async (params, options) => {
  * @apiParam (params) {String} [objectId] The Parse object id of the content.
  * @apiParam (params) {String} [uuid] The uuid of the content.
  * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [userId] User objectId that upublished the content.
+ * @apiParam (params) {String} [reason] Cause of upublish action, default ENUMS.CHANGES.PUBLISH
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -956,6 +1175,25 @@ Content.publish = async (params, options) => {
 
     await content.save(null, options);
 
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    const changeType = op.get(params, 'reason', ENUMS.CHANGES.PUBLISHED);
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType,
+            meta: {
+                history: op.get(contentObj, 'history'),
+            },
+        },
+        masterOptions,
+    );
+
     Actinium.Hook.run('content-published', contentObj, typeObj);
     return contentObj;
 };
@@ -970,6 +1208,8 @@ Content.publish = async (params, options) => {
  * @apiParam (params) {String} [objectId] The Parse object id of the content.
  * @apiParam (params) {String} [uuid] The uuid of the content.
  * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [userId] User objectId that unpublished the content.
+ * @apiParam (params) {String} [reason] Cause of unpublish action, default ENUMS.CHANGES.UNPUBLISH
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -998,6 +1238,22 @@ Content.unpublish = async (params, options) => {
     op.set(contentObj, 'status', ENUMS.STATUS.DRAFT);
 
     await content.save(null, options);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    const changeType = op.get(params, 'reason', ENUMS.CHANGES.UNPUBLISHED);
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType,
+        },
+        masterOptions,
+    );
 
     Actinium.Hook.run('content-unpublished', contentObj, typeObj);
     return contentObj;
@@ -1046,6 +1302,12 @@ Content.schedule = async (params, options) => {
     const collection = op.get(typeObj, 'collection');
     const jobId = `${collection}-scheduled`;
 
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+
     // new schedule
     const sunriseISO = op.get(params, 'sunrise');
     if (sunriseISO) {
@@ -1063,12 +1325,27 @@ Content.schedule = async (params, options) => {
 
     let publish = op.get(contentObj, 'publish', {}) || {};
     const history = op.get(contentObj, 'history');
-    publish[uuidv4()] = { sunrise: sunriseISO, sunset: sunsetISO, history };
+    const pubId = uuidv4();
+    publish[pubId] = { sunrise: sunriseISO, sunset: sunsetISO, history };
+    if (userId) publish[pubId].userId = userId;
 
     const content = new Parse.Object(collection);
     content.id = contentObj.objectId;
     content.set('publish', publish);
     await content.save(null, options);
+
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType: ENUMS.CHANGES.SCHEDULE,
+            meta: {
+                publish: publish[pubId],
+            },
+        },
+        masterOptions,
+    );
 
     const pulseDefs = Actinium.Pulse.definitions;
 };
@@ -1100,7 +1377,7 @@ Content.publishScheduled = async () => {
 
             let updated = false;
             for (const [id, instructions] of Object.entries(publish)) {
-                const { sunrise, sunset, history } = instructions;
+                const { sunrise, sunset, history, userId } = instructions;
 
                 // sunrise
                 if (sunrise) {
@@ -1112,6 +1389,8 @@ Content.publishScheduled = async () => {
                                 type,
                                 objectId: item.id,
                                 history,
+                                userId,
+                                reason: ENUMS.CHANGES.SCHEDULED_PUBLISH,
                             },
                             options,
                         );
@@ -1132,6 +1411,8 @@ Content.publishScheduled = async () => {
                             {
                                 type,
                                 objectId: item.id,
+                                userId,
+                                reason: ENUMS.CHANGES.SCHEDULED_UNPUBLISH,
                             },
                             options,
                         );
@@ -1497,6 +1778,12 @@ Actinium.Harness.test(
             recycleQuery.equalTo('object.objectId', objectId);
             items = await recycleQuery.find(options);
             await Parse.Object.destroyAll(items, options);
+
+            // destroy changelog
+            const clQuery = new Parse.Query('Changelog');
+            clQuery.equalTo('collection', collection);
+            const logs = await clQuery.find(options);
+            await Parse.Object.destroyAll(logs, options);
         } catch (error) {
             console.log('teardown error', error);
         }
