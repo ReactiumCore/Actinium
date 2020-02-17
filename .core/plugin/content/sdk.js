@@ -90,7 +90,7 @@ Content.Log.list = async (params, options) => {
     const contentId = op.get(params, 'contentId');
     const changeType = op.get(params, 'changeType');
 
-    const qry = new Parse.Query(collection);
+    const qry = new Parse.Query('Changelog');
     if (contentId) qry.equalTo('contentId', contentId);
     if (collection) qry.equalTo('collection', collection);
     if (changeType) qry.equalTo('changeType', changeType);
