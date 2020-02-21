@@ -12,6 +12,7 @@ module.exports = {
         REVISED: 'REVISED',
         SET_REVISION: 'SET_REVISION',
         SET_ACL: 'SET_ACL',
+        SET_STATUS: 'SET_STATUS',
         PUBLISHED: 'PUBLISHED',
         UNPUBLISHED: 'UNPUBLISHED',
         SCHEDULE: 'SCHEDULE',

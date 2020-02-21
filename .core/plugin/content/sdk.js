@@ -43,7 +43,6 @@ Content.Log.add = async (params, options) => {
     if (!collection) throw 'collection required';
     if (!changeType) throw 'changeType required';
 
-    await Actinium.Hook.run('changelog-types', ENUMS.CHANGES);
     if (!(changeType in ENUMS.CHANGES)) throw 'Invalid change type.';
 
     const change = new Parse.Object('Changelog');
@@ -118,6 +117,24 @@ Content.Log.list = async (params, options) => {
 };
 
 Content.initFieldSchemaTypes = async () => {
+    /**
+     * @api {Hook} content-schema-field-types content-schema-field-types
+     * @apiDescription Hook called during content type schema creation/updates.
+     Useful for defining Parse column type mapping for a given custom field type.
+     Only use the hook if you intend to create a new field type to store content.
+     Any Parse column type can be used (e.g. Boolean, String, Number, Date, Object, Array, etc.)
+     You **must** implement this hook if you wish to store content in a custom column in
+     your content type, otherwise, you can tried your custom field as content type specific configuration.
+     * @apiParam {Object} fieldTypes pass by reference of the current field type mappings.
+     * @apiName content-schema-field-types
+     * @apiGroup Hooks
+     * @apiExample Usage
+Actinium.Hook.register('content-schema-field-types', async fieldTypes => {
+    // If Content Type is created with one or more fields of fieldType 'MyCustomType'
+    // a column in your content collection of type "Object" will be created.
+    fieldTypes['MyCustomType'] = { type: 'Object' };
+})
+     */
     await Actinium.Hook.run(
         'content-schema-field-types',
         schemaTemplate.fieldTypes,
@@ -147,10 +164,6 @@ Content.getSchema = async contentTypeObj => {
     const options = { useMasterKey: true };
     await Content.initFieldSchemaTypes();
 
-    const schema = {
-        ...schemaTemplate.schema,
-    };
-
     let type = new Parse.Object('Type');
     type.id = typeId;
     type = await type.fetch(options);
@@ -158,6 +171,62 @@ Content.getSchema = async contentTypeObj => {
     if (type) {
         const typeObj = serialize(type);
         const { collection, machineName, fields } = typeObj;
+        const registrationConfig = {
+            schema: {
+                ...schemaTemplate.schema,
+            },
+            permissions: {
+                ...schemaTemplate.permissions,
+            },
+            indexes: [...schemaTemplate.indexes],
+        };
+
+        /**
+         * @api {Hook} content-schema content-schema
+         * @apiDescription Hook called during content type schema creation/updates.
+         Useful for changing default base fields/columns that will be created for one
+         or more content types.
+         * @apiParam {Object} schema pass by reference base schema (not including those provided by Type fields).
+         * @apiParam {String} machineName machine name of the type.
+         * @apiName content-schema
+         * @apiGroup Hooks
+         * @apiExample Usage
+    Actinium.Hook.register('content-schema', async (schema, machineName) => {
+        if (machineName === 'my_custom_type') {
+            // retrieve the type
+            const type = await Actinium.Type.retrieve({
+                machineName,
+            }, { useMasterKey: true });
+
+            // find any fields of fieldType: "Pointer"
+            const fields = Object.values(fields)
+            .filter(field => field.fieldType === 'Pointer')
+            .map(field => {
+                field.fieldSlug = Actinium.Utils.slugify(field.fieldName);
+                return field;
+            })
+
+            // create one or more custom Parse pointer fields, based on the
+            // type configuration
+            for (const field of fields) {
+                if (field.targetClass) {
+                    schema[field.fieldSlug] = {
+                        type: 'Pointer',
+                        targetClass: field.targetClass
+                    };
+                }
+            }
+        }
+    })
+         */
+        await Actinium.Hook.run(
+            'content-schema',
+            registrationConfig.schema,
+            machineName,
+        );
+
+        const schema = registrationConfig.schema;
+
         const sample = await new Parse.Query(collection).first(options);
         let sampleObj = {};
         if (sample) sampleObj = serialize(sample);
@@ -199,23 +268,65 @@ Content.getSchema = async contentTypeObj => {
             }
         } catch (error) {}
 
+        /**
+         * @api {Hook} content-schema-permissions content-schema-permissions
+         * @apiDescription Hook called during content type schema creation/updates.
+         Useful for changing default permissions used during `Actinium.Collection.register()` for
+         content schemas only. Governs the creation and maintenance, of the Class Level Permissions
+         of a content collection. By default, all actions are private but `retrieve`.
+         Because this is content, the assumption is that unless otherwise specified, you would
+         like the content to be publicly readable.
+         Note that content can **may** still be restricted by individual object Access Control List,
+         (if using Parse REST api) or additional capability check (if using Actinium.Cloud functions),
+         even if the CLP allows public retrieve.
+         * @apiParam {Object} permissions pass by reference of the permission defaults.
+         * @apiParam {String} machineName machine name of the type.
+         * @apiName content-schema-permissions
+         * @apiGroup Hooks
+         * @apiExample Usage
+Actinium.Hook.register('content-schema-permissions', async (permissions, machineName) => {
+    if (machineName === 'my_sensitive_content') {
+        // public create (like an anonymous contact form submission)
+        permissions['create'] = true;
+
+        // not publicly readable, unless logged in / escalated user
+        permissions['retrieve'] = false;
+    }
+})
+         */
         await Actinium.Hook.run(
             'content-schema-permissions',
-            schemaTemplate.permissions,
+            registrationConfig.permissions,
             machineName,
         );
+
+        /**
+     * @api {Hook} content-schema-indexes content-schema-indexes
+     * @apiDescription Hook called during content type schema creation/updates.
+     Useful for changing/adding which database indexes will be created by
+     `Actinium.Collection.register()` for your content type schema.
+     * @apiParam {Object} indexes pass by reference of the index configuration
+     * @apiParam {String} machineName machine name of the type.
+     * @apiName content-schema-field-types
+     * @apiGroup Hooks
+     * @apiExample Usage
+Actinium.Hook.register('content-schema-indexes', async (indexes, machineName) => {
+    if (machineName = 'my_custom_type') {
+        // index the "slug" column in my type.
+        indexes.push('slug');
+    }
+})
+     */
         await Actinium.Hook.run(
             'content-schema-indexes',
-            schemaTemplate.indexes,
+            registrationConfig.indexes,
             machineName,
         );
 
         return {
             collection,
-            permissions: schemaTemplate.permissions,
-            schema,
+            ...registrationConfig,
             existingSchema,
-            indexes: schemaTemplate.indexes,
             permittedFields,
         };
     }
@@ -253,12 +364,29 @@ Content.sanitize = async content => {
     for (const fieldIndex in fieldData) {
         const field = fieldData[fieldIndex];
         const config = fieldConfigs[field.fieldSlug];
+
+        /**
+         * @api {Hook} content-field-sanitize content-field-sanitize
+         * @apiDescription Triggered during `Content.sanitize()` (content creation / updates).
+         Used to sanitize data into sane fieldSlug=>fieldValue key pairs, which
+         will be set on content object. Useful for normalizing data before it is
+         stored in Parse column. Note this will only be called for fields that
+         have a defined schema. See `content-schema-field-types`.
+         * @apiParam {Object} field `{fieldSlug, fieldValue}` the key-pair for this field
+         * @apiParam {Object} config the configuration of this field (including `fieldType`) stored in the type
+         * @apiParam {Number} index the index in array of all FieldData
+         * @apiParam {Array} fieldData array of all permitted field data.
+         * @apiParam {Object} content object passed to `Content.sanitize()`
+         * @apiName content-field-sanitize
+         * @apiGroup Hooks
+         */
         await Actinium.Hook.run(
             'content-field-sanitize',
             field,
             config,
             fieldIndex,
             fieldData,
+            content,
         );
     }
 
@@ -587,8 +715,15 @@ Content.create = async (params, options) => {
         masterOptions,
     );
 
-    await Actinium.Hook.run('content-saved', contentObj);
-
+    /**
+     * @api {Hook} content-saved content-saved
+     * @apiDescription Called after content saved with `Content.create()` or `Content.update()`
+     * @apiParam {Object} contentObj the saved content object
+     * @apiParam {Object} typeObj the type of the content
+     * @apiName content-saved
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-saved', contentObj, typeObj);
     return contentObj;
 };
 
@@ -770,7 +905,7 @@ Content.setCurrent = async (params, options) => {
  * @apiParam (permission) {Object} type role or user
  * @apiParam (permission) {Object} [objectId] objectId of user
  * @apiParam (permission) {Object} [name] name of role
- * @apiName Content.setPermissions()
+ * @apiName Content.setPermissions
  * @apiGroup Actinium
  */
 Content.setPermissions = async (params, options) => {
@@ -976,8 +1111,8 @@ Content.update = async (params, options) => {
         masterOptions,
     );
 
+    // hook documented with api doc at bottom of Content.create()
     await Actinium.Hook.run('content-saved', contentRevision);
-
     return contentRevision;
 };
 
@@ -1150,14 +1285,14 @@ Content.restore = async (params, options) => {
  * @apiParam (params) {String} [objectId] The Parse object id of the content.
  * @apiParam (params) {String} [uuid] The uuid of the content.
  * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
- * @apiParam (params) {String} [userId] User objectId that upublished the content.
- * @apiParam (params) {String} [reason] Cause of upublish action, default ENUMS.CHANGES.PUBLISH
+ * @apiParam (params) {String} [userId] User objectId that published the content.
+ * @apiParam (params) {String} [reason] Cause of publish action, default ENUMS.CHANGES.PUBLISH
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
- * @apiName Content.publish()
+ * @apiName Content.publish
  * @apiGroup Actinium
  */
 Content.publish = async (params, options) => {
@@ -1194,7 +1329,106 @@ Content.publish = async (params, options) => {
         masterOptions,
     );
 
-    Actinium.Hook.run('content-published', contentObj, typeObj);
+    /**
+     * @api {Hook} content-published content-published
+     * @apiDescription Called after `Content.publish()`
+     * @apiParam {Object} contentObj the published content object
+     * @apiParam {Object} typeObj the type of the content
+     * @apiName content-published
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-published', contentObj, typeObj);
+    return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.setStatus(params,options) Content.setStatus()
+ * @apiDescription Set revision to current version and set the status of the content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [userId] User objectId that set the status of the content.
+ * @apiParam (params) {String} [reason] Change log change reason. Cause of setStatus action, default ENUMS.CHANGES.SET_STATUS
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.setStatus
+ * @apiGroup Actinium
+ */
+Content.setStatus = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+
+    const contentObj = await Content.setCurrent(params, options);
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const currentStatus = op.get(contentObj, 'status');
+    const statuses = _.chain(
+        op
+            .get(typeObj, 'fields.publisher.statuses', 'DRAFT,PUBLISHED')
+            .split(',')
+            .concat(Object.values(ENUMS.STATUS)),
+    )
+        .uniq()
+        .compact()
+        .value();
+
+    const status = op.get(params, 'status');
+    if (!status) throw 'status parameter required';
+    if (!statuses.includes(status)) throw 'Invalid status.';
+
+    // no change in status
+    if (status === currentStatus) return contentObj;
+
+    // publish and unpublish are reserved
+    if (status === ENUMS.STATUS.PUBLISHED)
+        throw 'Use Content.publish() or content-publish cloud functions to publish content.';
+    if (currentStatus === ENUMS.STATUS.PUBLISHED)
+        throw 'Use Content.unpublish() or content-unpublish cloud functions to unpublish content.';
+
+    const collection = op.get(typeObj, 'collection');
+    const content = new Parse.Object(collection);
+    content.id = contentObj.objectId;
+    content.set('status', status);
+    op.set(contentObj, 'status', status);
+
+    await content.save(null, options);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    const changeType = op.get(params, 'reason', ENUMS.CHANGES.SET_STATUS);
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection,
+            userId,
+            changeType,
+            meta: {
+                history: op.get(contentObj, 'history'),
+            },
+        },
+        masterOptions,
+    );
+
+    /**
+     * @api {Hook} content-status-change content-status-change
+     * @apiDescription Hook called before return of `Content.setStatus()`.
+     Useful for responding to changes of content status.
+     * @apiParam {Object} contentObj the content object after status change
+     * @apiParam {Object} typeObj the type object of the content
+     * @apiName content-status-change
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-status-change', contentObj, typeObj);
     return contentObj;
 };
 
@@ -1215,7 +1449,7 @@ Content.publish = async (params, options) => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
- * @apiName Content.unpublish()
+ * @apiName Content.unpublish
  * @apiGroup Actinium
  */
 Content.unpublish = async (params, options) => {
@@ -1255,7 +1489,16 @@ Content.unpublish = async (params, options) => {
         masterOptions,
     );
 
-    Actinium.Hook.run('content-unpublished', contentObj, typeObj);
+    /**
+     * @api {Hook} content-unpublished content-unpublished
+     * @apiDescription Hook called before return of `Content.unpublish()`.
+     Useful for responding to unpublishing of content.
+     * @apiParam {Object} contentObj the content object after unpublished.
+     * @apiParam {Object} typeObj the type object of the content
+     * @apiName content-unpublished
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-unpublished', contentObj, typeObj);
     return contentObj;
 };
 

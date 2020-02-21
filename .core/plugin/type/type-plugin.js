@@ -106,6 +106,9 @@ Actinium.Collection.register(
         type: {
             type: 'String',
         },
+        collection: {
+            type: 'String',
+        },
         machineName: {
             type: 'String',
         },
