@@ -45,18 +45,28 @@ Actinium.Hook.register('start', async () => {
     Actinium.Content.publishScheduled();
 });
 
-// Register Blueprints
-Actinium.Hook.register(
-    'blueprint-defaults',
-    blueprints => {
-        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-    },
-    -1000,
-);
+Actinium.Hook.register('start', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
-// Register Routes
-Actinium.Hook.register('route-defaults', routes => {
-    PLUGIN_ROUTES.forEach(item => routes.push(item));
+    /**
+     * @api {Hook} content-default-statuses content-default-statuses
+     * @apiDescription Hook during `start` if content plugin is active.
+     You can use this to add additional default content statuses (e.g. DRAFT, PUBLISHED)
+     * @apiParam {Object} STATUS pass by reference, built-in statuses
+     * @apiName content-default-statuses
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-default-statuses', ENUMS.STATUS);
+
+    /**
+     * @api {Hook} content-default-change-types content-default-change-types
+     * @apiDescription Hook during `start` if content plugin is active.
+     You can use this to add additional change log reasons.
+     * @apiParam {Object} STATUS pass by reference, built-in statuses
+     * @apiName content-default-change-types
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-default-change-types', ENUMS.CHANGES);
 });
 
 Actinium.Hook.register('setting-set', async (key, value) => {
@@ -460,7 +470,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-restore', async req => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
- * @apiName content-publish()
+ * @apiName content-publish
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
@@ -486,6 +496,49 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
 });
 
 /**
+ * @api {Asynchronous} content-set-status content-set-status
+ * @apiDescription Set revision to current version and set the status of the content.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam {String} [userId] User objectId that set the status of the content.
+ * @apiParam {String} [reason] Change log change reason. Cause of setStatus action, default ENUMS.CHANGES.SET_STATUS
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName content-set-status
+ * @apiGroup Actinium
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-set-status', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
+    const status = op.get(req.params, 'status');
+
+    const canSet = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.setStatus-${status}`, 'set-content-status'],
+        false,
+    );
+
+    if (!canSet) throw 'You do not have permission to set this status.';
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    return Actinium.Content.setStatus(
+        req.params,
+        Actinium.Utils.CloudMasterOptions(req),
+    );
+});
+
+/**
  * @api {Asynchronous} Content.unpublish(params,options) Content.unpublish()
  * @apiDescription Unpublish current version of content.
  * @apiParam {Object} params parameters for content
@@ -500,7 +553,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
- * @apiName Content.unpublish()
+ * @apiName Content.unpublish
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
@@ -542,7 +595,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-unpublish', async req => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
- * @apiName content-schedule()
+ * @apiName content-schedule
  * @apiGroup Cloud
  * @apiExample Usage
 const moment = require('moment');
