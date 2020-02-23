@@ -21,5 +21,28 @@
             "builtIn": true,
             "namespace": "admin-page"
         }
+    },
+    {
+        "ID": "ContentTypes",
+        "description": "Content types",
+        "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {}
+            },
+            "main": {
+                "zones": [
+                    "admin-header",
+                    "admin-content-types",
+                    "admin-actions"
+                ],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true,
+            "namespace": "admin-page"
+        }
     }
 ]

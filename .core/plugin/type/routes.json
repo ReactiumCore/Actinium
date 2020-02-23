@@ -16,5 +16,14 @@
             "order": 0
         },
         "capabilities": ["type-ui.view"]
+    },
+    {
+        "route": "/admin/types",
+        "blueprint": "ContentTypes",
+        "meta": {
+            "builtIn": true,
+            "order": 0
+        },
+        "capabilities": ["type-ui.view"]
     }
 ]
