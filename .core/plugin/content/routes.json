@@ -1,6 +1,6 @@
 [
     {
-        "route": "/admin/content/:typeMachineName/:slug",
+        "route": "/admin/content/:type/:slug",
         "blueprint": "Content-Editor",
         "meta": {
             "builtIn": true
