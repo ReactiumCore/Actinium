@@ -32,6 +32,22 @@ Actinium.Content = PLUGIN_SDK;
 // Register Plugin
 Actinium.Plugin.register(PLUGIN, true);
 
+// Register Blueprints
+Actinium.Hook.register(
+    'blueprint-defaults',
+    blueprints => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
+    },
+    -1000,
+);
+
+// Register Routes
+Actinium.Hook.register('route-defaults', routes => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    PLUGIN_ROUTES.forEach(item => routes.push(item));
+});
+
 Actinium.Hook.register('start', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
