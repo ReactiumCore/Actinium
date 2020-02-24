@@ -50,6 +50,14 @@ Actinium.Hook.register('start', async () => {
     }
 });
 
+Actinium.Hook.register('type-saved', async () => {
+    Actinium.Cache.del('types');
+});
+
+Actinium.Hook.register('type-deleted', async () => {
+    Actinium.Cache.del('types');
+});
+
 // Register Blueprints
 Actinium.Hook.register(
     'blueprint-defaults',
