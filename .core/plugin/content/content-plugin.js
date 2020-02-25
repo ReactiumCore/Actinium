@@ -332,9 +332,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
         : Actinium.Utils.CloudRunOptions(req);
 
     if (req.user) {
-        console.log('user', req.user);
         req.params.changeUser = req.user;
-        console.log('changeUser', req.params.changeUser);
     }
 
     return Actinium.Content.setPermissions(req.params, options);
