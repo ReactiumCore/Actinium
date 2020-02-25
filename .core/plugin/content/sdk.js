@@ -65,12 +65,12 @@ Content.Log.add = async (params, options) => {
  * @apiParam {Object} options Parse Query options (controls access)
  * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
  * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam (params) {Number} [page=1] Limit page results
  * @apiParam (params) {Number} [limit=1000] Limit page results
  * @apiParam (params) {String} [userId] Parse user object id (alternative)
  * @apiParam (params) {String} [contentId] objectId of the content
  * @apiParam (params) {String} [collection] the Parse collection of the content
  * @apiParam (params) {String} [changeType] the type of change being logged
- * @apiParam (params) {Object} meta meta data for the change log
  * @apiName Content.Log.list
  * @apiGroup Actinium
  */
@@ -1414,6 +1414,7 @@ Content.setStatus = async (params, options) => {
             changeType,
             meta: {
                 history: op.get(contentObj, 'history'),
+                status,
             },
         },
         masterOptions,
