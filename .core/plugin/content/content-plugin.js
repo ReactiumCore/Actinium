@@ -183,11 +183,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @api {Asynchronous} content-list content-list
  * @apiDescription Get list of content of a specific Type.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {Boolean} [refresh=false] skip cache check when true
+ * @apiParam {Boolean} [optimize=false] if optimize is true, and collection contains
+less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
  * @apiParam {String} [orderBy=createdAt] Field to order the results by.
  * @apiParam {String} [direction=descending] Order "descending" or "ascending"
- * @apiParam {Number} [page=1] Page number of results
- * @apiParam {Number} [limit=1000] Limit page results
+ * @apiParam {Number} [limit=20] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type

@@ -542,10 +542,13 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiParam {Object} params parameters for content
  * @apiParam {Object} options Parse Query options (controls access)
  * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {Boolean} [refresh=false] skip cache check when true
+ * @apiParam (params) {Boolean} [optimize=false] if optimize is true, and collection contains
+less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
  * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
  * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
- * @apiParam (params) {Number} [limit=1000] Limit page results
+ * @apiParam (params) {Number} [limit=20] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -569,8 +572,10 @@ Content.list = async (params, options) => {
         masterOptions,
     );
 
-    const page = Math.max(op.get(params, 'page', 1), 1);
-    const limit = Math.min(op.get(params, 'limit', 1000), 1000);
+    let page = Math.max(op.get(params, 'page', 1), 1);
+    let limit = Math.min(op.get(params, 'limit', 20), 1000);
+    const optimize = op.get(params, 'optimize', false);
+    const refresh = op.get(params, 'refresh', false);
     const skip = page * limit - limit;
     const orderBy = op.get(params, 'orderBy', 'createdAt');
 
@@ -583,20 +588,32 @@ Content.list = async (params, options) => {
         status = ENUMS.STATUS.PUBLISHED;
 
     const qry = new Parse.Query(collection);
+    qry.equalTo('status', status);
 
     const count = await qry.count(options);
+    if (optimize && count <= 1000) {
+        page = 1;
+        limit = 1000;
+    }
+
+    const cacheKey = [
+        `content-${collection}`,
+        [limit, page, direction, status].join('_'),
+    ];
+
+    let response = Actinium.Cache.get(cacheKey);
+    if (response && !refresh) return response;
 
     qry[direction](orderBy)
         .limit(limit)
-        .skip(skip)
-        .equalTo('status', status);
+        .skip(skip);
 
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 ? page + 1 : null;
     const results = await qry.find(options);
 
-    return {
+    response = {
         count,
         next,
         page,
@@ -604,6 +621,10 @@ Content.list = async (params, options) => {
         prev,
         results: results.map(item => serialize(item)),
     };
+
+    Actinium.Cache.set(cacheKey, response, ENUMS.CACHE);
+
+    return response;
 };
 
 /**
