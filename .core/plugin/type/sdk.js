@@ -240,8 +240,10 @@ Type.retrieve = async (params, options) => {
     const contentType = await query.first(options);
 
     if (!contentType) throw new Error('Unable to find type.');
+    const result = serialize(contentType);
 
-    return serialize(contentType);
+    await Actinium.Hook.run('type-retrieved', result);
+    return result;
 };
 
 /**
@@ -372,5 +374,28 @@ Type.list = async (params, options) => {
 
     return Promise.resolve(list);
 };
+
+const ensurePublisher = async typeObj => {
+    if (!op.has(typeObj, 'fields.publisher')) {
+        op.set(typeObj, 'fields.publisher', {
+            fieldId: 'publisher',
+            fieldType: 'Publisher',
+            fieldName: 'Publish',
+            statuses: 'DRAFT,PUBLISHED',
+            simple: false,
+            region: 'sidebar',
+        });
+    }
+};
+
+Actinium.Hook.register('type-retrieved', async typeObj => {
+    await ensurePublisher(typeObj);
+});
+
+Actinium.Hook.register('type-list', async result => {
+    for (const typeObj of result.types) {
+        await ensurePublisher(typeObj);
+    }
+});
 
 module.exports = Type;
