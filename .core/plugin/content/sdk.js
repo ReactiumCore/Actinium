@@ -1592,6 +1592,8 @@ Content.schedule = async (params, options) => {
     );
 
     const pulseDefs = Actinium.Pulse.definitions;
+
+    return serialize(content);
 };
 
 /**
