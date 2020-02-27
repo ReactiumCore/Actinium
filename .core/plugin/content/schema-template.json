@@ -14,6 +14,9 @@
         "type": {
             "type": "Object"
         },
+        "title": {
+            "type": "String"
+        },
         "slug": {
             "type": "String"
         },
@@ -38,7 +41,7 @@
         }
     },
 
-    "indexes": ["uuid", "slug"],
+    "indexes": ["uuid", "slug", "title"],
 
     "fieldTypes": {
         "Text": {

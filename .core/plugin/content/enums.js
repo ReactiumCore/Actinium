@@ -11,6 +11,7 @@ module.exports = {
     CHANGES: {
         CREATED: 'CREATED',
         REVISED: 'REVISED',
+        SLUG_CHANGE: 'SLUG_CHANGE',
         SET_REVISION: 'SET_REVISION',
         SET_ACL: 'SET_ACL',
         SET_STATUS: 'SET_STATUS',

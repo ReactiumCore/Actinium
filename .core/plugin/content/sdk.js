@@ -467,6 +467,13 @@ Content.diff = async (contentObj, changes) => {
         type: contentObj.type,
     });
     const diff = {};
+
+    if (
+        op.has(changes, 'title') &&
+        !equal(op.get(contentObj, 'title'), changes.title)
+    )
+        op.set(diff, 'title', changes.title);
+
     for (const { fieldSlug, fieldValue } of sanitized) {
         if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
             op.set(diff, fieldSlug, fieldValue);
@@ -478,6 +485,7 @@ Content.diff = async (contentObj, changes) => {
 
     op.set(diff, 'objectId', contentObj.objectId);
     op.set(diff, 'slug', contentObj.slug);
+    op.set(diff, 'uuid', contentObj.uuid);
     op.set(diff, 'history', contentObj.history);
     op.set(diff, 'branches', contentObj.branches);
 
@@ -527,6 +535,8 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
         return version;
     }, contentObj);
 
+    version.slug = contentObj.slug;
+    version.uuid = contentObj.uuid;
     version.branches = contentObj.branches;
     version.history = {
         branch,
@@ -635,6 +645,7 @@ Content.list = async (params, options) => {
  * @apiParam {Object} options Parse Query options (controls access)
  * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam (params) {String} slug The unique slug for the new content.
+ * @apiParam (params) {String} title The title of the new content.
  * @apiParam (params) {Array} [permissions=Array] List of permissions to apply to content. If not provided, no ACL will be set.
  * @apiParam (params) {ParseUser} [user] User object that created ("owns") the content.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
@@ -661,6 +672,9 @@ Content.create = async (params, options) => {
     const content = new Parse.Object(collection);
     const namespace = op.get(typeObj, 'uuid');
 
+    const title = op.get(params, 'title');
+    if (!title) throw new Error('Content title required.');
+
     // slug check
     const slugs = op.get(typeObj, 'slugs', []) || [];
     let slug = op.get(params, 'slug');
@@ -673,6 +687,7 @@ Content.create = async (params, options) => {
     type.addUnique('slugs', slug);
 
     content.set('slug', slug);
+    content.set('title', title);
     content.set('type', { objectId: type.id });
     content.set('uuid', uuidv5(slug, namespace));
     content.set('meta', op.get(params, 'meta', {}));
@@ -745,6 +760,91 @@ Content.create = async (params, options) => {
      * @apiGroup Hooks
      */
     await Actinium.Hook.run('content-saved', contentObj, typeObj);
+    return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.changeSlug(params,options) Content.changeSlug()
+ * @apiDescription Update the official slug for existing content. This results in a new uuid.
+ * @apiParam {Object} params parameters for content lookup and newSlug
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} newSlug The new content slug.
+ * @apiParam (params) {String} [slug] The unique slug for the content (for lookup only).
+ * @apiParam (params) {String} [objectId] The Parse object id of the content (for lookup only).
+ * @apiParam (params) {String} [uuid] The uuid of the content. (for lookup only)
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName Content.changeSlug
+ * @apiGroup Actinium
+ */
+Content.changeSlug = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+    if (!contentObj) throw 'Unable to find content';
+
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const content = new Parse.Object(typeObj.collection);
+    content.id = contentObj.objectId;
+    const { slug: originalSlug, uuid: originalUUID } = contentObj;
+
+    // slug check
+    const slugs = _.without(op.get(typeObj, 'slugs', []) || [], originalSlug);
+    let slug = op.get(params, 'newSlug');
+    if (!slug || typeof slug !== 'string')
+        throw new Error('Content slug required');
+    slug = require('slugify')(slug, {
+        lower: true,
+    });
+    if (slugs.includes(slug)) throw new Error(`Slug ${slug} already taken`);
+
+    const type = new Parse.Object('Type');
+    type.id = typeObj.objectId;
+    await type.fetch(masterOptions);
+    type.set(slugs.concat([slug]));
+
+    content.set('slug', slug);
+    op.set(contentObj, 'slug', slug);
+    const namespace = op.get(typeObj, 'uuid');
+    const uuid = uuidv5(slug, namespace);
+    content.set('uuid', uuid);
+    op.set(contentObj, 'uuid', uuid);
+
+    await content.save(null, options);
+    await type.save(null, masterOptions);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.SLUG_CHANGE,
+            meta: {
+                slug,
+                uuid,
+                originalSlug,
+                originalUUID,
+            },
+        },
+        masterOptions,
+    );
+
+    /**
+     * @api {Hook} content-slug-changed content-slug-changed
+     * @apiDescription Called after slug/uuid changed with `Content.changeSlug()`
+     * @apiParam {Object} contentObj the saved content object
+     * @apiParam {Object} typeObj the type of the content
+     * @apiName content-slug-changed
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-slug-changed', contentObj, typeObj);
     return contentObj;
 };
 
@@ -999,11 +1099,12 @@ Content.setPermissions = async (params, options) => {
  collection, use `content-set-current`.
  * @apiParam {Object} params parameters for content
  * @apiParam {Object} options Parse Query options (controls access)
- * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
- * @apiParam {String} [slug] The unique slug for the content.
- * @apiParam {String} [objectId] The Parse object id of the content.
- * @apiParam {String} [uuid] The uuid of the content.
- * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [title] The updated title of the content.
+ * @apiParam (params) {String} [slug] The unique slug for the content (for lookup only, use `Content.changeSlug() to change.`).
+ * @apiParam (params) {String} [objectId] The Parse object id of the content (for lookup only).
+ * @apiParam (params) {String} [uuid] The uuid of the content. (for lookup only)
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -1726,6 +1827,7 @@ Actinium.Harness.test(
             },
             slug: 'a-test-content',
             title: 'A Title',
+            display_title: 'My happy title',
             body_text: {
                 text: 'Some body text',
             },
@@ -1739,6 +1841,11 @@ Actinium.Harness.test(
 
         assert.equal(content.slug, createParams.slug, 'Slug should match');
         assert.equal(content.title, createParams.title, 'Title should match');
+        assert.equal(
+            content.display_title,
+            createParams.display_title,
+            'Display Title should match',
+        );
         assert.deepEqual(
             content.body_text,
             createParams.body_text,
@@ -1771,7 +1878,7 @@ Actinium.Harness.test(
                             '07b5a9a3-0a77-4925-8642-07549715d5bb': {
                                 fieldId: '07b5a9a3-0a77-4925-8642-07549715d5bb',
                                 fieldType: 'Text',
-                                fieldName: 'Title',
+                                fieldName: 'Display Title',
                                 defaultValue: null,
                                 pattern: null,
                                 helpText: null,
@@ -1811,6 +1918,7 @@ Actinium.Harness.test(
 Actinium.Harness.test('Content.update()', async assert => {
     const updateParams = {
         // query
+        title: 'Title Update',
         type: {
             machineName: 'test_content',
         },
@@ -1826,6 +1934,7 @@ Actinium.Harness.test('Content.update()', async assert => {
         Actinium.Utils.MasterOptions(),
     );
 
+    assert.equal(content.title, updateParams.title, 'Title should match');
     assert.deepEqual(
         content.body_text,
         updateParams.body_text,
