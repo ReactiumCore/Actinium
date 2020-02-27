@@ -142,7 +142,8 @@ Actinium.Hook.register(
                 if (!Array.isArray(field.fieldValue)) field.fieldValue = [];
                 break;
             case 'Number':
-                if (isNan(field.fieldValue)) field.fieldValue = undefined;
+                if (!_.isNumber(field.fieldValue))
+                    field.fieldValue = Number(field.fieldValue);
         }
     },
 );
