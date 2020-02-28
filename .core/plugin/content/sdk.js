@@ -468,12 +468,6 @@ Content.diff = async (contentObj, changes) => {
     });
     const diff = {};
 
-    if (
-        op.has(changes, 'title') &&
-        !equal(op.get(contentObj, 'title'), changes.title)
-    )
-        op.set(diff, 'title', changes.title);
-
     for (const { fieldSlug, fieldValue } of sanitized) {
         if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
             op.set(diff, fieldSlug, fieldValue);
@@ -483,11 +477,16 @@ Content.diff = async (contentObj, changes) => {
     // No changes
     if (Object.keys(diff).length < 1) return false;
 
+    // Stuff from top-level content object
     op.set(diff, 'objectId', contentObj.objectId);
-    op.set(diff, 'slug', contentObj.slug);
-    op.set(diff, 'uuid', contentObj.uuid);
     op.set(diff, 'history', contentObj.history);
     op.set(diff, 'branches', contentObj.branches);
+
+    // Remove this things to cut down noise in diff
+    op.del(diff, 'status');
+    op.del(diff, 'title');
+    op.del(diff, 'slug');
+    op.del(diff, 'uuid');
 
     return diff;
 };
@@ -525,23 +524,28 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
     );
 
     const revsById = _.indexBy(revisions, 'id');
-    const version = revisionIds.reduce((version, id) => {
+    let version = {};
+    revisionIds.forEach(id => {
         const rev = serialize(op.get(revsById, [id]));
         version = {
             ...version,
             ...op.get(rev, 'object', {}),
         };
+    });
 
-        return version;
-    }, contentObj);
-
+    // Things that are always references to top-level record
+    // regardless of revision selected
+    version.objectId = contentObj.objectId;
+    version.title = contentObj.title;
     version.slug = contentObj.slug;
+    version.status = contentObj.status;
     version.uuid = contentObj.uuid;
     version.branches = contentObj.branches;
     version.history = {
         branch,
         revision: revisionIds.length - 1,
     };
+    version.publish = contentObj.publish;
 
     return version;
 };
@@ -957,6 +961,7 @@ Actinium.Content.setCurrent({
 Content.setCurrent = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
     const contentObj = await Actinium.Content.retrieve(params, options);
+
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
@@ -988,12 +993,12 @@ Content.setCurrent = async (params, options) => {
             );
             await Actinium.Content.Log.add(
                 {
-                    contentId: contentObj.objectId,
+                    contentId: savedObj.objectId,
                     collection: typeObj.collection,
                     userId,
                     changeType: ENUMS.CHANGES.SET_REVISION,
                     meta: {
-                        history: contentObj.history,
+                        history: savedObj.history,
                     },
                 },
                 masterOptions,
@@ -1167,10 +1172,13 @@ Content.update = async (params, options) => {
     // those will go in revision
     const saved = await content.save(null, options);
 
-    let contentRevision = contentObj;
+    let contentRevision = {
+        ...contentObj,
+    };
+
     if (revisions.length > revisionIndex + 1) {
         const { branches, history } = await Actinium.Content.createBranch(
-            contentObj,
+            contentRevision,
             typeObj,
             null,
             masterOptions,
@@ -1178,12 +1186,12 @@ Content.update = async (params, options) => {
         );
 
         branchId = op.get(history, 'branch');
-        op.set(contentObj, 'branches', branches);
-        op.set(contentObj, 'history', history);
+        op.set(contentRevision, 'branches', branches);
+        op.set(contentRevision, 'history', history);
     }
 
-    const diff = await Actinium.Content.diff(contentObj, params);
-    if (!diff) return contentObj;
+    const diff = await Actinium.Content.diff(contentRevision, params);
+    if (!diff) return contentRevision;
 
     // Create new revision branch
     const newRevision = {
@@ -1197,8 +1205,15 @@ Content.update = async (params, options) => {
         masterOptions,
     );
 
-    currentBranches = op.get(contentObj, 'branches');
+    currentBranches = op.get(contentRevision, 'branches');
     currentBranches[branchId].history.push(revision.id);
+
+    if (op.has(params, 'title')) {
+        const title = op.get(params, 'title');
+        if (!title) throw 'title can not be empty';
+        content.set('title', title);
+        op.set(contentRevision, 'title', title);
+    }
 
     content.set('branches', currentBranches);
     await content.save(null, masterOptions);
@@ -1210,7 +1225,6 @@ Content.update = async (params, options) => {
 
     contentRevision = {
         ...contentRevision,
-        ...serialize(content),
         ...diff,
         history: revHistory,
     };
@@ -1220,9 +1234,10 @@ Content.update = async (params, options) => {
         'user.objectId',
         op.get(params, 'user.id', op.get(params, 'userId')),
     );
+
     await Actinium.Content.Log.add(
         {
-            contentId: contentObj.objectId,
+            contentId: contentRevision.objectId,
             collection: typeObj.collection,
             userId,
             changeType: ENUMS.CHANGES.REVISED,
@@ -1423,7 +1438,6 @@ Content.publish = async (params, options) => {
     const contentObj = await Content.setCurrent(params, options);
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
-
     const collection = op.get(typeObj, 'collection');
     const content = new Parse.Object(collection);
     content.id = contentObj.objectId;
@@ -2087,16 +2101,24 @@ Actinium.Harness.test(
             Actinium.Utils.MasterOptions(),
         );
 
-        await Actinium.Content.delete(params, Actinium.Utils.MasterOptions());
+        const recycle = await Actinium.Content.delete(
+            params,
+            Actinium.Utils.MasterOptions(),
+        );
+        const objectId = op.get(recycle.get('object'), 'objectId');
 
         const trashedQuery = new Parse.Query('Recycle');
         trashedQuery.equalTo('collection', collection);
-        trashedQuery.equalTo('object.slug', 'a-test-content');
+        trashedQuery.equalTo('object.objectId', objectId);
         const trashed = await trashedQuery.find(Actinium.Utils.MasterOptions());
-        assert.equal(trashed.length, 3, 'Main item and 2 revisions.');
+
+        assert.equal(trashed.length, 2, 'Main item and 1 revisions.');
         assert.ok(trashed.find(trash => trash.get('type') === 'delete'));
 
-        await Actinium.Content.restore(content, Actinium.Utils.MasterOptions());
+        const restored = await Actinium.Content.restore(
+            content,
+            Actinium.Utils.MasterOptions(),
+        );
 
         const revisionQuery = new Parse.Query('Recycle');
         revisionQuery.equalTo('collection', collection);
@@ -2107,7 +2129,7 @@ Actinium.Harness.test(
         const revisions = recycled.filter(
             revision => revision.get('type') === 'revision',
         );
-        assert.equal(revisions.length, 2, '2 revisions');
+        assert.equal(revisions.length, 1, '1 revision');
     },
 );
 
