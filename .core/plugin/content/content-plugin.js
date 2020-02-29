@@ -253,6 +253,36 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
 });
 
 /**
+ * @api {Asynchronous} content-revisions content-revisions
+ * @apiDescription Retrieve branch history of some content.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The objectId for the content.
+ * @apiParam {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName content-revisions
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-revisions', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+    const options = Actinium.Utils.CloudHasCapabilities(req, [
+        `${collection}.retrieveAny`,
+    ])
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    return Actinium.Content.revisions(req.params, options);
+});
+
+/**
  * @api {Asynchronous} content-set-current content-set-current
  * @apiDescription Take content from a specified branch or revision,
  and make it the "official" version of the content. If no `history` is param is

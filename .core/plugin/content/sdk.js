@@ -492,6 +492,90 @@ Content.diff = async (contentObj, changes) => {
 };
 
 /**
+ * @api {Asynchronous} Content.revision(params,options) Content.revision()
+ * @apiDescription Retrieve branch history of some content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The objectId for the content.
+ * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName Content.revision()
+ * @apiGroup Cloud
+ */
+Content.revisions = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+    if (!contentObj) throw 'Unable to find content';
+
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const branch = op.get(contentObj, 'history.branch');
+    const history = op.get(contentObj, ['branches', branch, 'history'], []);
+
+    const revisions = await Parse.Object.fetchAll(
+        history.map(id => {
+            const rev = new Parse.Object('Recycle');
+            rev.id = id;
+            return rev;
+        }),
+        options,
+    );
+
+    const revObjs = revisions
+        .map(rev => serialize(rev))
+        .map(rev => {
+            const revId = op.get(rev, 'objectId');
+
+            if (history[history.length - 1] !== revId) {
+                op.del(rev, 'object.objectId');
+                op.del(rev, 'object.slug');
+                op.del(rev, 'object.type');
+                op.del(rev, 'object.user');
+                op.del(rev, 'object.title');
+                op.del(rev, 'object.uuid');
+                op.del(rev, 'object.ACL');
+                op.del(rev, 'object.status');
+                op.del(rev, 'object.history');
+                op.del(rev, 'object.branches');
+                op.del(rev, 'object.createdAt');
+                op.del(rev, 'object.updatedAt');
+            }
+
+            return {
+                revId,
+                changes: op.get(rev, 'object', {}),
+                createdAt: op.get(rev, 'createdAt'),
+                updatedAt: op.get(rev, 'updatedAt'),
+            };
+        });
+
+    const byRevId = _.indexBy(revObjs, 'revId');
+    const baseId = history[history.length - 1];
+    const base = op.get(byRevId, [baseId, 'changes'], {});
+
+    const response = {
+        base: { ...contentObj, ...base, revId: baseId },
+        revisions: _.without(history, baseId).map(revId => {
+            const rev = op.get(byRevId, revId);
+            return rev;
+        }),
+        branch,
+    };
+
+    await Actinium.Hook.run('content-revisions', response, contentObj, typeObj);
+
+    return response;
+};
+
+/**
  * @api {Asynchronous} Content.getVersion(content,branch,revision,options) Content.getVersion()
  * @apiDescription Given a content object, fetch a specific revision of that content.
  * @apiParam {Object} content your content object
