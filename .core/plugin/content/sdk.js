@@ -524,7 +524,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
     );
 
     const revsById = _.indexBy(revisions, 'id');
-    let version = {};
+    let version = { ...contentObj };
     revisionIds.forEach(id => {
         const rev = serialize(op.get(revsById, [id]));
         version = {
@@ -546,6 +546,8 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
         revision: revisionIds.length - 1,
     };
     version.publish = contentObj.publish;
+    version.createdAt = contentObj.createdAt;
+    version.updatedAt = contentObj.updatedAt;
 
     return version;
 };
