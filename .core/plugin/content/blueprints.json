@@ -6,7 +6,9 @@
         "sections": {
             "sidebar": {
                 "zones": ["admin-sidebar"],
-                "meta": {}
+                "meta": {
+                    "fullscreen": "hide"
+                }
             },
             "main": {
                 "zones": [
@@ -30,11 +32,18 @@
         "sections": {
             "sidebar": {
                 "zones": ["admin-sidebar"],
-                "meta": {}
+                "meta": {
+                    "fullscreen": "hide"
+                }
             },
             "main": {
                 "zones": [
-                    "admin-header",
+                    {
+                        "zone": "admin-header",
+                        "meta": {
+                            "fullscreen": "hide"
+                        }
+                    },
                     "admin-content-editor",
                     "admin-content-meta",
                     "admin-actions"
