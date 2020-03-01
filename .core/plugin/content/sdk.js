@@ -534,7 +534,7 @@ Content.revisions = async (params, options) => {
         .map(rev => {
             const revId = op.get(rev, 'objectId');
 
-            if (history[history.length - 1] !== revId) {
+            if (history[0] !== revId) {
                 op.del(rev, 'object.objectId');
                 op.del(rev, 'object.slug');
                 op.del(rev, 'object.type');
@@ -558,11 +558,11 @@ Content.revisions = async (params, options) => {
         });
 
     const byRevId = _.indexBy(revObjs, 'revId');
-    const baseId = history[history.length - 1];
+    const baseId = history[0];
     const base = op.get(byRevId, [baseId, 'changes'], {});
 
     const response = {
-        base: { ...contentObj, ...base, revId: baseId },
+        base: { ...base, revId: baseId },
         revisions: _.without(history, baseId).map(revId => {
             const rev = op.get(byRevId, revId);
             return rev;
@@ -1252,6 +1252,13 @@ Content.update = async (params, options) => {
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
     const content = new Parse.Object(typeObj.collection);
+
+    if (op.has(params, 'title')) {
+        const title = op.get(params, 'title');
+        if (!title) throw 'title can not be empty';
+        content.set('title', title);
+        op.set(contentObj, 'title', title);
+    }
     content.id = contentObj.objectId;
 
     // verify that save is allowed, but do not apply new values
@@ -1293,13 +1300,6 @@ Content.update = async (params, options) => {
 
     currentBranches = op.get(contentRevision, 'branches');
     currentBranches[branchId].history.push(revision.id);
-
-    if (op.has(params, 'title')) {
-        const title = op.get(params, 'title');
-        if (!title) throw 'title can not be empty';
-        content.set('title', title);
-        op.set(contentRevision, 'title', title);
-    }
 
     content.set('branches', currentBranches);
     await content.save(null, masterOptions);
