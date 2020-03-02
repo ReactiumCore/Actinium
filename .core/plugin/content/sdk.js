@@ -646,7 +646,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiParam (params) {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
- * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
+ * @apiParam (params) {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam (params) {Number} [limit=20] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
@@ -677,7 +677,7 @@ Content.list = async (params, options) => {
     const optimize = op.get(params, 'optimize', false);
     const refresh = op.get(params, 'refresh', false);
     const skip = page * limit - limit;
-    const orderBy = op.get(params, 'orderBy', 'createdAt');
+    const orderBy = op.get(params, 'orderBy', 'updatedAt');
 
     let direction = op.get(params, 'direction', 'descending');
     const directions = ['ascending', 'descending'];
