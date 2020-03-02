@@ -46,7 +46,12 @@
                     },
                     "admin-content-editor",
                     "admin-content-meta",
-                    "admin-actions"
+                    {
+                        "zone": "admin-content-actions",
+                        "meta": {
+                            "fullscreen": "show"
+                        }
+                    }
                 ],
                 "meta": {}
             }
