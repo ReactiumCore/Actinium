@@ -188,7 +188,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiParam {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
- * @apiParam {String} [orderBy=createdAt] Field to order the results by.
+ * @apiParam {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam {Number} [limit=20] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
