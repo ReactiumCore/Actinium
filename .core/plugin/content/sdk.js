@@ -103,7 +103,7 @@ Content.Log.list = async (params, options) => {
 
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
-    const prev = page - 1 > 0 ? page + 1 : null;
+    const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
 
     return {
@@ -686,6 +686,7 @@ Content.list = async (params, options) => {
     const qry = new Parse.Query(collection);
     const status = op.get(params, 'status');
     if (status) qry.equalTo('status', status);
+    else qry.notEqualTo('status', ENUMS.STATUS.TRASH);
 
     const count = await qry.count(options);
     if (optimize && count <= 1000) {
@@ -707,7 +708,7 @@ Content.list = async (params, options) => {
 
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
-    const prev = page - 1 > 0 ? page + 1 : null;
+    const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
 
     response = {
@@ -1590,7 +1591,7 @@ Content.setStatus = async (params, options) => {
     const currentStatus = op.get(contentObj, 'status');
     const statuses = _.chain(
         op
-            .get(typeObj, 'fields.publisher.statuses', 'DRAFT,PUBLISHED')
+            .get(typeObj, 'fields.publisher.statuses', 'TRASH,DRAFT,PUBLISHED')
             .split(',')
             .concat(Object.values(ENUMS.STATUS)),
     )

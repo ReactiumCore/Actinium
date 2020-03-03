@@ -2,6 +2,7 @@ module.exports = {
     CACHE: 90 * 1000,
     CRON_SETTING: 'publish-frequency',
     STATUS: {
+        TRASH: 'TRASH',
         DRAFT: 'DRAFT',
         PUBLISHED: 'PUBLISHED',
     },

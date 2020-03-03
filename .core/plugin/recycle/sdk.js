@@ -77,7 +77,7 @@ const retrieve = async (params, options) => {
     const count = await qry.count(options);
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
-    const prev = page - 1 > 0 ? page + 1 : null;
+    const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
 
     return {
