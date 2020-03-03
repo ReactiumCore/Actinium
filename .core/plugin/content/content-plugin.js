@@ -506,6 +506,44 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
 });
 
 /**
+ * @api {Asynchronous} Content.trash(params,options) Content.trash()
+ * @apiDescription Mark content for deletion.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.trash
+ * @apiGroup Actinium
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-trash', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    const options = Actinium.Utils.CloudHasCapabilities(
+        req,
+        ['set-content-status', `${collection}.deleteAny`],
+        false,
+    )
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    return Actinium.Content.trash(req.params, options);
+});
+
+/**
  * @api {Asynchronous} content-restore content-restore
  * @apiDescription Restore deleted content of a defined Type (if still in recycle).
  To identify the content, you must provided the `type` object, and `objectId` of
@@ -592,11 +630,20 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-set-status', async req => {
+    const options = CloudRunOptions(req);
+    const masterOptions = CloudMasterOptions(req);
+
     const collection = await Actinium.Type.getCollection(
         op.get(req.params, 'type'),
     );
 
     const status = op.get(req.params, 'status');
+
+    if (status === ENUMS.STATUS.TRASH)
+        return Actinium.Cloud.run('content-trash', req.params, options);
+
+    if (status === ENUMS.STATUS.PUBLISHED)
+        return Actinium.Cloud.run('content-publish', req.params, options);
 
     const canSet = Actinium.Utils.CloudHasCapabilities(
         req,
@@ -610,10 +657,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-status', async req => {
         req.params.user = req.user;
     }
 
-    return Actinium.Content.setStatus(
-        req.params,
-        Actinium.Utils.CloudMasterOptions(req),
-    );
+    return Actinium.Content.setStatus(req.params, masterOptions);
 });
 
 /**

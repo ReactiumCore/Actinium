@@ -66,7 +66,7 @@ Content.Log.add = async (params, options) => {
  * @apiParam (params) {String} [orderBy=createdAt] Field to order the results by.
  * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam (params) {Number} [page=1] Limit page results
- * @apiParam (params) {Number} [limit=1000] Limit page results
+ * @apiParam (params) {Number} [limit=50] Limit page results
  * @apiParam (params) {String} [userId] Parse user object id (alternative)
  * @apiParam (params) {String} [contentId] objectId of the content
  * @apiParam (params) {String} [collection] the Parse collection of the content
@@ -76,10 +76,10 @@ Content.Log.add = async (params, options) => {
  */
 Content.Log.list = async (params, options) => {
     const page = Math.max(op.get(params, 'page', 1), 1);
-    const limit = Math.min(op.get(params, 'limit', 1000), 1000);
+    const limit = Math.min(op.get(params, 'limit', 50), 50);
     const skip = page * limit - limit;
 
-    const orderBy = op.get(params, 'orderBy', 'createdAt');
+    const orderBy = op.get(params, 'orderBy', 'updatedAt');
     let direction = op.get(params, 'direction', 'descending');
     const directions = ['ascending', 'descending'];
     if (!directions.includes(direction)) direction = 'descending';
@@ -913,7 +913,7 @@ Content.changeSlug = async (params, options) => {
             contentId: contentObj.objectId,
             collection: typeObj.collection,
             userId,
-            changeType: ENUMS.CHANGES.SLUG_CHANGE,
+            changeType: ENUMS.CHANGES.SLUG_CHANGED,
             meta: {
                 slug,
                 uuid,
@@ -1338,6 +1338,45 @@ Content.update = async (params, options) => {
 };
 
 /**
+ * @api {Asynchronous} Content.trash(params,options) Content.trash()
+ * @apiDescription Mark content for deletion.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiParam (history) {Number} [revision] index in branch history to update (defaults to most recent in branch).
+ * @apiName Content.trash
+ * @apiGroup Actinium
+ */
+Content.trash = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+
+    params.status = ENUMS.STATUS.TRASH;
+    params.reason = ENUMS.CHANGES.TRASHED;
+
+    const contentObj = await Actinium.Content.setStatus(params, options);
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    /**
+     * @api {Hook} content-trashed content-trashed
+     * @apiDescription Called after `Content.trash()`
+     * @apiParam {Object} contentObj the content marked trash
+     * @apiParam {Object} typeObj the type of the content
+     * @apiName content-trashed
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-trashed', contentObj, typeObj);
+    return contentObj;
+};
+
+/**
  * @api {Asynchronous} Content.delete(params,options) Content.delete()
  * @apiDescription Delete content of a defined Type. To identify the content, you must provided
 the `type` object, and one of `slug`, `objectId`, or `uuid` of the content. Destroys
@@ -1408,7 +1447,7 @@ Content.delete = async (params, options) => {
             contentId: contentObj.objectId,
             collection,
             userId,
-            changeType: ENUMS.CHANGES.TRASH,
+            changeType: ENUMS.CHANGES.DELETED,
         },
         masterOptions,
     );
@@ -1482,7 +1521,7 @@ Content.restore = async (params, options) => {
             contentId: contentObj.objectId,
             collection,
             userId,
-            changeType: ENUMS.CHANGES.RESTORE,
+            changeType: ENUMS.CHANGES.RESTORED,
             meta: {
                 originalId: op.get(params, 'objectId'),
                 history: op.get(contentObj, 'history'),
@@ -1507,7 +1546,7 @@ Content.restore = async (params, options) => {
  * @apiParam (params) {String} [uuid] The uuid of the content.
  * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
  * @apiParam (params) {String} [userId] User objectId that published the content.
- * @apiParam (params) {String} [reason] Cause of publish action, default ENUMS.CHANGES.PUBLISH
+ * @apiParam (params) {String} [reason] Cause of publish action, default ENUMS.CHANGES.PUBLISHED
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type

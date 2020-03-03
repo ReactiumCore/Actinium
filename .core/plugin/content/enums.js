@@ -12,7 +12,7 @@ module.exports = {
     CHANGES: {
         CREATED: 'CREATED',
         REVISED: 'REVISED',
-        SLUG_CHANGE: 'SLUG_CHANGE',
+        SLUG_CHANGED: 'SLUG_CHANGED',
         SET_REVISION: 'SET_REVISION',
         SET_ACL: 'SET_ACL',
         SET_STATUS: 'SET_STATUS',
@@ -21,7 +21,8 @@ module.exports = {
         SCHEDULE: 'SCHEDULE',
         SCHEDULED_PUBLISH: 'SCHEDULED_PUBLISH',
         SCHEDULED_UNPUBLISH: 'SCHEDULED_UNPUBLISH',
-        TRASH: 'TRASH',
-        RESTORE: 'RESTORE',
+        TRASHED: 'TRASHED',
+        DELETED: 'DELETED',
+        RESTORED: 'RESTORED',
     },
 };
