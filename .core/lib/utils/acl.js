@@ -2,11 +2,11 @@ const chalk = require('chalk');
 const _ = require('underscore');
 const semver = require('semver');
 const op = require('object-path');
+const { CloudHasCapabilities } = require('./options');
 
 const AclTargets = async req => {
-    const { master, user } = req;
-
-    if (!user && !master) throw new Error('Permission denied');
+    if (!CloudHasCapabilities(req, ['acl-targets']))
+        throw new Error('Permission denied');
 
     let { cache, fresh, search } = req.params;
     search = search
