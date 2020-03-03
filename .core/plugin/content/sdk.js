@@ -645,7 +645,7 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiParam (params) {Boolean} [refresh=false] skip cache check when true
  * @apiParam (params) {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
- * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT" status of the content
+ * @apiParam (params) {String} [status] "PUBLISHED" or "DRAFT", or other custom status of the content
  * @apiParam (params) {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam (params) {Number} [limit=20] Limit page results
@@ -683,12 +683,9 @@ Content.list = async (params, options) => {
     const directions = ['ascending', 'descending'];
     if (!directions.includes(direction)) direction = 'descending';
 
-    let status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
-    if (!Object.values(ENUMS.STATUS).includes(status))
-        status = ENUMS.STATUS.PUBLISHED;
-
     const qry = new Parse.Query(collection);
-    qry.equalTo('status', status);
+    const status = op.get(params, 'status');
+    if (status) qry.equalTo('status', status);
 
     const count = await qry.count(options);
     if (optimize && count <= 1000) {
@@ -698,7 +695,7 @@ Content.list = async (params, options) => {
 
     const cacheKey = [
         `content-${collection}`,
-        [limit, page, direction, status].join('_'),
+        _.compact([limit, page, direction, status]).join('_'),
     ];
 
     let response = Actinium.Cache.get(cacheKey);
