@@ -1805,6 +1805,7 @@ Content.schedule = async (params, options) => {
     const collection = op.get(typeObj, 'collection');
     const jobId = `${collection}-scheduled`;
 
+    const rev = op.get(params, 'history.revision');
     const userId = op.get(
         params,
         'user.objectId',
@@ -1828,6 +1829,8 @@ Content.schedule = async (params, options) => {
 
     let publish = op.get(contentObj, 'publish', {}) || {};
     const history = op.get(contentObj, 'history');
+    if (!revision) op.del(history, 'revision');
+
     const pubId = uuidv4();
     publish[pubId] = { sunrise: sunriseISO, sunset: sunsetISO, history };
     if (userId) publish[pubId].userId = userId;
@@ -1845,6 +1848,64 @@ Content.schedule = async (params, options) => {
             changeType: ENUMS.CHANGES.SCHEDULE,
             meta: {
                 publish: publish[pubId],
+            },
+        },
+        masterOptions,
+    );
+
+    const pulseDefs = Actinium.Pulse.definitions;
+
+    return serialize(content);
+};
+
+/**
+ * @api {Asynchronous} Content.unschedule(params,options) Content.unschedule()
+ * @apiDescription Remove scheduled publishing job by id.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The Parse object id of the content.
+ * @apiParam (params) {String} [uuid] The uuid of the content.
+ * @apiParam (params) {String} jobId The id of the schedule job.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName Content.unschedule
+ * @apiGroup Actinium
+ */
+Content.unschedule = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+    const publish = op.get(contentObj, 'publish', {}) || {};
+    const jobId = op.get(params, 'jobId');
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+
+    if (!jobId) throw new Error('jobId missing');
+    if (!op.has(publish, jobId)) throw new Error('Invalid jobId');
+
+    op.del(publish, jobId);
+
+    const content = new Parse.Object(typeObj.collection);
+    content.id = contentObj.objectId;
+    content.set('publish', publish);
+    await content.save(null, options);
+
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.UNSCHEDULE,
+            meta: {
+                publish,
             },
         },
         masterOptions,

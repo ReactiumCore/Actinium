@@ -767,6 +767,51 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-schedule', async req => {
     );
 });
 
+/**
+ * @api {Asynchronous} Content.unschedule(params,options) Content.unschedule()
+ * @apiDescription Remove scheduled publishing job by id.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The Parse object id of the content.
+ * @apiParam {String} [uuid] The uuid of the content.
+ * @apiParam {String} jobId The id of the schedule job.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiName Content.unschedule
+ * @apiGroup Actinium
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-unschedule', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    const canPublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.publish`, 'publish-content'],
+        false,
+    );
+    const canUnpublish = Actinium.Utils.CloudHasCapabilities(
+        req,
+        [`${collection}.unpublish`, 'unpublish-content'],
+        false,
+    );
+
+    if (!canPublish)
+        throw `You must have ${collection}.publish or publish-content capability to schedule content.`;
+    if (!canUnpublish)
+        throw `You must have ${collection}.unpublish or unpublish-content capability to schedule content.`;
+
+    return Actinium.Content.unschedule(
+        req.params,
+        Actinium.Utils.CloudMasterOptions(req),
+    );
+});
+
 /*
 1. CLP (Class Level Permissions) is primarily guard against using Parse Cloud REST API improperly
 - capabilities can be used to guard cloud functions, but not direct Parse API use (such as REST)
