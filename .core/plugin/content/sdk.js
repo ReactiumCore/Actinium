@@ -1805,7 +1805,7 @@ Content.schedule = async (params, options) => {
     const collection = op.get(typeObj, 'collection');
     const jobId = `${collection}-scheduled`;
 
-    const rev = op.get(params, 'history.revision');
+    const revision = op.get(params, 'history.revision');
     const userId = op.get(
         params,
         'user.objectId',
