@@ -630,8 +630,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-publish', async req => {
  * @apiGroup Actinium
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-set-status', async req => {
-    const options = CloudRunOptions(req);
-    const masterOptions = CloudMasterOptions(req);
+    const options = Actinium.Utils.CloudRunOptions(req);
+    const masterOptions = Actinium.Utils.CloudMasterOptions(req);
 
     const collection = await Actinium.Type.getCollection(
         op.get(req.params, 'type'),
