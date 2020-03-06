@@ -465,7 +465,7 @@ Content.createBranch = async (
             {
                 contentId: op.get(content, 'objectId'),
                 collection: op.get(type, 'collection'),
-                userId: op.get(user, 'objectId'),
+                userId: op.get(user, 'id'),
                 changeType: ENUMS.CHANGES.CREATED_BRANCH,
                 meta: {
                     branches,
