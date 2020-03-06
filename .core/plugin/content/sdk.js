@@ -411,17 +411,27 @@ Content.sanitize = async content => {
  * @apiName Content.createBranch
  * @apiGroup Actinium
  */
-Content.createBranch = async (content, type, branch, options) => {
+Content.createBranch = async (
+    content,
+    type,
+    branch,
+    branchLabel = 'Master',
+    options,
+) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
     content = serialize(content);
     type = serialize(type);
 
     if (!branch || op.has(content, ['branches', branch])) branch = uuidv4();
-    const user = await Actinium.Utils.UserFromSession(
-        op.get(options, 'sessionToken'),
-    );
+    if (!branchLabel && branch !== 'master') branchLabel = 'Unlabeled';
+
     const branches = op.get(content, 'branches', {});
     const currentBranchId = op.get(content, 'history.branch');
     const currentRevisionIndex = op.get(content, 'history.revision');
+
+    const user = await Actinium.Utils.UserFromSession(
+        op.get(options, 'sessionToken'),
+    );
 
     // get current revision id in case we tagging existing base revision
     let revisionId = op.get(content, [
@@ -434,6 +444,7 @@ Content.createBranch = async (content, type, branch, options) => {
     // need to create new base revision for this branch
     if (currentRevisionIndex !== 0) {
         op.set(branches, [branch, 'history'], []);
+        op.set(branches, [branch, 'label'], branchLabel);
         op.set(content, 'branches', branches);
         op.set(content, 'history', { branch });
 
@@ -442,7 +453,6 @@ Content.createBranch = async (content, type, branch, options) => {
             object: serialize(content),
         };
 
-        if (user) op.set(revObj, 'user', user);
         const revision = await Actinium.Recycle.revision(revObj, options);
         revisionId = revision.id;
     }
@@ -450,7 +460,126 @@ Content.createBranch = async (content, type, branch, options) => {
     op.set(branches, [branch, 'history'], [revisionId]);
     const history = { branch, revision: 0 };
 
+    if (op.get(content, 'objectId')) {
+        await Actinium.Content.Log.add(
+            {
+                contentId: op.get(content, 'objectId'),
+                collection: op.get(type, 'collection'),
+                userId: op.get(user, 'objectId'),
+                changeType: ENUMS.CHANGES.CREATED_BRANCH,
+                meta: {
+                    branches,
+                    history,
+                },
+            },
+            masterOptions,
+        );
+    }
+
     return { branches, history };
+};
+
+/**
+ * @api {Asynchronous} Content.labelBranch(params,options) Content.labelBranch()
+ * @apiDescription Clone a branch / specific region as a new branch.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {Object} branchLabel New branch label.
+ * @apiParam (params) {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The objectId for the content.
+ * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName Content.labelBranch()
+ * @apiGroup Cloud
+ */
+Content.labelBranch = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const branches = op.get(contentObj, 'branches');
+    const branchLabel = op.get(params, 'branchLabel');
+    const branch = op.get(contentObj, 'history.branch');
+
+    if (!branchLabel) throw 'branchLabel required';
+    op.set(branches, [branch, 'label'], branchLabel);
+
+    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    content.id = contentObj.objectId;
+    content.set('branches', branches);
+    await content.save(null, options);
+
+    await Actinium.Hook.run(
+        'content-branch-label',
+        contentObj,
+        typeObj,
+        params,
+    );
+    return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.cloneBranch(params,options) Content.cloneBranch()
+ * @apiDescription Clone a branch / specific revision as a new branch.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {Object} branchLabel New branch label.
+ * @apiParam (params) {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The objectId for the content.
+ * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName Content.cloneBranch()
+ * @apiGroup Cloud
+ */
+Content.cloneBranch = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const branchLabel = op.get(params, 'branchLabel');
+    if (!branchLabel) throw 'branchLabel required';
+
+    const contentObj = await Actinium.Content.retrieve(params, options);
+
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const { branches, history } = await Content.createBranch(
+        contentObj,
+        typeObj,
+        null,
+        branchLabel,
+        options,
+    );
+
+    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    content.id = contentObj.objectId;
+    content.set('branches', branches);
+    await content.save(null, options);
+
+    op.set(contentObj, 'branches', branches);
+    op.set(contentObj, 'history', history);
+
+    await Actinium.Hook.run(
+        'content-clone-branch',
+        contentObj,
+        typeObj,
+        params,
+    );
+
+    return contentObj;
 };
 
 /**
@@ -809,6 +938,7 @@ Content.create = async (params, options) => {
         content,
         typeObj,
         'master',
+        'Master',
         options,
     );
 
@@ -1272,8 +1402,8 @@ Content.update = async (params, options) => {
             contentRevision,
             typeObj,
             null,
+            null,
             masterOptions,
-            params.user,
         );
 
         branchId = op.get(history, 'branch');
