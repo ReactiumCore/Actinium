@@ -68,6 +68,11 @@ const find = req => {
     return Actinium.User.list(req.params, options);
 };
 
+const retrieve = req => {
+    const options = CloudRunOptions(req);
+    return Actinium.User.retrieve(req.params, options);
+};
+
 const save = req => {
     const options = CloudRunOptions(req);
     return Actinium.User.save(req.params, options);
@@ -201,6 +206,8 @@ Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-list', find);
+
+Actinium.Cloud.define(PLUGIN.ID, 'user-retrieve', retrieve);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
 

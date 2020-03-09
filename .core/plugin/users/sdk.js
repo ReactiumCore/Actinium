@@ -34,11 +34,11 @@ const User = {};
  * @apiParam (hooks) {Hook} user-before-save Mutate the `Parse.User` object before save is complete.
 
 ```
-Actinium.Hook.run('user-before-save', req[object:Parse.User])
+Arguments:  req:Object:Parse.User
 ```
  * @apiParam (hooks) {Hook} user-after-save Take action after the `Parse.User` object has been saved.
 ```
-Actinium.Hook.run('user-after-save', req[object:Parse.User])
+Arguments: req:Object:Parse.User
 ```
  */
 User.save = async (params, options) => {
@@ -121,17 +121,17 @@ _Note:_ You can add or remove fields via the `user-search-fields` hook.
 
  * @apiParam (hooks) {Hook} user-list-search-fields Mutate the fields used when searching or exact match lookups.
 ```
-Actinium.Hook.register('user-list-search-fields', fields:Array, params, options)
+Arguments: fields:Array, params, options
 ```
  * @apiParam (hooks) {Hook} user-list-query Mutate the `Parse.Query` object.
 
 ```
-Actinium.Hook.register('user-list-query', query:Parse.Query, params, options)
+Arguments: query:Parse.Query, params, options
 ```
  * @apiParam (hooks) {Hook} user-list-response Mutate the response object before it is returned.
 
 ```
-Actinium.Hook.register('user-list-response', response:Object, params, options)
+Arguments: response:Object, params, options
 ```
  */
 User.list = async (params, options) => {
@@ -153,8 +153,21 @@ User.list = async (params, options) => {
         ? await new Parse.Query(COLLECTION_ROLE).equalTo('name', role).first()
         : undefined;
 
-    let fields = ['username', 'email', 'fname', 'lname'];
-    await Actinium.Hook.run('user-list-search-fields', fields, params, options);
+    let fields = op.get(params, 'fieldsHooked', [
+        'username',
+        'email',
+        'fname',
+        'lname',
+    ]);
+
+    if (!op.has(params, 'fieldsHooked')) {
+        await Actinium.Hook.run(
+            'user-list-search-fields',
+            fields,
+            params,
+            options,
+        );
+    }
 
     if (search) {
         const regex = new RegExp(search, 'gi');
@@ -250,6 +263,73 @@ User.list = async (params, options) => {
     Actinium.Cache.set(cacheKey, response, ENUMS.CACHE);
 
     return response;
+};
+
+/**
+ * @api {Asyncronous} Actinium.User.retrieve(params,options) User.retrieve()
+ * @apiGroup Actinium
+ * @apiName User.retrieve
+ * @apiDescription Retrieve a single `Parse.User` object.
+
+ Search parameters or limited to exact match look up fields specified by the
+ `user-retrieve-search-fields` hook. The order in which the fields are defined
+ will also apply to their hierachy when weighting which field to search by when
+ more than one param is supplied.
+
+ Defaults: `objectId`, `username`, `email`
+
+ _Note:_ User.list() hooks will be run with the exception of `user-retrieve-search-fields` running in place of `user-list-search-fields`.
+ * @apiParam {Object} params Query parameters. See [User.list()](#api-Actinium-User_list) for more details.
+ * @apiParam {Object} options Parse cloud options object.
+ * @apiParam (params) {String} [objectId] Retrieve by the objectId field.
+ * @apiParam (params) {String} [username] Retrieve by the username field.
+ * @apiParam (params) {String} [email] Retrieve by the email address field.
+ * @apiParam (hooks) {Hook} user-retrieve-search-fields Mutate the search fields.
+```
+Arguments: fields:Array, params, options
+```
+ * @apiParam (hooks) {Hook} user-retrieve-response Mutate the `Parse.User` object before it is returned.
+```
+Arguments: user:Object, params, options
+```
+ */
+User.retrieve = async (params, options) => {
+    let fields = ['objectId', 'username', 'email'];
+    await Actinium.Hook.run(
+        'user-retrieve-search-fields',
+        fields,
+        params,
+        options,
+    );
+
+    // Shake out parameters.
+    op.del(params, 'search');
+    op.del(params, 'indexBy');
+    const leafs = Array.from(fields);
+    while (leafs.length > 0) {
+        const leaf = leafs.shift();
+        if (op.get(params, leaf)) {
+            while (leafs.length > 0) {
+                const item = leafs.shift();
+                op.del(params, item);
+                op.del(leafs, item);
+            }
+            leafs.push(leaf);
+            break;
+        }
+    }
+
+    fields = leafs;
+
+    op.set(params, 'fieldsHooked', fields);
+
+    const { results = [] } = await User.list(params, options);
+
+    const user = op.get(results, [0]);
+
+    await Actinium.Hook.run('user-retrieve-response', user, params, options);
+
+    return user;
 };
 
 module.exports = User;
