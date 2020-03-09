@@ -992,10 +992,11 @@ Content.create = async (params, options) => {
      * @apiDescription Called after content saved with `Content.create()` or `Content.update()`
      * @apiParam {Object} contentObj the saved content object
      * @apiParam {Object} typeObj the type of the content
+     * @apiParam {Boolean} isNew If the content object is new or existing.
      * @apiName content-saved
      * @apiGroup Hooks
      */
-    await Actinium.Hook.run('content-saved', contentObj, typeObj);
+    await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
     return contentObj;
 };
 
@@ -1481,7 +1482,7 @@ Content.update = async (params, options) => {
     );
 
     // hook documented with api doc at bottom of Content.create()
-    await Actinium.Hook.run('content-saved', contentRevision);
+    await Actinium.Hook.run('content-saved', contentRevision, typeObj, false);
     return contentRevision;
 };
 
@@ -1679,6 +1680,8 @@ Content.restore = async (params, options) => {
     );
 
     await Parse.Object.saveAll(revisions, masterOptions);
+
+    await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
 
     return contentObj;
 };

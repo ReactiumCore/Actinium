@@ -4,11 +4,17 @@ const moment = require('moment');
 const op = require('object-path');
 const slugify = require('slugify');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = '_User';
 const COLLECTION_ROLE = '_Role';
 
-const User = {};
+const User = { Meta: {}, Pref: {} };
+
+User.currentUser = options =>
+    op.has(options, 'sessionToken')
+        ? UserFromSession(options.sessionToken)
+        : undefined;
 
 /**
  * @api {Object} Actinium.User User
@@ -88,7 +94,13 @@ User.save = async (params, options) => {
 
     Actinium.Cache.del('users');
 
-    return Promise.resolve(serialize(user));
+    user = serialize(user);
+
+    await Actinium.Recycle.revision({
+        collection: COLLECTION,
+        object: user,
+        user: User.currentUser(options),
+    });
 };
 
 /**
@@ -333,13 +345,12 @@ User.retrieve = async (params, options) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.trash(params,options,currentUser) User.trash()
+ * @api {Asyncronous} Actinium.User.trash(params,options) User.trash()
  * @apiGroup Actinium
  * @apiName User.trash
  * @apiDescription Send a single `Parse.User` object to the recycle bin.
  * @apiParam {Object} params Object containing parameters for deleting a user.
  * @apiParam {Object} options Parse cloud options object.
- * @apiParam {Parse.User} currentUser The current user executing the command.
  * @apiParam (params) {String} objectId The Parse.User objectId.
  * @apiParam (hooks) {Hook} user-before-delete Triggered before the `Parse.User` object is deleted.
 
@@ -352,7 +363,7 @@ Arguments: req:Object:Parse.User
  Arguments: req:Object:Parse.User
  ```
  */
-User.trash = async (params, options, currentUser) => {
+User.trash = async (params, options) => {
     const objectId = op.get(params, 'objectId');
     if (!objectId) return new Error('objectId is a required parameter');
 
@@ -362,13 +373,44 @@ User.trash = async (params, options, currentUser) => {
 
     if (!userObj) return;
 
-    await Actinium.Recycle({
+    await Actinium.Recycle.trash({
         collection: COLLECTION,
         object: userObj.toJSON(),
-        user: currentUser,
+        user: User.currentUser(options),
     });
 
     await userObj.destroy(options);
+};
+
+/**
+* @api {Asyncronous} Actinium.User.Meta.save(params,options) User.Meta.save()
+* @apiGroup Actinium
+* @apiName User.Meta.save
+* @apiDescription Mutate the Parse.User.meta object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user meta object.
+* @apiParam {Object} options Parse cloud options object.
+* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
+```
+Arguments: fields:Array, params, options
+```
+*/
+User.Meta.save = async (params, options) => {
+    const user = await User.retrieve(_.clone(params), options);
+
+    if (!user) return;
+
+    // remove sensative params
+    let fields = ['objectId', 'username', 'email', 'fname', 'lname'];
+    await Actinium.Hook.run('user-sensative-fields', fields, params, options);
+    fields.forEach(fld => op.del(params, fld));
+
+    const currentMeta = op.get(user, 'meta', {});
+    const meta = { ...currentMeta, ...params };
+
+    await User.save({ meta }, options);
 };
 
 module.exports = User;

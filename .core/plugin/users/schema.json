@@ -15,6 +15,12 @@
         },
         "avatar": {
             "type": "String"
+        },
+        "meta": {
+            "type": "Object"
+        },
+        "prefs": {
+            "type": "Object"
         }
     },
     "INDEX": ["fname", "lname"]
