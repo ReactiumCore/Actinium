@@ -115,7 +115,7 @@ const afterDelete = async req => {
     await Actinium.Hook.run('user-after-delete', req);
 };
 
-const beforeSave = async req => {
+const beforeDelete = async req => {
     await Actinium.Hook.run('user-before-delete', req);
 };
 
