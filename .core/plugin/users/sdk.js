@@ -528,4 +528,133 @@ User.Meta.delete = async (params, options) => {
     return user;
 };
 
+/**
+* @api {Asyncronous} Actinium.User.Pref.update(params,options) User.Pref.update()
+* @apiGroup Actinium
+* @apiName User.Pref.update
+* @apiDescription Mutate the Parse.User.pref object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user pref object.
+* @apiParam {Object} options Parse cloud options object.
+* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
+```
+Arguments: fields:Array, params, options
+```
+* @apiParam (hooks) {Hook} user-before-pref-save Triggered before the user update is executed.
+```
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiParam (hooks) {Hook} user-pref-save-response Triggered before the updated user object is returned.
+```
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiExample Usage
+Actinium.User.Pref.update({ objectId: 'aetlkq25', test: 123, out: 456 });
+*/
+User.Pref.update = async (params, options) => {
+    let user = await User.retrieve(_.clone(params), options);
+
+    if (!user) return;
+
+    // remove sensative params
+    let fields = ['objectId', 'username', 'email', 'fname', 'lname'];
+    await Actinium.Hook.run('user-sensative-fields', fields, params, options);
+    fields.forEach(fld => op.del(params, fld));
+
+    const currentPref = op.get(user, 'pref', {});
+
+    let newPref = JSON.parse(JSON.stringify(currentPref));
+    Object.entries(params).forEach(([key, value]) =>
+        op.set(newPref, key.split(',').join('.'), value),
+    );
+    newPref = JSON.parse(JSON.stringify(newPref));
+
+    await Actinium.Hook.run(
+        'user-before-pref-save',
+        newPref,
+        currentPref,
+        user,
+        params,
+        options,
+    );
+
+    user = await User.save({ pref: newPref, objectId: user.objectId }, options);
+
+    await Actinium.Hook.run(
+        'user-pref-save-response',
+        newPref,
+        currentPref,
+        user,
+        params,
+        options,
+    );
+
+    return user;
+};
+
+/**
+* @api {Asyncronous} Actinium.User.Pref.save(params,options) User.Pref.save()
+* @apiGroup Actinium
+* @apiName User.Pref.save
+* @apiDescription Mutate the Parse.User.pref object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user pref object.
+* @apiParam {Object} options Parse cloud options object.
+* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {Array} keys List of object path keys as strings to delete.
+* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
+```
+Arguments: fields:Array, params, options
+```
+* @apiParam (hooks) {Hook} user-before-pref-save Triggered before the user update is executed.
+```
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiParam (hooks) {Hook} user-pref-save-response Triggered before the updated user object is returned.
+```
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
+```
+ * @apiExample Usage
+Actinium.User.Pref.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
+*/
+User.Pref.delete = async (params, options) => {
+    let keys = op.get(params, 'keys', []);
+    keys = typeof keys === 'string' ? [keys] : keys;
+    keys = keys.map(key => (Array.isArray(key) ? key.join('.') : key));
+    if (keys.length < 1) return;
+
+    let user = await User.retrieve(_.clone(params), options);
+    if (!user) return;
+
+    const currentPref = op.get(user, 'pref', {});
+    const pref = JSON.parse(JSON.stringify(currentPref));
+
+    keys.forEach(key => op.del(pref, key));
+
+    await Actinium.Hook.run(
+        'user-before-pref-save',
+        pref,
+        currentPref,
+        user,
+        params,
+        options,
+    );
+
+    user = await User.save({ pref, objectId: user.objectId }, options);
+
+    await Actinium.Hook.run(
+        'user-pref-save-response',
+        pref,
+        currentPref,
+        user,
+        params,
+        options,
+    );
+
+    return user;
+};
+
 module.exports = User;
