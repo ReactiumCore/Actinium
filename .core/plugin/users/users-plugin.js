@@ -182,6 +182,17 @@ const createAvatar = async req => {
     }
 };
 
+const meta = {
+    update: req => {
+        const options = CloudRunOptions(req);
+        return Actinium.User.Meta.update(req.params, options);
+    },
+    delete: req => {
+        const options = CloudRunOptions(req);
+        return Actinium.User.Meta.delete(req.params, options);
+    },
+};
+
 Actinium.Plugin.register(PLUGIN, true);
 
 // Register Blueprints
@@ -229,6 +240,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'user-retrieve', retrieve);
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-trash', trash);
+
+Actinium.Cloud.define(PLUGIN.ID, 'user-meta-update', meta.update);
+
+Actinium.Cloud.define(PLUGIN.ID, 'user-meta-delete', meta.delete);
 
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
 

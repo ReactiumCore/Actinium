@@ -11,10 +11,13 @@ const COLLECTION_ROLE = '_Role';
 
 const User = { Meta: {}, Pref: {} };
 
-User.currentUser = options =>
-    op.has(options, 'sessionToken')
-        ? UserFromSession(options.sessionToken)
+User.currentUser = async (options, toObject = false) => {
+    const response = op.has(options, 'sessionToken')
+        ? await UserFromSession(options.sessionToken)
         : undefined;
+
+    return toObject === true && response ? serialize(response) : response;
+};
 
 /**
  * @api {Object} Actinium.User User
@@ -96,11 +99,14 @@ User.save = async (params, options) => {
 
     user = serialize(user);
 
+    const current = await User.currentUser(options);
     await Actinium.Recycle.revision({
         collection: COLLECTION,
         object: user,
-        user: User.currentUser(options),
+        user: current,
     });
+
+    return User.retrieve({ objectId: user.objectId }, options);
 };
 
 /**
@@ -373,13 +379,76 @@ User.trash = async (params, options) => {
 
     if (!userObj) return;
 
+    const current = await User.currentUser(options);
     await Actinium.Recycle.trash({
         collection: COLLECTION,
         object: userObj.toJSON(),
-        user: User.currentUser(options),
+        user: current,
     });
 
     await userObj.destroy(options);
+};
+
+/**
+* @api {Asyncronous} Actinium.User.Meta.update(params,options) User.Meta.update()
+* @apiGroup Actinium
+* @apiName User.Meta.update
+* @apiDescription Mutate the Parse.User.meta object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user meta object.
+* @apiParam {Object} options Parse cloud options object.
+* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
+```
+Arguments: fields:Array, params, options
+```
+* @apiParam (hooks) {Hook} user-before-meta-save Triggered before the user update is executed.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiParam (hooks) {Hook} user-meta-save-response Triggered before the updated user object is returned.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiExample Usage
+Actinium.User.Meta.update({ objectId: 'aetlkq25', test: 123, out: 456 }); 
+*/
+User.Meta.update = async (params, options) => {
+    let user = await User.retrieve(_.clone(params), options);
+
+    if (!user) return;
+
+    // remove sensative params
+    let fields = ['objectId', 'username', 'email', 'fname', 'lname'];
+    await Actinium.Hook.run('user-sensative-fields', fields, params, options);
+    fields.forEach(fld => op.del(params, fld));
+
+    const currentMeta = op.get(user, 'meta', {});
+    let meta = { ..._.clone(currentMeta), ...params };
+    meta = JSON.parse(JSON.stringify(meta));
+
+    await Actinium.Hook.run(
+        'user-before-meta-save',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    user = await User.save({ meta, objectId: user.objectId }, options);
+
+    await Actinium.Hook.run(
+        'user-meta-save-response',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    return user;
 };
 
 /**
@@ -392,25 +461,54 @@ User.trash = async (params, options) => {
 * @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
 * @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
 * @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {Array} keys List of object path keys to delete.
 * @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
 ```
 Arguments: fields:Array, params, options
 ```
+* @apiParam (hooks) {Hook} user-before-meta-save Triggered before the user update is executed.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiParam (hooks) {Hook} user-meta-save-response Triggered before the updated user object is returned.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+ * @apiExample Usage
+Actinium.User.Meta.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
 */
-User.Meta.save = async (params, options) => {
-    const user = await User.retrieve(_.clone(params), options);
+User.Meta.delete = async (params, options) => {
+    let user = await User.retrieve(_.clone(params), options);
+    const keys = _.flatten([op.get(params, 'keys', [])]);
 
-    if (!user) return;
-
-    // remove sensative params
-    let fields = ['objectId', 'username', 'email', 'fname', 'lname'];
-    await Actinium.Hook.run('user-sensative-fields', fields, params, options);
-    fields.forEach(fld => op.del(params, fld));
+    if (!user || keys.length < 1) return;
 
     const currentMeta = op.get(user, 'meta', {});
-    const meta = { ...currentMeta, ...params };
+    let meta = _.clone(currentMeta);
+    meta = JSON.parse(JSON.stringify(meta));
 
-    await User.save({ meta }, options);
+    keys.forEach(key => op.del(meta, key));
+
+    await Actinium.Hook.run(
+        'user-before-meta-save',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    user = await User.save({ meta, objectId: user.objectId }, options);
+
+    await Actinium.Hook.run(
+        'user-meta-save-response',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    return user;
 };
-
 module.exports = User;
