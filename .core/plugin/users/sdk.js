@@ -11,6 +11,16 @@ const COLLECTION_ROLE = '_Role';
 
 const User = { Meta: {}, Pref: {} };
 
+/**
+ * @api {Asyncronous} Actinium.User.currentUser(options) User.currentUser()
+ * @apiGroup Actinium
+ * @apiName User.currentUser
+ * @apiDescription Get the current user from the options object.
+ * @apiParam {Object} options Parse options object containing a `sessionToken` property.
+ * @apiParam {Boolean} [serialize=false] Whether to serialize the response.
+ * @apiExample Usage:
+const currentUser = await Actinium.User.currentUser({ sessionToken: 'alketjaTelB23tjalejtljgvae' });
+ */
 User.currentUser = async (options, toObject = false) => {
     const response = op.has(options, 'sessionToken')
         ? await UserFromSession(options.sessionToken)
@@ -412,7 +422,7 @@ Arguments: meta:Object, prev:Object, user:Parse.User, params, options
 Arguments: meta:Object, prev:Object, user:Parse.User, params, options
 ```
 * @apiExample Usage
-Actinium.User.Meta.update({ objectId: 'aetlkq25', test: 123, out: 456 }); 
+Actinium.User.Meta.update({ objectId: 'aetlkq25', test: 123, out: 456 });
 */
 User.Meta.update = async (params, options) => {
     let user = await User.retrieve(_.clone(params), options);
@@ -511,4 +521,5 @@ User.Meta.delete = async (params, options) => {
 
     return user;
 };
+
 module.exports = User;
