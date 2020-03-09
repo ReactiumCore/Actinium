@@ -443,6 +443,76 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
 });
 
 /**
+ * @api {Asynchronous} content-label-branch content-label-branch
+ * @apiDescription Clone a branch / specific region as a new branch.
+ * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam {Object} branchLabel New branch label.
+ * @apiParam {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam {String} [slug] The unique slug for the content.
+ * @apiParam {String} [objectId] The objectId for the content.
+ * @apiParam {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName content-label-branch()
+ * @apiGroup Cloud
+ */
+Actinium.Cloud.define(PLUGIN.ID, 'content-label-branch', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+    const options = Actinium.Utils.CloudHasCapabilities(req, [
+        `${collection}.updateAny`,
+    ])
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    return Actinium.Content.labelBranch(req.params, options);
+});
+
+/**
+  * @api {Asynchronous} content-clone-branch content-clone-branch
+  * @apiDescription Clone a branch / specific revision as a new branch.
+  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
+  * @apiParam {Object} branchLabel New branch label.
+  * @apiParam {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+  otherwise, construct the content from the provided history (branch and revision index).
+  * @apiParam {Object} [history] revision history to retrieve, containing branch and revision index.
+  * @apiParam {String} [slug] The unique slug for the content.
+  * @apiParam {String} [objectId] The objectId for the content.
+  * @apiParam {String} [uuid] The uuid for the content.
+  * @apiParam (type) {String} [objectId] Parse objectId of content type
+  * @apiParam (type) {String} [uuid] UUID of content type
+  * @apiParam (type) {String} [machineName] the machine name of the existing content type
+  * @apiParam (history) {String} [branch=master] the revision branch of current content
+  * @apiName content-clone-branch
+  * @apiGroup Cloud
+  */
+Actinium.Cloud.define(PLUGIN.ID, 'content-clone-branch', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+    const options = Actinium.Utils.CloudHasCapabilities(req, [
+        `${collection}.updateAny`,
+    ])
+        ? Actinium.Utils.CloudMasterOptions(req)
+        : Actinium.Utils.CloudRunOptions(req);
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    return Actinium.Content.cloneBranch(req.params, options);
+});
+
+/**
  * @api {Asynchronous} Content.changeSlug(params,options) Content.changeSlug()
  * @apiDescription Update the official slug for existing content. This results in a new uuid.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
