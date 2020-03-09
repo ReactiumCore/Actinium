@@ -435,23 +435,27 @@ User.Meta.update = async (params, options) => {
     fields.forEach(fld => op.del(params, fld));
 
     const currentMeta = op.get(user, 'meta', {});
-    let meta = { ..._.clone(currentMeta), ...params };
-    meta = JSON.parse(JSON.stringify(meta));
+
+    let newMeta = JSON.parse(JSON.stringify(currentMeta));
+    Object.entries(params).forEach(([key, value]) =>
+        op.set(newMeta, key.split(',').join('.'), value),
+    );
+    newMeta = JSON.parse(JSON.stringify(newMeta));
 
     await Actinium.Hook.run(
         'user-before-meta-save',
-        meta,
+        newMeta,
         currentMeta,
         user,
         params,
         options,
     );
 
-    user = await User.save({ meta, objectId: user.objectId }, options);
+    user = await User.save({ meta: newMeta, objectId: user.objectId }, options);
 
     await Actinium.Hook.run(
         'user-meta-save-response',
-        meta,
+        newMeta,
         currentMeta,
         user,
         params,
@@ -471,7 +475,7 @@ User.Meta.update = async (params, options) => {
 * @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
 * @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
 * @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
-* @apiParam (params) {Array} keys List of object path keys to delete.
+* @apiParam (params) {Array} keys List of object path keys as strings to delete.
 * @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
 ```
 Arguments: fields:Array, params, options
@@ -488,14 +492,16 @@ Arguments: meta:Object, prev:Object, user:Parse.User, params, options
 Actinium.User.Meta.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
 */
 User.Meta.delete = async (params, options) => {
-    let user = await User.retrieve(_.clone(params), options);
-    const keys = _.flatten([op.get(params, 'keys', [])]);
+    let keys = op.get(params, 'keys', []);
+    keys = typeof keys === 'string' ? [keys] : keys;
+    keys = keys.map(key => (Array.isArray(key) ? key.join('.') : key));
+    if (keys.length < 1) return;
 
-    if (!user || keys.length < 1) return;
+    let user = await User.retrieve(_.clone(params), options);
+    if (!user) return;
 
     const currentMeta = op.get(user, 'meta', {});
-    let meta = _.clone(currentMeta);
-    meta = JSON.parse(JSON.stringify(meta));
+    const meta = JSON.parse(JSON.stringify(currentMeta));
 
     keys.forEach(key => op.del(meta, key));
 

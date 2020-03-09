@@ -1,7 +1,12 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const op = require('object-path');
-const { AclTargets, CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
+const contentList = require('./_plugins/content-list');
+const {
+    AclTargets,
+    CloudRunOptions,
+    MasterOptions,
+} = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = '_User';
 
@@ -274,6 +279,37 @@ Actinium.Hook.register('start', async () => {
         { useMasterKey: true },
     );
 });
+
+Actinium.Hook.register('content-saved', contentList);
+Actinium.Hook.register(
+    'content-status-change',
+    (contentObj, typeObj, status, prev) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        if (prev !== 'TRASH' && status === 'TRASH') return;
+        return contentList(contentObj, typeObj, false);
+    },
+);
+
+Actinium.Hook.register(
+    'content-trashed',
+    async (contentObj, typeObj, isNew) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        const user = op.has(contentObj, 'user')
+            ? await Actinium.User.retrieve({
+                  objectId: contentObj.user.objectId,
+              })
+            : false;
+
+        if (!user) return;
+
+        const key = ['content', typeObj.objectId, contentObj.objectId];
+        Actinium.User.Meta.delete(
+            { objectId: user.objectId, keys: key.join('.') },
+            MasterOptions(),
+        );
+    },
+);
 
 Actinium.Hook.register(
     'user-before-save',

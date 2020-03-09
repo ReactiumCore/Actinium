@@ -1864,12 +1864,20 @@ Content.setStatus = async (params, options) => {
      * @api {Hook} content-status-change content-status-change
      * @apiDescription Hook called before return of `Content.setStatus()`.
      Useful for responding to changes of content status.
-     * @apiParam {Object} contentObj the content object after status change
-     * @apiParam {Object} typeObj the type object of the content
+     * @apiParam {Object} contentObj the content object after status change.
+     * @apiParam {Object} typeObj the type object of the content.
+     * @apiParam {String} status the new status.
+     * @apiParam {String} previousStatus the previous status.
      * @apiName content-status-change
      * @apiGroup Hooks
      */
-    await Actinium.Hook.run('content-status-change', contentObj, typeObj);
+    await Actinium.Hook.run(
+        'content-status-change',
+        contentObj,
+        typeObj,
+        status,
+        currentStatus,
+    );
     return contentObj;
 };
 
