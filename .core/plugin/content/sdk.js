@@ -468,6 +468,9 @@ Content.createBranch = async (
                 userId: op.get(user, 'id'),
                 changeType: ENUMS.CHANGES.CREATED_BRANCH,
                 meta: {
+                    uuid: op.get(contentObj, 'uuid'),
+                    slug: op.get(content, 'slug'),
+                    type: op.get(slug, 'type'),
                     branches,
                     history,
                 },
@@ -981,6 +984,9 @@ Content.create = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.CREATED,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 history: history,
             },
         },
@@ -1063,8 +1069,9 @@ Content.changeSlug = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.SLUG_CHANGED,
             meta: {
-                slug,
                 uuid,
+                slug,
+                type: op.get(typeObj, 'type'),
                 originalSlug,
                 originalUUID,
             },
@@ -1230,6 +1237,9 @@ Content.setCurrent = async (params, options) => {
                     userId,
                     changeType: ENUMS.CHANGES.SET_REVISION,
                     meta: {
+                        uuid: op.get(contentObj, 'uuid'),
+                        slug: op.get(contentObj, 'slug'),
+                        type: op.get(typeObj, 'type'),
                         history: savedObj.history,
                     },
                 },
@@ -1310,6 +1320,9 @@ Content.setPermissions = async (params, options) => {
                     userId: changeUserId,
                     changeType: ENUMS.CHANGES.SET_ACL,
                     meta: {
+                        uuid: op.get(contentObj, 'uuid'),
+                        slug: op.get(contentObj, 'slug'),
+                        type: op.get(typeObj, 'type'),
                         ACL,
                     },
                 },
@@ -1474,6 +1487,9 @@ Content.update = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.REVISED,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 history: revHistory,
             },
         },
@@ -1596,6 +1612,11 @@ Content.delete = async (params, options) => {
             collection,
             userId,
             changeType: ENUMS.CHANGES.DELETED,
+            meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
+            },
         },
         masterOptions,
     );
@@ -1671,6 +1692,9 @@ Content.restore = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.RESTORED,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 originalId: op.get(params, 'objectId'),
                 history: op.get(contentObj, 'history'),
             },
@@ -1730,6 +1754,9 @@ Content.publish = async (params, options) => {
             userId,
             changeType,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 history: op.get(contentObj, 'history'),
             },
         },
@@ -1820,6 +1847,9 @@ Content.setStatus = async (params, options) => {
             userId,
             changeType,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 history: op.get(contentObj, 'history'),
                 status,
             },
@@ -1893,6 +1923,11 @@ Content.unpublish = async (params, options) => {
             collection,
             userId,
             changeType,
+            meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
+            },
         },
         masterOptions,
     );
@@ -1995,6 +2030,9 @@ Content.schedule = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.SCHEDULE,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 publish: publish[pubId],
             },
         },
@@ -2053,6 +2091,9 @@ Content.unschedule = async (params, options) => {
             userId,
             changeType: ENUMS.CHANGES.UNSCHEDULE,
             meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
                 publish,
             },
         },
