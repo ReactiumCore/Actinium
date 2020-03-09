@@ -332,4 +332,42 @@ User.retrieve = async (params, options) => {
     return user;
 };
 
+/**
+ * @api {Asyncronous} Actinium.User.trash(params,options) User.trash()
+ * @apiGroup Actinium
+ * @apiName User.trash
+ * @apiDescription Send a single `Parse.User` object to the recycle bin.
+ * @apiParam {Object} params Object containing parameters for deleting a user.
+ * @apiParam {Object} options Parse cloud options object.
+ * @apiParam (params) {String} objectId The Parse.User objectId.
+ * @apiParam (hooks) {Hook} user-before-delete Triggered before the `Parse.User` object is deleted.
+
+```
+Arguments: req:Object:Parse.User
+```
+ * @apiParam (hooks) {Hook} user-after-delete Triggered after the `Parse.User` object is deleted.
+
+ ```
+ Arguments: req:Object:Parse.User
+ ```
+ */
+User.trash = async (params, options, currentUser) => {
+    const objectId = op.get(params, 'objectId');
+    if (!objectId) return new Error('objectId is a required parameter');
+
+    const userObj = await new Parse.Query(COLLECTION)
+        .equalTo('objectId', objectId)
+        .first();
+
+    if (!userObj) return;
+
+    await Actinium.Recycle({
+        collection: COLLECTION,
+        object: userObj.toJSON(),
+        user: currentUser,
+    });
+
+    await userObj.destroy(options);
+};
+
 module.exports = User;

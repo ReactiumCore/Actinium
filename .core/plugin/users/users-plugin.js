@@ -106,6 +106,14 @@ const beforeSave = async req => {
     await Actinium.Hook.run('user-before-save', req);
 };
 
+const afterDelete = async req => {
+    await Actinium.Hook.run('user-after-delete', req);
+};
+
+const beforeSave = async req => {
+    await Actinium.Hook.run('user-before-delete', req);
+};
+
 const createAvatar = async req => {
     let avatar = req.object.get('avatar');
 
@@ -191,6 +199,8 @@ Actinium.Cloud.afterFind(COLLECTION, afterFind);
 
 Actinium.Cloud.afterSave(COLLECTION, afterSave);
 
+Actinium.Cloud.afterDelete(COLLECTION, afterDelete);
+
 Actinium.Cloud.beforeLogin(beforeLogin);
 
 Actinium.Collection.register(COLLECTION, {
@@ -202,6 +212,8 @@ Actinium.Collection.register(COLLECTION, {
 });
 
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
+
+Actinium.Cloud.beforeDelete(COLLECTION, beforeDelete);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);
 
