@@ -647,7 +647,8 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam (params) {String} [status] "PUBLISHED" or "DRAFT", or other custom status of the content
  * @apiParam (params) {String} [orderBy=updatedAt] Field to order the results by.
- * @apiParam (params) {String} [direction=descending] Order "descending" or "ascending"
+ * @apiParam (params) {String} [order=descending] Order "descending" or "ascending"
+ * @apiParam (params) {String} [indexBy] Out put the results as an {Object} indexed by the specified collection field.
  * @apiParam (params) {Number} [limit=20] Limit page results
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
@@ -676,12 +677,15 @@ Content.list = async (params, options) => {
     let limit = Math.min(op.get(params, 'limit', 20), 1000);
     const optimize = op.get(params, 'optimize', false);
     const refresh = op.get(params, 'refresh', false);
-    const skip = page * limit - limit;
+    const indexBy = op.get(params, 'indexBy');
     const orderBy = op.get(params, 'orderBy', 'updatedAt');
-
-    let direction = op.get(params, 'direction', 'descending');
-    const directions = ['ascending', 'descending'];
-    if (!directions.includes(direction)) direction = 'descending';
+    const orders = ['ascending', 'descending'];
+    let order = op.get(
+        params,
+        'order',
+        op.get(params, 'direction', 'descending'),
+    );
+    order = !orders.includes(order) ? 'descending' : order;
 
     const qry = new Parse.Query(collection);
     const status = op.get(params, 'status');
@@ -696,20 +700,26 @@ Content.list = async (params, options) => {
 
     const cacheKey = [
         `content-${collection}`,
-        _.compact([limit, page, direction, status]).join('_'),
+        _.compact([limit, page, order, orderBy, status]).join('_'),
     ];
 
     let response = Actinium.Cache.get(cacheKey);
     if (response && !refresh) return response;
 
-    qry[direction](orderBy)
+    const skip = page * limit - limit;
+
+    qry[order](orderBy)
         .limit(limit)
         .skip(skip);
+
+    await Actinium.Hook.run('content-query', qry, params, options);
 
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
+
+    await Actinium.Hook.run('content-query-results', results, params, options);
 
     response = {
         count,
@@ -717,8 +727,16 @@ Content.list = async (params, options) => {
         page,
         pages,
         prev,
+        limit,
+        order,
+        orderBy,
+        indexBy,
         results: results.map(item => serialize(item)),
     };
+
+    if (indexBy) {
+        op.set(response, 'results', _.indexBy(response.results, indexBy));
+    }
 
     Actinium.Cache.set(cacheKey, response, ENUMS.CACHE);
 

@@ -1,0 +1,21 @@
+{
+    "ACTIONS": {
+        "addField": false,
+        "create": false,
+        "delete": false,
+        "retrieve": true,
+        "update": false
+    },
+    "SCHEMA": {
+        "fname": {
+            "type": "String"
+        },
+        "lname": {
+            "type": "String"
+        },
+        "avatar": {
+            "type": "String"
+        }
+    },
+    "INDEX": ["fname", "lname"]
+}

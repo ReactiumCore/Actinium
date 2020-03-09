@@ -20,6 +20,10 @@ const PLUGIN = {
     },
 };
 
+const PLUGIN_ROUTES = require('./routes');
+const PLUGIN_BLUEPRINTS = require('./blueprints');
+const PLUGIN_SCHEMA = require('./schema');
+
 const avatarTypes = {
     jpeg: 'jpg',
     jpg: 'jpg',
@@ -59,84 +63,14 @@ const beforeLogin = async req => {
     await Actinium.Hook.run('user-before-login', user);
 };
 
-const find = async req => {
-    let { objectId, username, email, page = 1, limit = 1000 } = req.params;
-
-    const qry = new Parse.Query(COLLECTION);
-
-    if (objectId) {
-        qry.equalTo('objectId', objectId);
-    }
-
-    if (username) {
-        qry.equalTo('username', username);
-    }
-
-    if (email) {
-        qry.equalTo('email', email);
-    }
-
+const find = req => {
     const options = CloudRunOptions(req);
-    let output;
-
-    if (objectId || username || email) {
-        await Actinium.Hook.run('user-before-find', qry);
-        const user = await qry.first(options);
-        output = (await user)
-            ? Promise.resolve(user.toJSON())
-            : Promise.resolve({});
-    } else {
-        limit = Math.min(limit, 10000);
-        const skip = page * limit - limit;
-        qry.limit(limit);
-        qry.skip(skip);
-
-        await Actinium.Hook.run('user-before-find', qry);
-
-        output = await qry.find(options);
-    }
-
-    return output;
+    return Actinium.User.list(req.params, options);
 };
 
-const save = async req => {
+const save = req => {
     const options = CloudRunOptions(req);
-    const { role, ...params } = req.params;
-
-    const userObj = new Parse.Object(COLLECTION);
-
-    Object.entries(params).forEach(([key, value]) => {
-        if (value === null) {
-            userObj.unset(key);
-        } else {
-            userObj.set(key, value);
-        }
-    });
-
-    let user;
-    try {
-        user = await userObj.save(params, options);
-    } catch (err) {
-        throw new Error(err);
-    }
-
-    if (!user) {
-        throw new Error('unable to save user');
-    }
-
-    try {
-        if (role) {
-            await Parse.Cloud.run(
-                'role-user-add',
-                { user: user.id, role },
-                options,
-            ).catch(console.log);
-        }
-    } catch (err) {
-        console.log(err);
-    }
-
-    return Promise.resolve(user);
+    return Actinium.User.save(req.params, options);
 };
 
 const validate = req => {
@@ -232,6 +166,22 @@ const createAvatar = async req => {
 
 Actinium.Plugin.register(PLUGIN, true);
 
+// Register Blueprints
+Actinium.Hook.register(
+    'blueprint-defaults',
+    blueprints => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
+    },
+    -1000,
+);
+
+// Register Routes
+Actinium.Hook.register('route-defaults', routes => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    PLUGIN_ROUTES.forEach(item => routes.push(item));
+});
+
 Actinium.Cloud.afterFind(COLLECTION, afterFind);
 
 Actinium.Cloud.afterSave(COLLECTION, afterSave);
@@ -250,6 +200,8 @@ Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-find', find);
 
+Actinium.Cloud.define(PLUGIN.ID, 'user-list', find);
+
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
 
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
@@ -261,8 +213,20 @@ Actinium.Capability.register('acl-targets', {
 Actinium.Cloud.define(PLUGIN.ID, 'acl-targets', AclTargets);
 
 // Hooks
-Actinium.Hook.register('start', () => {
+Actinium.Hook.register('schema', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    await Actinium.Collection.register(
+        '_User',
+        PLUGIN_SCHEMA.ACTIONS,
+        PLUGIN_SCHEMA.SCHEMA,
+        PLUGIN_SCHEMA.INDEX,
+    );
+});
+
+Actinium.Hook.register('start', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
     return Actinium.Cloud.run(
         'acl-targets',
         { cache: true },

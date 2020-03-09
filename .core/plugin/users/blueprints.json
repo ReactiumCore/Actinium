@@ -1,0 +1,61 @@
+[
+    {
+        "ID": "Users",
+        "description": "User list blueprint",
+        "className": "Blueprint",
+        "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {
+                    "fullscreen": "hide"
+                }
+            },
+            "main": {
+                "zones": ["admin-header", "admin-user-list", "admin-actions"],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true,
+            "namespace": "admin-page"
+        }
+    },
+    {
+        "ID": "User-Editor",
+        "description": "User editor blueprint",
+        "className": "Blueprint",
+        "sections": {
+            "sidebar": {
+                "zones": ["admin-sidebar"],
+                "meta": {
+                    "fullscreen": "hide"
+                }
+            },
+            "main": {
+                "zones": [
+                    {
+                        "zone": "admin-header",
+                        "meta": {
+                            "fullscreen": "hide"
+                        }
+                    },
+                    "admin-user-editor",
+                    "admin-user-meta",
+                    {
+                        "zone": "admin-user-actions",
+                        "meta": {
+                            "fullscreen": "show"
+                        }
+                    }
+                ],
+                "meta": {}
+            }
+        },
+        "meta": {
+            "admin": true,
+            "builtIn": true,
+            "namespace": "admin-page"
+        }
+    }
+]

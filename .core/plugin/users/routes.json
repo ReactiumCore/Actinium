@@ -1,0 +1,23 @@
+[
+    {
+        "route": "/admin/users/page/:page",
+        "blueprint": "Users",
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "route": "/admin/users",
+        "blueprint": "Users",
+        "meta": {
+            "builtIn": true
+        }
+    },
+    {
+        "route": "/admin/user/:id",
+        "blueprint": "User-Editor",
+        "meta": {
+            "builtIn": true
+        }
+    }
+]
