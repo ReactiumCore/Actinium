@@ -78,6 +78,11 @@ const save = req => {
     return Actinium.User.save(req.params, options);
 };
 
+const trash = req => {
+    const options = CloudRunOptions(req);
+    return Actinium.User.trash(req.params, options, req.user);
+};
+
 const validate = req => {
     if (!op.get(req, 'user')) {
         throw new Error('invalid session token');
@@ -222,6 +227,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'user-list', find);
 Actinium.Cloud.define(PLUGIN.ID, 'user-retrieve', retrieve);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-save', save);
+
+Actinium.Cloud.define(PLUGIN.ID, 'user-trash', trash);
 
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
 

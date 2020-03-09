@@ -339,6 +339,7 @@ User.retrieve = async (params, options) => {
  * @apiDescription Send a single `Parse.User` object to the recycle bin.
  * @apiParam {Object} params Object containing parameters for deleting a user.
  * @apiParam {Object} options Parse cloud options object.
+ * @apiParam {Parse.User} currentUser The current user executing the command. 
  * @apiParam (params) {String} objectId The Parse.User objectId.
  * @apiParam (hooks) {Hook} user-before-delete Triggered before the `Parse.User` object is deleted.
 
