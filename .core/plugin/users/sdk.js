@@ -333,13 +333,13 @@ User.retrieve = async (params, options) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.trash(params,options) User.trash()
+ * @api {Asyncronous} Actinium.User.trash(params,options,currentUser) User.trash()
  * @apiGroup Actinium
  * @apiName User.trash
  * @apiDescription Send a single `Parse.User` object to the recycle bin.
  * @apiParam {Object} params Object containing parameters for deleting a user.
  * @apiParam {Object} options Parse cloud options object.
- * @apiParam {Parse.User} currentUser The current user executing the command. 
+ * @apiParam {Parse.User} currentUser The current user executing the command.
  * @apiParam (params) {String} objectId The Parse.User objectId.
  * @apiParam (hooks) {Hook} user-before-delete Triggered before the `Parse.User` object is deleted.
 

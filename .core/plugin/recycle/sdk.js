@@ -140,7 +140,7 @@ Actinium.Recycle.archive({
  * @apiParam {String} [params.type] Delete a specific type of Recycle objects. Valid options: `archive`, `delete`, `revision`.
  * @apiParam {Object} options Parse options object.
  * @apiExample Example Usage:
-Actinium.Recycle.purge({ collect: '_User' });
+Actinium.Recycle.purge({ collection: '_User' });
  */
 
 /**
