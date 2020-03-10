@@ -110,11 +110,14 @@ User.save = async (params, options) => {
     user = serialize(user);
 
     const current = await User.currentUser(options);
-    await Actinium.Recycle.revision({
-        collection: COLLECTION,
-        object: user,
-        user: current,
-    });
+    await Actinium.Recycle.revision(
+        {
+            collection: COLLECTION,
+            object: user,
+            user: current,
+        },
+        options,
+    );
 
     return User.retrieve({ objectId: user.objectId }, options);
 };
@@ -390,11 +393,14 @@ User.trash = async (params, options) => {
     if (!userObj) return;
 
     const current = await User.currentUser(options);
-    await Actinium.Recycle.trash({
-        collection: COLLECTION,
-        object: userObj.toJSON(),
-        user: current,
-    });
+    await Actinium.Recycle.trash(
+        {
+            collection: COLLECTION,
+            object: userObj.toJSON(),
+            user: current,
+        },
+        options,
+    );
 
     await userObj.destroy(options);
 };
