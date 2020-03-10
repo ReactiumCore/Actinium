@@ -198,6 +198,17 @@ const meta = {
     },
 };
 
+const pref = {
+    update: req => {
+        const options = CloudRunOptions(req);
+        return Actinium.User.Pref.update(req.params, options);
+    },
+    delete: req => {
+        const options = CloudRunOptions(req);
+        return Actinium.User.Pref.delete(req.params, options);
+    },
+};
+
 Actinium.Plugin.register(PLUGIN, true);
 
 // Register Blueprints
@@ -250,6 +261,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'user-meta-update', meta.update);
 
 Actinium.Cloud.define(PLUGIN.ID, 'user-meta-delete', meta.delete);
 
+Actinium.Cloud.define(PLUGIN.ID, 'user-pref-update', pref.update);
+
+Actinium.Cloud.define(PLUGIN.ID, 'user-pref-delete', pref.delete);
+
 Actinium.Cloud.define(PLUGIN.ID, 'session-validate', validate);
 
 Actinium.Capability.register('acl-targets', {
@@ -281,11 +296,12 @@ Actinium.Hook.register('start', async () => {
 });
 
 Actinium.Hook.register('content-saved', contentList);
+
 Actinium.Hook.register(
     'content-status-change',
     (contentObj, typeObj, status, prev) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        if (prev !== 'TRASH' && status === 'TRASH') return;
+        if (prev !== 'TRASH' || status === 'TRASH') return;
         return contentList(contentObj, typeObj, false);
     },
 );
