@@ -426,6 +426,9 @@ Content.createBranch = async (
     if (!branchLabel && branch !== 'master') branchLabel = 'Unlabeled';
 
     const branches = op.get(content, 'branches', {});
+    op.set(branches, [branch, 'label'], branchLabel);
+    op.set(branches, [branch, 'history'], []);
+
     const currentBranchId = op.get(content, 'history.branch');
     const currentRevisionIndex = op.get(content, 'history.revision');
 
@@ -443,11 +446,6 @@ Content.createBranch = async (
 
     // need to create new base revision for this branch
     if (currentRevisionIndex !== 0) {
-        op.set(branches, [branch, 'history'], []);
-        op.set(branches, [branch, 'label'], branchLabel);
-        op.set(content, 'branches', branches);
-        op.set(content, 'history', { branch });
-
         const revObj = {
             collection: op.get(type, 'collection'),
             object: serialize(content),
@@ -468,9 +466,9 @@ Content.createBranch = async (
                 userId: op.get(user, 'id'),
                 changeType: ENUMS.CHANGES.CREATED_BRANCH,
                 meta: {
-                    uuid: op.get(contentObj, 'uuid'),
+                    uuid: op.get(content, 'uuid'),
                     slug: op.get(content, 'slug'),
-                    type: op.get(slug, 'type'),
+                    type: op.get(content, 'type'),
                     branches,
                     history,
                 },
@@ -1449,7 +1447,10 @@ Content.update = async (params, options) => {
     // Create new revision branch
     const newRevision = {
         collection: typeObj.collection,
-        object: diff,
+        object: {
+            ...diff,
+            ACL: contentObj.ACL,
+        },
     };
 
     if (params.user) op.set(newRevision, 'user', params.user);
