@@ -173,9 +173,9 @@ User.list = async (params, options) => {
     const optimize = op.get(params, 'optimize', false);
     const refresh = op.get(params, 'refresh', false);
     const indexBy = op.get(params, 'indexBy');
-    const orderBy = op.get(params, 'orderBy', 'username');
+    const orderBy = op.get(params, 'orderBy', ['fname', 'lname']);
     const orders = ['ascending', 'descending'];
-    let order = op.get(params, 'order', 'ascending');
+    let order = String(op.get(params, 'order', 'ascending')).toLowerCase();
     order = !orders.includes(order) ? 'ascending' : order;
 
     let qry = new Parse.Query(COLLECTION);
@@ -260,9 +260,13 @@ User.list = async (params, options) => {
 
     const skip = page * limit - limit;
 
-    qry[order](orderBy)
-        .limit(limit)
-        .skip(skip);
+    qry.limit(limit).skip(skip);
+
+    if (order === 'ascending') {
+        qry.addAscending(orderBy);
+    } else {
+        qry.addDescending(orderBy);
+    }
 
     await Actinium.Hook.run('user-list-query', qry, params, options);
 
