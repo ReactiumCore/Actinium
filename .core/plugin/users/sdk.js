@@ -266,7 +266,7 @@ User.list = async (params, options) => {
 
     await Actinium.Hook.run('user-list-query', qry, params, options);
 
-    const pages = Math.ceil(count / limit);
+    const pages = Math.max(Math.ceil(count / limit), 1);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
