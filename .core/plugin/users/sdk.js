@@ -1,3 +1,6 @@
+const COLLECTION = '_User';
+const COLLECTION_ROLE = '_Role';
+
 const _ = require('underscore');
 const ENUMS = require('./enums');
 const moment = require('moment');
@@ -6,9 +9,12 @@ const slugify = require('slugify');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
 
-const COLLECTION = '_User';
-const COLLECTION_ROLE = '_Role';
-
+/**
+ * @api {Object} Actinium.User User
+ * @apiGroup Actinium
+ * @apiVersion 3.0.3
+ * @apiDescription Set of functions to interact with the User collection.
+ */
 const User = { Meta: {}, Pref: {} };
 
 /**
@@ -27,99 +33,6 @@ User.currentUser = async (options, toObject = false) => {
         : undefined;
 
     return toObject === true && response ? serialize(response) : response;
-};
-
-/**
- * @api {Object} Actinium.User User
- * @apiGroup Actinium
- * @apiVersion 3.0.3
- * @apiDescription Set of functions to interact with the User collection.
- */
-
-/**
- * @api {Asyncronous} Actinium.User.save(params,options) User.save()
- * @apiGroup Actinium
- * @apiName User.save
- * @apiDescription Save a `Parse.User` object.
- * @apiParam {Object} params Key value pairs to apply to the `Parse.User` object.
-
- _Note:_ Any additional key value pairs will be added to the user object as a new column.
-
- * @apiParam {Object} options Parse cloud options object.
- * @apiParam (params) {String} username The unique username used when signing in.
- * @apiParam (params) {String} email The email address to associate with the user account.
- * @apiParam (params) {String} password The password used when signing in.
- * @apiParam (params) {String} [role] The `Parse.Role` name to add the user to.
- * @apiParam (hooks) {Hook} user-before-save Mutate the `Parse.User` object before save is complete.
-
-```
-Arguments:  req:Object:Parse.User
-```
- * @apiParam (hooks) {Hook} user-after-save Take action after the `Parse.User` object has been saved.
-```
-Arguments: req:Object:Parse.User
-```
- */
-User.save = async (params, options) => {
-    // Get the role
-    const role = op.get(params, 'role');
-
-    // Remove role from params
-    op.del(params, 'role');
-
-    // Create the user object
-    const userObj = new Parse.Object(COLLECTION);
-
-    // Apply parameters to the userObj
-    Object.entries(params).forEach(([key, value]) => {
-        if (value === null) {
-            userObj.unset(key);
-        } else {
-            userObj.set(key, value);
-        }
-    });
-
-    // Save the user
-    let user;
-    try {
-        user = await userObj.save(params, options);
-    } catch (err) {
-        throw new Error(err);
-    }
-
-    // Handle error
-    if (!user) {
-        throw new Error('unable to save user');
-    }
-
-    // Apply the role
-    try {
-        if (role) {
-            await Parse.Cloud.run(
-                'role-user-add',
-                { user: user.id, role },
-                options,
-            ).catch(console.log);
-        }
-    } catch (err) {
-        console.log(err);
-    }
-
-    Actinium.Cache.del('users');
-
-    user = serialize(user);
-
-    const current = await User.currentUser(options);
-    await Actinium.Recycle.revision(
-        {
-            collection: COLLECTION,
-            object: user,
-            user: current,
-        },
-        options,
-    );
-
-    return User.retrieve({ objectId: user.objectId }, options);
 };
 
 /**
@@ -368,6 +281,92 @@ User.retrieve = async (params, options) => {
 };
 
 /**
+ * @api {Asyncronous} Actinium.User.save(params,options) User.save()
+ * @apiGroup Actinium
+ * @apiName User.save
+ * @apiDescription Save a `Parse.User` object.
+ * @apiParam {Object} params Key value pairs to apply to the `Parse.User` object.
+
+ _Note:_ Any additional key value pairs will be added to the user object as a new column.
+
+ * @apiParam {Object} options Parse cloud options object.
+ * @apiParam (params) {String} username The unique username used when signing in.
+ * @apiParam (params) {String} email The email address to associate with the user account.
+ * @apiParam (params) {String} password The password used when signing in.
+ * @apiParam (params) {String} [role] The `Parse.Role` name to add the user to.
+ * @apiParam (hooks) {Hook} user-before-save Mutate the `Parse.User` object before save is complete.
+
+```
+Arguments:  req:Object:Parse.User
+```
+ * @apiParam (hooks) {Hook} user-after-save Take action after the `Parse.User` object has been saved.
+```
+Arguments: req:Object:Parse.User
+```
+ */
+User.save = async (params, options) => {
+    // Get the role
+    const role = op.get(params, 'role');
+
+    // Remove role from params
+    op.del(params, 'role');
+
+    // Create the user object
+    const userObj = new Parse.Object(COLLECTION);
+
+    // Apply parameters to the userObj
+    Object.entries(params).forEach(([key, value]) => {
+        if (value === null) {
+            userObj.unset(key);
+        } else {
+            userObj.set(key, value);
+        }
+    });
+
+    // Save the user
+    let user;
+    try {
+        user = await userObj.save(params, options);
+    } catch (err) {
+        throw new Error(err);
+    }
+
+    // Handle error
+    if (!user) {
+        throw new Error('unable to save user');
+    }
+
+    // Apply the role
+    try {
+        if (role) {
+            await Parse.Cloud.run(
+                'role-user-add',
+                { user: user.id, role },
+                options,
+            ).catch(console.log);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+
+    Actinium.Cache.del('users');
+
+    user = serialize(user);
+
+    const current = await User.currentUser(options);
+    await Actinium.Recycle.revision(
+        {
+            collection: COLLECTION,
+            object: user,
+            user: current,
+        },
+        options,
+    );
+
+    return User.retrieve({ objectId: user.objectId }, options);
+};
+
+/**
  * @api {Asyncronous} Actinium.User.trash(params,options) User.trash()
  * @apiGroup Actinium
  * @apiName User.trash
@@ -407,6 +406,69 @@ User.trash = async (params, options) => {
     );
 
     await userObj.destroy(options);
+};
+
+/**
+* @api {Asyncronous} Actinium.User.Meta.save(params,options) User.Meta.save()
+* @apiGroup Actinium
+* @apiName User.Meta.save
+* @apiDescription Mutate the Parse.User.meta object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user meta object.
+* @apiParam {Object} options Parse cloud options object.
+* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
+* @apiParam (params) {Array} keys List of object path keys as strings to delete.
+* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
+```
+Arguments: fields:Array, params, options
+```
+* @apiParam (hooks) {Hook} user-before-meta-save Triggered before the user update is executed.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+* @apiParam (hooks) {Hook} user-meta-save-response Triggered before the updated user object is returned.
+```
+Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+```
+ * @apiExample Usage
+Actinium.User.Meta.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
+*/
+User.Meta.delete = async (params, options) => {
+    let keys = op.get(params, 'keys', []);
+    keys = typeof keys === 'string' ? [keys] : keys;
+    keys = keys.map(key => (Array.isArray(key) ? key.join('.') : key));
+    if (keys.length < 1) return;
+
+    let user = await User.retrieve(_.clone(params), options);
+    if (!user) return;
+
+    const currentMeta = op.get(user, 'meta', {});
+    const meta = JSON.parse(JSON.stringify(currentMeta));
+
+    keys.forEach(key => op.del(meta, key));
+
+    await Actinium.Hook.run(
+        'user-before-meta-save',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    user = await User.save({ meta, objectId: user.objectId }, options);
+
+    await Actinium.Hook.run(
+        'user-meta-save-response',
+        meta,
+        currentMeta,
+        user,
+        params,
+        options,
+    );
+
+    return user;
 };
 
 /**
@@ -476,11 +538,11 @@ User.Meta.update = async (params, options) => {
 };
 
 /**
-* @api {Asyncronous} Actinium.User.Meta.save(params,options) User.Meta.save()
+* @api {Asyncronous} Actinium.User.Pref.save(params,options) User.Pref.save()
 * @apiGroup Actinium
-* @apiName User.Meta.save
-* @apiDescription Mutate the Parse.User.meta object.
-* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user meta object.
+* @apiName User.Pref.save
+* @apiDescription Mutate the Parse.User.pref object.
+* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user pref object.
 * @apiParam {Object} options Parse cloud options object.
 * @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
 * @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
@@ -490,18 +552,18 @@ User.Meta.update = async (params, options) => {
 ```
 Arguments: fields:Array, params, options
 ```
-* @apiParam (hooks) {Hook} user-before-meta-save Triggered before the user update is executed.
+* @apiParam (hooks) {Hook} user-before-pref-save Triggered before the user update is executed.
 ```
-Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
 ```
-* @apiParam (hooks) {Hook} user-meta-save-response Triggered before the updated user object is returned.
+* @apiParam (hooks) {Hook} user-pref-save-response Triggered before the updated user object is returned.
 ```
-Arguments: meta:Object, prev:Object, user:Parse.User, params, options
+Arguments: pref:Object, prev:Object, user:Parse.User, params, options
 ```
  * @apiExample Usage
-Actinium.User.Meta.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
+Actinium.User.Pref.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
 */
-User.Meta.delete = async (params, options) => {
+User.Pref.delete = async (params, options) => {
     let keys = op.get(params, 'keys', []);
     keys = typeof keys === 'string' ? [keys] : keys;
     keys = keys.map(key => (Array.isArray(key) ? key.join('.') : key));
@@ -510,26 +572,26 @@ User.Meta.delete = async (params, options) => {
     let user = await User.retrieve(_.clone(params), options);
     if (!user) return;
 
-    const currentMeta = op.get(user, 'meta', {});
-    const meta = JSON.parse(JSON.stringify(currentMeta));
+    const currentPref = op.get(user, 'pref', {});
+    const pref = JSON.parse(JSON.stringify(currentPref));
 
-    keys.forEach(key => op.del(meta, key));
+    keys.forEach(key => op.del(pref, key));
 
     await Actinium.Hook.run(
-        'user-before-meta-save',
-        meta,
-        currentMeta,
+        'user-before-pref-save',
+        pref,
+        currentPref,
         user,
         params,
         options,
     );
 
-    user = await User.save({ meta, objectId: user.objectId }, options);
+    user = await User.save({ pref, objectId: user.objectId }, options);
 
     await Actinium.Hook.run(
-        'user-meta-save-response',
-        meta,
-        currentMeta,
+        'user-pref-save-response',
+        pref,
+        currentPref,
         user,
         params,
         options,
@@ -595,69 +657,6 @@ User.Pref.update = async (params, options) => {
     await Actinium.Hook.run(
         'user-pref-save-response',
         newPref,
-        currentPref,
-        user,
-        params,
-        options,
-    );
-
-    return user;
-};
-
-/**
-* @api {Asyncronous} Actinium.User.Pref.save(params,options) User.Pref.save()
-* @apiGroup Actinium
-* @apiName User.Pref.save
-* @apiDescription Mutate the Parse.User.pref object.
-* @apiParam {Object} params Object containing parameters for retrieving a user and the key value pair to apply to the user pref object.
-* @apiParam {Object} options Parse cloud options object.
-* @apiParam (params) {String} [objectId] Look up the user object by the objectId field. See [User.retrieve()](#api-Actinium-User_retrieve).
-* @apiParam (params) {String} [username] Look up the user object by the username field. See [User.retrieve()](#api-Actinium-User_retrieve).
-* @apiParam (params) {String} [email] Look up the user object by the email field. See [User.retrieve()](#api-Actinium-User_retrieve).
-* @apiParam (params) {Array} keys List of object path keys as strings to delete.
-* @apiParam (hooks) {Hook} user-sensative-fields Mutate the list of sensative (non-public) fields.
-```
-Arguments: fields:Array, params, options
-```
-* @apiParam (hooks) {Hook} user-before-pref-save Triggered before the user update is executed.
-```
-Arguments: pref:Object, prev:Object, user:Parse.User, params, options
-```
-* @apiParam (hooks) {Hook} user-pref-save-response Triggered before the updated user object is returned.
-```
-Arguments: pref:Object, prev:Object, user:Parse.User, params, options
-```
- * @apiExample Usage
-Actinium.User.Pref.delete({ objectId: 'aetlkq25', keys: ['testing', 'out']});
-*/
-User.Pref.delete = async (params, options) => {
-    let keys = op.get(params, 'keys', []);
-    keys = typeof keys === 'string' ? [keys] : keys;
-    keys = keys.map(key => (Array.isArray(key) ? key.join('.') : key));
-    if (keys.length < 1) return;
-
-    let user = await User.retrieve(_.clone(params), options);
-    if (!user) return;
-
-    const currentPref = op.get(user, 'pref', {});
-    const pref = JSON.parse(JSON.stringify(currentPref));
-
-    keys.forEach(key => op.del(pref, key));
-
-    await Actinium.Hook.run(
-        'user-before-pref-save',
-        pref,
-        currentPref,
-        user,
-        params,
-        options,
-    );
-
-    user = await User.save({ pref, objectId: user.objectId }, options);
-
-    await Actinium.Hook.run(
-        'user-pref-save-response',
-        pref,
         currentPref,
         user,
         params,
