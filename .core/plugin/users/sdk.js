@@ -160,6 +160,10 @@ User.list = async (params, options) => {
         ).toString('base64'),
     ];
 
+    if (refresh === true) {
+        Actinium.Cache.del('users');
+    }
+
     let response = Actinium.Cache.get(cacheKey);
     if (response && !refresh) {
         await Actinium.Hook.run(
