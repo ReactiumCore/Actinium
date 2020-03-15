@@ -310,10 +310,20 @@ Arguments: req:Object:Parse.User
  */
 User.save = async (params, options) => {
     // Get the role
-    const role = op.get(params, 'role');
+    const role = op.get(params, 'roles');
 
     // Remove role from params
-    op.del(params, 'role');
+    op.del(params, 'roles');
+
+    // check password
+    if (op.has(params, 'password') && params.password === null) {
+        op.del(params, 'password');
+    }
+
+    // delete username if not new
+    if (op.has(params, 'objectId')) {
+        op.del(params, 'username');
+    }
 
     // Create the user object
     const userObj = new Parse.Object(COLLECTION);
@@ -332,12 +342,9 @@ User.save = async (params, options) => {
     try {
         user = await userObj.save(params, options);
     } catch (err) {
+        LOG('User.save() -> Error', params);
         throw new Error(err);
-    }
-
-    // Handle error
-    if (!user) {
-        throw new Error('unable to save user');
+        return err;
     }
 
     // Apply the role
