@@ -310,15 +310,25 @@ Arguments: req:Object:Parse.User
  */
 User.save = async (params, options) => {
     // Get the role
-    const role = op.get(params, 'roles');
+    const role = op.get(params, 'role');
 
     // Remove role from params
+    op.del(params, 'role');
     op.del(params, 'roles');
 
     // check password
     if (op.has(params, 'password') && params.password === null) {
-        op.del(params, 'password');
+        if (params.password === null) {
+            op.del(params, 'password');
+            op.del(params, 'confirm');
+        } else {
+            if (!params.confirm || params.password !== params.confirm) {
+                return new Error('passwords do not match');
+            }
+        }
     }
+
+    op.del(params, 'confirm');
 
     // delete username if not new
     if (op.has(params, 'objectId')) {
