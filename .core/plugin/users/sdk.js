@@ -317,17 +317,15 @@ User.save = async (params, options) => {
     op.del(params, 'roles');
 
     // check password
-    if (op.has(params, 'password') && params.password === null) {
+    if (op.has(params, 'password')) {
         if (params.password === null) {
             op.del(params, 'password');
-            op.del(params, 'confirm');
-        } else {
-            if (!params.confirm || params.password !== params.confirm) {
-                return new Error('passwords do not match');
-            }
+        } else if (!params.confirm || params.password !== params.confirm) {
+            return new Error('passwords do not match');
         }
     }
 
+    // remove the confirm value
     op.del(params, 'confirm');
 
     // delete username if not new
@@ -340,7 +338,7 @@ User.save = async (params, options) => {
 
     // Apply parameters to the userObj
     Object.entries(params).forEach(([key, value]) => {
-        if (value === null) {
+        if (value === null || !value) {
             userObj.unset(key);
         } else {
             userObj.set(key, value);

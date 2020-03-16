@@ -102,17 +102,6 @@ const afterSave = req => {
 };
 
 const beforeSave = async req => {
-    // New user only
-    if (req.object.isNew()) {
-        const { confirm, password } = req.object.toJSON();
-
-        req.object.unset('confirm');
-
-        if (confirm !== password) {
-            throw new Error('passwords do not match');
-        }
-    }
-
     await Actinium.Hook.run('user-before-save', req);
 };
 
