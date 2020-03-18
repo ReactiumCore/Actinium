@@ -604,6 +604,11 @@ Content.diff = async (contentObj, changes) => {
         }
     }
 
+    const title = op.get(changes, 'title');
+    if (title && op.get(contentObj, 'title') !== title) {
+        op.set(diff, 'title', title);
+    }
+
     // No changes
     if (Object.keys(diff).length < 1) return false;
 
@@ -612,9 +617,8 @@ Content.diff = async (contentObj, changes) => {
     op.set(diff, 'history', contentObj.history);
     op.set(diff, 'branches', contentObj.branches);
 
-    // Remove this things to cut down noise in diff
+    // Remove these things to cut down noise in diff
     op.del(diff, 'status');
-    op.del(diff, 'title');
     op.del(diff, 'slug');
     op.del(diff, 'uuid');
 
@@ -1411,11 +1415,9 @@ Content.update = async (params, options) => {
 
     const content = new Parse.Object(typeObj.collection);
 
-    if (op.has(params, 'title')) {
-        const title = op.get(params, 'title');
-        if (!title) throw 'title can not be empty';
+    const title = op.get(params, 'title');
+    if (title && op.get(contentObj, 'title') !== title) {
         content.set('title', title);
-        op.set(contentObj, 'title', title);
     }
     content.id = contentObj.objectId;
 
@@ -1442,6 +1444,7 @@ Content.update = async (params, options) => {
     }
 
     const diff = await Actinium.Content.diff(contentRevision, params);
+    // No substantive change
     if (!diff) return contentRevision;
 
     // Create new revision branch
