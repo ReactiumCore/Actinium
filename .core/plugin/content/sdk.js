@@ -11,6 +11,16 @@ const uuidv5 = require('uuid/v5');
 const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
 const ENUMS = require('./enums');
 
+const _SavedHook = async (contentObj, typeObj) => {
+    await Actinium.Hook.run('content-saved', contentObj, typeObj, false);
+};
+
+Actinium.Hook.register('content-slug-changed', _SavedHook);
+Actinium.Hook.register('content-trashed', _SavedHook);
+Actinium.Hook.register('content-published', _SavedHook);
+Actinium.Hook.register('content-status-changed', _SavedHook);
+Actinium.Hook.register('content-unpublished', _SavedHook);
+
 const Content = {};
 
 Content.Log = {};
@@ -1865,18 +1875,18 @@ Content.setStatus = async (params, options) => {
     );
 
     /**
-     * @api {Hook} content-status-change content-status-change
+     * @api {Hook} content-status-changed content-status-changed
      * @apiDescription Hook called before return of `Content.setStatus()`.
      Useful for responding to changes of content status.
      * @apiParam {Object} contentObj the content object after status change.
      * @apiParam {Object} typeObj the type object of the content.
      * @apiParam {String} status the new status.
      * @apiParam {String} previousStatus the previous status.
-     * @apiName content-status-change
+     * @apiName content-status-changed
      * @apiGroup Hooks
      */
     await Actinium.Hook.run(
-        'content-status-change',
+        'content-status-changed',
         contentObj,
         typeObj,
         status,

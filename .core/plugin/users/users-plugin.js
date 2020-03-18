@@ -287,7 +287,7 @@ Actinium.Hook.register('start', async () => {
 Actinium.Hook.register('content-saved', contentList);
 
 Actinium.Hook.register(
-    'content-status-change',
+    'content-status-changed',
     (contentObj, typeObj, status, prev) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
         if (prev !== 'TRASH' || status === 'TRASH') return;
