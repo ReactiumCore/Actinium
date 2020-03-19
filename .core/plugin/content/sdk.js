@@ -11,6 +11,16 @@ const uuidv5 = require('uuid/v5');
 const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
 const ENUMS = require('./enums');
 
+const _SavedHook = async (contentObj, typeObj) => {
+    await Actinium.Hook.run('content-saved', contentObj, typeObj, false);
+};
+
+Actinium.Hook.register('content-slug-changed', _SavedHook);
+Actinium.Hook.register('content-trashed', _SavedHook);
+Actinium.Hook.register('content-published', _SavedHook);
+Actinium.Hook.register('content-status-changed', _SavedHook);
+Actinium.Hook.register('content-unpublished', _SavedHook);
+
 const Content = {};
 
 Content.Log = {};
@@ -469,7 +479,7 @@ Content.createBranch = async (
                     uuid: op.get(content, 'uuid'),
                     slug: op.get(content, 'slug'),
                     type: op.get(content, 'type'),
-                    branches,
+                    branch: op.get(branches, op.get(history, 'branch'), {}),
                     history,
                 },
             },
@@ -604,6 +614,11 @@ Content.diff = async (contentObj, changes) => {
         }
     }
 
+    const title = op.get(changes, 'title');
+    if (title && op.get(contentObj, 'title') !== title) {
+        op.set(diff, 'title', title);
+    }
+
     // No changes
     if (Object.keys(diff).length < 1) return false;
 
@@ -612,9 +627,8 @@ Content.diff = async (contentObj, changes) => {
     op.set(diff, 'history', contentObj.history);
     op.set(diff, 'branches', contentObj.branches);
 
-    // Remove this things to cut down noise in diff
+    // Remove these things to cut down noise in diff
     op.del(diff, 'status');
-    op.del(diff, 'title');
     op.del(diff, 'slug');
     op.del(diff, 'uuid');
 
@@ -985,7 +999,8 @@ Content.create = async (params, options) => {
                 uuid: op.get(contentObj, 'uuid'),
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
-                history: history,
+                branch: op.get(branches, op.get(history, 'branch'), {}),
+                history,
             },
         },
         masterOptions,
@@ -1239,6 +1254,11 @@ Content.setCurrent = async (params, options) => {
                         uuid: op.get(contentObj, 'uuid'),
                         slug: op.get(contentObj, 'slug'),
                         type: op.get(typeObj, 'type'),
+                        branch: op.get(
+                            contentObj,
+                            ['branches', op.get(savedObj, 'history.branch')],
+                            {},
+                        ),
                         history: savedObj.history,
                     },
                 },
@@ -1411,11 +1431,9 @@ Content.update = async (params, options) => {
 
     const content = new Parse.Object(typeObj.collection);
 
-    if (op.has(params, 'title')) {
-        const title = op.get(params, 'title');
-        if (!title) throw 'title can not be empty';
+    const title = op.get(params, 'title');
+    if (title && op.get(contentObj, 'title') !== title) {
         content.set('title', title);
-        op.set(contentObj, 'title', title);
     }
     content.id = contentObj.objectId;
 
@@ -1442,6 +1460,7 @@ Content.update = async (params, options) => {
     }
 
     const diff = await Actinium.Content.diff(contentRevision, params);
+    // No substantive change
     if (!diff) return contentRevision;
 
     // Create new revision branch
@@ -1492,6 +1511,11 @@ Content.update = async (params, options) => {
                 uuid: op.get(contentObj, 'uuid'),
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
+                branch: op.get(
+                    currentBranches,
+                    op.get(revHistory, 'branch'),
+                    {},
+                ),
                 history: revHistory,
             },
         },
@@ -1698,6 +1722,11 @@ Content.restore = async (params, options) => {
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
                 originalId: op.get(params, 'objectId'),
+                branch: op.get(
+                    contentObj,
+                    ['branches', op.get(contentObj, 'history.branch')],
+                    {},
+                ),
                 history: op.get(contentObj, 'history'),
             },
         },
@@ -1761,6 +1790,11 @@ Content.publish = async (params, options) => {
                 uuid: op.get(contentObj, 'uuid'),
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
+                branch: op.get(
+                    contentObj,
+                    ['branches', op.get(contentObj, 'history.branch')],
+                    {},
+                ),
                 history: op.get(contentObj, 'history'),
             },
         },
@@ -1854,6 +1888,11 @@ Content.setStatus = async (params, options) => {
                 uuid: op.get(contentObj, 'uuid'),
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
+                branch: op.get(
+                    contentObj,
+                    ['branches', op.get(contentObj, 'history.branch')],
+                    {},
+                ),
                 history: op.get(contentObj, 'history'),
                 status,
             },
@@ -1862,18 +1901,18 @@ Content.setStatus = async (params, options) => {
     );
 
     /**
-     * @api {Hook} content-status-change content-status-change
+     * @api {Hook} content-status-changed content-status-changed
      * @apiDescription Hook called before return of `Content.setStatus()`.
      Useful for responding to changes of content status.
      * @apiParam {Object} contentObj the content object after status change.
      * @apiParam {Object} typeObj the type object of the content.
      * @apiParam {String} status the new status.
      * @apiParam {String} previousStatus the previous status.
-     * @apiName content-status-change
+     * @apiName content-status-changed
      * @apiGroup Hooks
      */
     await Actinium.Hook.run(
-        'content-status-change',
+        'content-status-changed',
         contentObj,
         typeObj,
         status,
@@ -2045,6 +2084,11 @@ Content.schedule = async (params, options) => {
                 uuid: op.get(contentObj, 'uuid'),
                 slug: op.get(contentObj, 'slug'),
                 type: op.get(typeObj, 'type'),
+                branch: op.get(
+                    contentObj,
+                    ['branches', op.get(publish, [pubId, 'history', 'branch'])],
+                    {},
+                ),
                 publish: publish[pubId],
             },
         },
