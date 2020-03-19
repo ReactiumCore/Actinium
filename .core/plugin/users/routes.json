@@ -14,7 +14,7 @@
         }
     },
     {
-        "route": "/admin/user/:id/:edit",
+        "route": "/admin/user/:id/:tab",
         "blueprint": "User-Editor",
         "meta": {
             "builtIn": true

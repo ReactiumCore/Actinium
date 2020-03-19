@@ -10,7 +10,7 @@ module.exports = async (contentObj, typeObj, isNew) => {
 
     if (!user) return;
 
-    const { slug, title, updatedAt, objectId: contentID } = contentObj;
+    const { slug, status, title, updatedAt, objectId: contentID } = contentObj;
     const { collection, machineName, objectId: typeID, type } = typeObj;
 
     const metaObj = {
@@ -19,6 +19,7 @@ module.exports = async (contentObj, typeObj, isNew) => {
         contentID,
         machineName,
         slug,
+        status,
         title,
         typeID,
         type,

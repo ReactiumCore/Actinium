@@ -1,6 +1,7 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const op = require('object-path');
+const mediaList = require('./_plugins/media-list');
 const contentList = require('./_plugins/content-list');
 const {
     AclTargets,
@@ -285,6 +286,8 @@ Actinium.Hook.register('start', async () => {
 });
 
 Actinium.Hook.register('content-saved', contentList);
+
+Actinium.Hook.register('after-media-save', mediaList);
 
 Actinium.Hook.register(
     'content-status-change',
