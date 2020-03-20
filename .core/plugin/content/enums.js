@@ -13,6 +13,7 @@ module.exports = {
         CREATED: 'CREATED',
         REVISED: 'REVISED',
         CREATED_BRANCH: 'CREATED_BRANCH',
+        DELETED_BRANCH: 'DELETED_BRANCH',
         SLUG_CHANGED: 'SLUG_CHANGED',
         SET_REVISION: 'SET_REVISION',
         SET_ACL: 'SET_ACL',
