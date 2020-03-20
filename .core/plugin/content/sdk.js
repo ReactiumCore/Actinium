@@ -478,7 +478,7 @@ Content.createBranch = async (
                 meta: {
                     uuid: op.get(content, 'uuid'),
                     slug: op.get(content, 'slug'),
-                    type: op.get(content, 'type'),
+                    type: op.get(type, 'type'),
                     branch: op.get(branches, op.get(history, 'branch'), {}),
                     history,
                 },
@@ -527,6 +527,29 @@ Content.labelBranch = async (params, options) => {
     content.id = contentObj.objectId;
     content.set('branches', branches);
     await content.save(null, options);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.LABELED_BRANCH,
+            meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
+                branchLabel,
+                branch: op.get(branches, branch),
+            },
+        },
+        masterOptions,
+    );
 
     await Actinium.Hook.run(
         'content-branch-label',
