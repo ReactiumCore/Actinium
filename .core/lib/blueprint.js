@@ -23,7 +23,7 @@ const DEFAULTS = [
                 meta: {},
             },
             main: {
-                zones: ['admin-header', 'admin-content', 'admin-actions'],
+                zones: ['admin-header', 'admin-dashboard', 'admin-actions'],
                 meta: {},
             },
         },
