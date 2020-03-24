@@ -478,7 +478,7 @@ Content.createBranch = async (
                 meta: {
                     uuid: op.get(content, 'uuid'),
                     slug: op.get(content, 'slug'),
-                    type: op.get(content, 'type'),
+                    type: op.get(type, 'type'),
                     branch: op.get(branches, op.get(history, 'branch'), {}),
                     history,
                 },
@@ -528,12 +528,130 @@ Content.labelBranch = async (params, options) => {
     content.set('branches', branches);
     await content.save(null, options);
 
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.LABELED_BRANCH,
+            meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
+                branchLabel,
+                branch: op.get(branches, branch),
+            },
+        },
+        masterOptions,
+    );
+
     await Actinium.Hook.run(
         'content-branch-label',
         contentObj,
         typeObj,
         params,
     );
+    return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.deleteBranch(params,options) Content.deleteBranch()
+ * @apiDescription Delete a branch and mark its revisions for deletion.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {Boolean} [current=false] When true, get the currently committed content (not from revision system).
+ otherwise, construct the content from the provided history (branch and revision index).
+ * @apiParam (params) {Object} [history] revision history to retrieve, containing branch and revision index.
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The objectId for the content.
+ * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ * @apiParam (history) {String} [branch=master] the revision branch of current content
+ * @apiName Content.deleteBranch()
+ * @apiGroup Cloud
+ */
+Content.deleteBranch = async (params, options) => {
+    const masterOptions = Actinium.Utils.MasterOptions(options);
+    const contentObj = await Actinium.Content.retrieve(params, options);
+    if (!contentObj) throw 'Unable to find content';
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+
+    const branches = op.get(contentObj, 'branches');
+    const originalBranches = { ...branches };
+    const branch = op.get(contentObj, 'history.branch');
+    if (branch === 'master') throw 'master branch cannot be deleted';
+
+    // all revisions in other branches
+    const otherRevs = _.chain(
+        Object.entries(branches)
+            .map(([id, value]) => ({ ...value, id }))
+            .filter(({ id }) => id !== branch),
+    )
+        .pluck('history')
+        .flatten()
+        .uniq()
+        .value();
+
+    // all revisions not in use by another branch
+    const revs = op
+        .get(branches, [branch, 'history'], [])
+        .filter(rev => !otherRevs.includes(rev));
+
+    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    content.id = contentObj.objectId;
+    op.del(branches, [branch]);
+    content.set('branches', branches);
+    await content.save(null, options);
+
+    const revisions = revs.map(objectId => {
+        const rev = new Parse.Object('Recycle');
+        rev.id = objectId;
+        rev.set('type', 'trash');
+        return rev;
+    });
+
+    const trashedRevs = await Parse.Object.saveAll(revisions, masterOptions);
+
+    const userId = op.get(
+        params,
+        'user.objectId',
+        op.get(params, 'user.id', op.get(params, 'userId')),
+    );
+
+    await Actinium.Content.Log.add(
+        {
+            contentId: contentObj.objectId,
+            collection: typeObj.collection,
+            userId,
+            changeType: ENUMS.CHANGES.DELETED_BRANCH,
+            meta: {
+                uuid: op.get(contentObj, 'uuid'),
+                slug: op.get(contentObj, 'slug'),
+                type: op.get(typeObj, 'type'),
+                branch: op.get(originalBranches, branch, {}),
+                trashedRevs,
+            },
+        },
+        masterOptions,
+    );
+
+    await Actinium.Hook.run(
+        'content-branch-deleted',
+        contentObj,
+        typeObj,
+        params,
+        trashedRevs,
+    );
+
     return contentObj;
 };
 
