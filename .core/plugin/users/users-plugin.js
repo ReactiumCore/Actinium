@@ -319,6 +319,19 @@ Actinium.Hook.register(
     },
 );
 
+Actinium.Hook.register('before-media-delete', req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    const objectId = req.object.id;
+    const user = req.object.get('user').toJSON();
+    const key = ['media', objectId];
+
+    return Actinium.User.Meta.delete(
+        { objectId: user.objectId, keys: key.join('.') },
+        MasterOptions(),
+    );
+});
+
 Actinium.Hook.register(
     'user-before-save',
     req => {

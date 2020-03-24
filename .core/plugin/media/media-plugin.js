@@ -146,7 +146,7 @@ Actinium.Hook.register('media-save', async req => {
     }
 });
 
-// Media deleted
+// Media after delete
 Actinium.Hook.register('after-media-delete', req =>
     Actinium.Media.cleanup([req.object], true),
 );
@@ -579,13 +579,6 @@ Actinium.Cloud.beforeSave(COLLECTION.DIRECTORY, req =>
     Actinium.Hook.run('directory-save', req),
 );
 
-Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req => {
-    req.context = req.object.get('context') || {};
-    req.object.unset('context');
-
-    return Actinium.Hook.run('media-save', req);
-});
-
 Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
     const dirs = () => {
         const directories = Actinium.Cache.get('Media.directories', []);
@@ -601,6 +594,17 @@ Actinium.Cloud.afterDelete(COLLECTION.DIRECTORY, req => {
     let directories = _.without(dirs(), directory).sort();
     Actinium.Cache.set('Media.directories', directories);
     Actinium.Hook.run('after-directory-delete', req);
+});
+
+Actinium.Cloud.beforeSave(COLLECTION.MEDIA, req => {
+    req.context = req.object.get('context') || {};
+    req.object.unset('context');
+
+    return Actinium.Hook.run('media-save', req);
+});
+
+Actinium.Cloud.beforeDelete(COLLECTION.MEDIA, async req => {
+    await Actinium.Hook.run('before-media-delete', req);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
