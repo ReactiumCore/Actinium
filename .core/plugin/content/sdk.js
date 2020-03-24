@@ -791,44 +791,43 @@ Content.revisions = async (params, options) => {
         options,
     );
 
-    const revObjs = revisions
-        .map(rev => serialize(rev))
-        .map(rev => {
-            const revId = op.get(rev, 'objectId');
-
-            if (history[0] !== revId) {
-                op.del(rev, 'object.objectId');
-                op.del(rev, 'object.slug');
-                op.del(rev, 'object.type');
-                op.del(rev, 'object.user');
-                op.del(rev, 'object.title');
-                op.del(rev, 'object.uuid');
-                op.del(rev, 'object.ACL');
-                op.del(rev, 'object.status');
-                op.del(rev, 'object.history');
-                op.del(rev, 'object.branches');
-                op.del(rev, 'object.createdAt');
-                op.del(rev, 'object.updatedAt');
-            }
-
-            return {
-                revId,
-                changes: op.get(rev, 'object', {}),
-                createdAt: op.get(rev, 'createdAt'),
-                updatedAt: op.get(rev, 'updatedAt'),
-            };
-        });
-
-    const byRevId = _.indexBy(revObjs, 'revId');
+    const byRevId = _.indexBy(
+        revisions.map(rev => serialize(rev)),
+        'objectId',
+    );
     const baseId = history[0];
-    const base = op.get(byRevId, [baseId, 'changes'], {});
+    const base = op.get(byRevId, [baseId, 'object'], {});
+
+    const revObjs = Object.values(byRevId).map(rev => {
+        const changes = {
+            ...op.get(rev, 'object', {}),
+        };
+        const revId = op.get(rev, 'objectId');
+
+        op.del(changes, 'objectId');
+        op.del(changes, 'slug');
+        op.del(changes, 'type');
+        op.del(changes, 'user');
+        op.del(changes, 'title');
+        op.del(changes, 'uuid');
+        op.del(changes, 'ACL');
+        op.del(changes, 'status');
+        op.del(changes, 'history');
+        op.del(changes, 'branches');
+        op.del(changes, 'createdAt');
+        op.del(changes, 'updatedAt');
+
+        return {
+            revId,
+            changes,
+            createdAt: op.get(rev, 'createdAt'),
+            updatedAt: op.get(rev, 'updatedAt'),
+        };
+    });
 
     const response = {
         base: { ...base, revId: baseId },
-        revisions: _.without(history, baseId).map(revId => {
-            const rev = op.get(byRevId, revId);
-            return rev;
-        }),
+        revisions: revObjs,
         branch,
     };
 
