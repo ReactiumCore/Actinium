@@ -561,7 +561,7 @@ Media.files = async ({
     }
 
     const index = limit * page - limit;
-    const pages = Math.ceil(items.length / limit);
+    const pages = items.length > 1 ? Math.ceil(items.length / limit) : 1;
     const selection = Array.from(items).splice(index, limit);
     const next = page < pages ? page + 1 : undefined;
     const prev = page > 1 ? page - 1 : undefined;

@@ -5,6 +5,7 @@ module.exports = async req => {
     if (!Actinium.Plugin.isActive('Users')) return;
     const mediaObj = serialize(req.object);
     const {
+        directory,
         file,
         filename,
         objectId,
@@ -14,9 +15,11 @@ module.exports = async req => {
         url,
         user,
     } = mediaObj;
+
     if (!user) return;
 
     const metaObj = {
+        directory,
         file,
         filename,
         thumbnail,
