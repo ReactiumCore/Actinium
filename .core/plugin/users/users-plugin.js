@@ -145,18 +145,8 @@ const createAvatar = async req => {
         const ID = req.object.id;
 
         try {
-            const filename = String(`avatar-${ID}.${type}`).toLowerCase();
+            const filename = String(`avatar-${ID}-${Date.now()}.${type}`);
             avatar = { base64: avatar.split(';base64,').pop() };
-
-            const prevAvatar = prevUser.get('avatar');
-            if (prevAvatar) {
-                const prevExt = prevAvatar.split('.').pop();
-                const prevFilename = String(
-                    `avatar-${ID}.${prevExt}`,
-                ).toLowerCase();
-                await Actinium.Media.deleteFileObject(prevFilename);
-            }
-
             fileObj = await new Actinium.File(filename, avatar).save();
         } catch (err) {
             console.log(err);
