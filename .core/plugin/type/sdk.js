@@ -316,6 +316,7 @@ Type.status = async (params, options) => {
  * @apiDescription Retrieve a list of the existing content types.
  * @apiName Type.list
  * @apiGroup Actinium
+ * @apiParam {Boolean} schema Whether to include the schema object of the Type.
  */
 Type.list = async (params, options) => {
     let pages = 0,
@@ -354,6 +355,16 @@ Type.list = async (params, options) => {
         }
 
         types = types.map(contentType => serialize(contentType));
+
+        // Get schema if specified
+        if (op.get(params, 'schema') === true) {
+            for (let i = 0; i < types.length; i++) {
+                const type = types[i];
+                const { schema } = await Actinium.Content.getSchema(type);
+                op.set(type, 'schema', schema);
+            }
+        }
+
         Actinium.Cache.set(cacheKey, types, 20000);
     } else {
         total = types.length;

@@ -508,7 +508,7 @@ Content.createBranch = async (
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiName Content.labelBranch()
- * @apiGroup Cloud
+ * @apiGroup Actinium
  */
 Content.labelBranch = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
@@ -577,7 +577,7 @@ Content.labelBranch = async (params, options) => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiName Content.deleteBranch()
- * @apiGroup Cloud
+ * @apiGroup Actinium
  */
 Content.deleteBranch = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
@@ -673,7 +673,7 @@ Content.deleteBranch = async (params, options) => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiName Content.cloneBranch()
- * @apiGroup Cloud
+ * @apiGroup Actinium
  */
 Content.cloneBranch = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
@@ -770,7 +770,7 @@ Content.diff = async (contentObj, changes) => {
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
  * @apiName Content.revision()
- * @apiGroup Cloud
+ * @apiGroup Actinium
  */
 Content.revisions = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);

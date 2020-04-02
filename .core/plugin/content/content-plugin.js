@@ -457,7 +457,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName content-label-branch()
+ * @apiName content-label-branch
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-label-branch', async req => {
@@ -478,7 +478,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-label-branch', async req => {
 });
 
 /**
- * @api {Asynchronous} Content.deleteBranch(params,options) Content.deleteBranch()
+ * @api {Asynchronous} content-delete-branch content-delete-branch
  * @apiDescription Delete a branch and mark its revisions for deletion.
  * @apiParam {Object} type Type object, or at minimum the properties required `type-retrieve`
  * @apiParam {Boolean} [current=false] When true, get the currently committed content (not from revision system).
@@ -491,7 +491,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-label-branch', async req => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName Content.deleteBranch()
+ * @apiName content-delete-branch
  * @apiGroup Cloud
  */
 Actinium.Cloud.define(PLUGIN.ID, 'content-delete-branch', async req => {
