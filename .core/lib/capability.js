@@ -14,19 +14,59 @@ let unreg = [];
 
 const capabilities = {};
 
-const normalizeCapability = (capabilityObj = {}) => ({
+const normalizeCapability = (capabilityObj = {}) => {
+    // banned is always excluded. super-admin may not be excluded, administrator may.
+    const excluded = _.uniq(
+        op.get(capabilityObj, 'excluded', []).concat('banned'),
+    ).filter(role => role !== 'super-admin');
+
     // administrator and super admin are always added to allowed
-    allowed: _.uniq(
+    const allowed = _.uniq(
         op
             .get(capabilityObj, 'allowed', [])
-            .concat('administrator', 'super-admin'),
-    ),
+            .concat('administrator', 'super-admin')
+            .filter(role => !excluded.includes(role)),
+    );
+    return {
+        allowed,
+        excluded,
+    };
+};
 
-    // banned is always exclued. super-admin may not be excluded, administrator may.
-    excluded: _.uniq(
-        op.get(capabilityObj, 'excluded', []).concat('banned'),
-    ).filter(role => role !== 'super-admin'),
-});
+const normalizeLevels = async (capabilityObj = {}) => {
+    capabilityObj = normalizeCapability(capabilityObj);
+
+    const allRoles = await _getRoles();
+    Object.entries(allRoles).forEach(([name, role]) => {
+        role = role.toJSON();
+        op.set(role, 'level', Number(op.get(role, 'level', 0)));
+        op.set(allRoles, name, role);
+    });
+
+    const byLevel = _.sortBy(Object.values(allRoles), 'level');
+    let allowed = op.get(capabilityObj, 'allowed', []);
+    const anonymous = allowed.includes('anonymous');
+    const excluded = !anonymous ? op.get(capabilityObj, 'excluded', []) : [];
+    allowed = _.chain(
+        allowed.map(role => {
+            const level = op.get(allRoles, [role, 'level'], 0);
+            return byLevel
+                .filter(
+                    ({ name, level: l }) =>
+                        name === role ||
+                        anonymous ||
+                        (l > level && !excluded.includes(name)),
+                )
+                .map(({ name }) => name);
+        }),
+    )
+        .flatten()
+        .compact()
+        .uniq()
+        .value();
+
+    return normalizeCapability({ allowed, excluded });
+};
 
 const Capability = {
     defaults: {
@@ -305,11 +345,11 @@ const _getRoles = async () => {
 
 const _addCapability = async (group, cap) => {
     const { allowed = [], excluded = [] } = cap;
-    const capability = normalizeCapability(cap);
+    const capability = await normalizeLevels(cap);
 
     capabilities[group] = capability;
-
     const roles = await _getRoles();
+
     const query = new Parse.Query(COLLECTION);
     query.equalTo('group', group);
     let obj = await query.first({ useMasterKey: true });
