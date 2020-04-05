@@ -1270,6 +1270,10 @@ Content.retrieve = async (params, options) => {
     if (content) {
         const contentObj = serialize(content);
 
+        // get the schema
+        const { schema } = await Actinium.Content.getSchema(typeObj);
+        contentObj['schema'] = schema;
+
         // if content is published, and publshed is requested, return the current content
         if (op.get(params, 'current', false)) {
             return contentObj;
