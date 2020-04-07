@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const op = require('object-path');
 const {
     CloudHasCapabilities,
@@ -8,6 +9,30 @@ const {
 const PLUGIN = {
     ID: 'CollectionWidget',
     name: 'Collection Widget',
+};
+
+const relationGet = async (params, options) => {
+    const collection = op.get(params, 'collection');
+    const fieldName = op.get(params, 'fieldName');
+    const objectId = op.get(params, 'objectId');
+
+    if (!collection) {
+        throw new Error('`collection` name is a required parameter');
+    }
+
+    if (!fieldName) {
+        throw new Error('`fieldName` is a required parameter');
+    }
+
+    if (!objectId) {
+        throw new Error('`objectId` is a required parameter');
+    }
+
+    const qry = new Parse.Query(collection);
+    const obj = await qry.get(objectId, options);
+    const relation = obj.relation(fieldName);
+
+    return [relation, obj];
 };
 
 Actinium.Plugin.register(PLUGIN, true);
@@ -70,8 +95,86 @@ Actinium.Cloud.define(PLUGIN.ID, 'dynamic-query', async req => {
     try {
         results = await qry[action.func](...action.args);
         results = Array.isArray(results) ? results : [results];
-        return results.map(item => serialize(item));
+        return _.indexBy(
+            results.map(item => serialize(item)),
+            'objectId',
+        );
     } catch (err) {
         return new Error(err.message);
     }
 });
+
+Actinium.Cloud.define(PLUGIN.ID, 'content-relation-fetch', async req => {
+    const options = CloudRunOptions(req);
+    let [relation] = await relationGet(req.params, options);
+
+    let limit = 1000;
+    let skip = 0;
+
+    relation = relation.query();
+    relation.limit(limit);
+    relation.ascending('title');
+
+    let output = [];
+    let results = await relation.skip(skip).find(options);
+
+    while (results.length > 0) {
+        skip += limit;
+        output = output.concat(results.map(item => serialize(item)));
+        results = await relation.skip(skip).find(options);
+    }
+
+    return _.indexBy(output, 'objectId');
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'content-relation-add', async req => {
+    const fieldName = op.get(req.params, 'fieldName');
+    const ids = _.flatten([op.get(req.params, 'add', [])]);
+
+    if (ids.length < 1) {
+        return new Error('`add` array is a required parameter');
+    }
+
+    const options = CloudRunOptions(req);
+    const [relation, obj] = await relationGet(req.params, options);
+    const collection = op.get(serialize(obj), [fieldName, 'className']);
+
+    let id = ids.shift();
+
+    while (id) {
+        let item = await new Parse.Query(collection).get(id, options);
+        if (item) relation.add(item);
+        id = ids.shift();
+    }
+
+    await obj.save(null, options);
+
+    return Actinium.Cloud.run('content-relation-fetch', req.params, options);
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'content-relation-remove', async req => {
+    const fieldName = op.get(req.params, 'fieldName');
+    const ids = _.flatten([op.get(req.params, 'remove', [])]);
+
+    if (ids.length < 1) {
+        return new Error('`remove` array is a required parameter');
+    }
+
+    const options = CloudRunOptions(req);
+    const [relation, obj] = await relationGet(req.params, options);
+    const collection = op.get(serialize(obj), [fieldName, 'className']);
+
+    let id = ids.shift();
+
+    while (id) {
+        let item = await new Parse.Query(collection).get(id, options);
+        if (item) relation.remove(item);
+        id = ids.shift();
+    }
+
+    await obj.save(null, options);
+
+    return Actinium.Cloud.run('content-relation-fetch', req.params, options);
+});
+
+// EOF
