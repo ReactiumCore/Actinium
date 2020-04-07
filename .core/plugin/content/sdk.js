@@ -1276,6 +1276,7 @@ Content.retrieve = async (params, options) => {
 
         // if content is published, and publshed is requested, return the current content
         if (op.get(params, 'current', false)) {
+            contentObj['type'] = typeObj;
             return contentObj;
         }
 
@@ -1283,12 +1284,14 @@ Content.retrieve = async (params, options) => {
         const branch = op.get(params, 'history.branch', 'master');
         const revisionIndex = op.get(params, 'history.revision');
 
-        const version = Actinium.Content.getVersion(
+        const version = await Actinium.Content.getVersion(
             contentObj,
             branch,
             revisionIndex,
             masterOptions,
         );
+
+        version['type'] = typeObj;
 
         return version;
     }
