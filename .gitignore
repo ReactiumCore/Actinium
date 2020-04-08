@@ -74,3 +74,4 @@ public/plugins
 docs/
 files
 .tmp
+src/env.dev.json

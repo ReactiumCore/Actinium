@@ -20,6 +20,7 @@ const boot = {
 function environmentFile() {
     const envFile = process.env.ACTINIUM_ENV_FILE;
     const envId = process.env.ACTINIUM_ENV_ID;
+
     if (envFile) {
         return envFile;
     } else if (envId) {
