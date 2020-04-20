@@ -3,7 +3,7 @@ const path = require('path');
 const op = require('object-path');
 
 const NAME = 'version';
-const DESC = 'The current Reactium Core version';
+const DESC = 'The current Actinium Core version';
 
 const ACTION = ({ opt, props }) => {
     const configPath = path.normalize(
