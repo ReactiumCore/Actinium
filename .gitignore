@@ -71,7 +71,6 @@ dist
 public/plugins
 
 # Generated Documentation
-docs/
 files
 .tmp
 src/env.dev.json
