@@ -77,7 +77,7 @@
     "husky": {
         "hooks": {
             "pre-commit": "lint-staged",
-            "pre-push": "npm run docs && git add ./docs && git commit -m 'docs-autogen'"
+            "pre-push": "npm run docs && git add ./docs && git commit --reuse-message"
         }
     },
     "lint-staged": {
