@@ -77,7 +77,7 @@
     "husky": {
         "hooks": {
             "pre-commit": "lint-staged",
-            "pre-push": "npm run docs && git add ./docs && git commit -m APIDOCS GEN"
+            "pre-push": "npm run docs && git add ./docs && git commit -m 'APIDOCS GEN'"
         }
     },
     "lint-staged": {
