@@ -77,14 +77,8 @@
     "husky": {
         "hooks": {
             "pre-commit": "lint-staged",
-            "pre-push": "docs-gen"
+            "pre-push": "npm run docs"
         }
-    },
-    "docs-gen": {
-        "*": [
-            "npm run docs",
-            "git add ./docs"
-        ]
     },
     "lint-staged": {
         "*.{js,json,css,md}": [
