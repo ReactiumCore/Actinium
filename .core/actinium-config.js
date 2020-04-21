@@ -34,12 +34,6 @@ module.exports = {
                     destination: '/src/index.js',
                     source: '/tmp/update/src/index.js',
                 },
-                {
-                    overwrite: false,
-                    version: '>=3.0.1',
-                    destination: '/src/app/docs.js',
-                    source: '/tmp/update/src/app/docs.js',
-                },
             ],
             remove: [],
         },

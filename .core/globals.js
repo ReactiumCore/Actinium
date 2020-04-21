@@ -39,7 +39,8 @@ const defaults = {
         cloud: [
             `${ACTINIUM_DIR}/cloud/**/*.js`,
             `${BASE_DIR}/node_modules/**/actinium/*cloud.js`,
-            `${APP_DIR}/cloud/**/*.js`,
+            `${APP_DIR}/cloud/**/*.js`, // deprecated 3.1.8
+            `${APP_DIR}/**/*cloud.js`, // since 3.1.8
         ],
         plugins: [
             `${ACTINIUM_DIR}/plugin/**/*.js`,
@@ -97,6 +98,8 @@ ENV.PARSE_PRESERVE_FILENAME = stringToBoolean(
 ENV.PARSE_FILES_DIRECT_ACCESS = stringToBoolean(
     op.get(ENV, 'PARSE_FILES_DIRECT_ACCESS', true),
 );
+
+ENV.ACTINIUM_MOUNT = ENV.PARSE_MOUNT;
 
 global.LOG = (...args) => {
     if (!ENV.LOG) {
