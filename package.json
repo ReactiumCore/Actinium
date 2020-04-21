@@ -77,7 +77,7 @@
     "husky": {
         "hooks": {
             "pre-commit": "lint-staged",
-            "pre-push": "npm run docs && git add ./docs && git commit --allow-empty-message"
+            "pre-push": "npm run docs && git add ./docs && git commit --allow-empty-message -m ''"
         }
     },
     "lint-staged": {
