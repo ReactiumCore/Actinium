@@ -7,13 +7,13 @@ const express = require('express');
 const config = require('./actinium-config');
 const { ParseServer } = require('parse-server');
 
+Actinium = { ...Parse };
 Actinium.ready = false;
 Actinium.started = false;
 Actinium.server = null;
 Actinium.version = op.get(config, 'version', '3.1.1');
 Actinium.User = require('./plugin/users/sdk');
 Actinium.Harness = require('./lib/harness');
-Actinium.Schema = Parse.Schema;
 Actinium.Enums = require('./lib/enums');
 Actinium.Exp = require('./lib/express-settings');
 Actinium.Blueprint = require('./lib/blueprint');
@@ -51,10 +51,10 @@ Actinium.init = async options => {
     // Initialize Plugins
     Actinium.Plugin.init();
 
+    Actinium.ready = true;
+
     // Log cloud function info
     Actinium.Cloud.info();
-
-    Actinium.ready = true;
 
     // Run init Hook
     await Actinium.Hook.run('init', app, options);

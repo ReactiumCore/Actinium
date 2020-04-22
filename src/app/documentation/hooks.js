@@ -55,6 +55,7 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) live-query-classnames Triggered before he server starts and after `init`. The ENV.LIVE_QUERY_SETTINGS.classNames value is passed allow you to mutate the list of classNames before the server starts. This will execute regardless of the plugin's active state.
  * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) mailer-transport
+ * @apiParam (Hooks) plugin-load Triggered after a plugin has been loaded. This hook runs before `start` making it a good place to extend the Actinium SDK or do any before-start but after init actions.
  * @apiParam (Hooks) reset-request-context Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email.
  * @apiParam (Hooks) reset-request-email-html Triggered when the password reset request email is generating the HTML version of the message. Use this hook to replace or edit the output of the html email message.
  * @apiParam (Hooks) reset-request-email-text Triggered when the password reset request email is generating the text version of the message. Use this hook to replace or edit the output of the text email message.

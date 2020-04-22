@@ -236,6 +236,10 @@ Plugable.load = async () => {
 
     Actinium.Cache.set('plugins', plugins);
 
+    for (const ID in plugins) {
+        await Actinium.Hook.run('plugin-load', plugins[ID]);
+    }
+
     return Promise.resolve(plugins);
 };
 

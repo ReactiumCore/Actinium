@@ -3784,13 +3784,19 @@ define({ "api": [
             "group": "Hooks",
             "optional": false,
             "field": "init",
-            "description": "<p>Triggered after Actinium has initialized Express, Middleware, and Plugins. <code>init</code> is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it.</p>"
+            "description": "<p>Triggered after Actinium has initialized Express, Middleware, and Plugins. <code>init</code> is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it. This will execute regardless of the plugin's active state.</p>"
           },
           {
             "group": "Hooks",
             "optional": false,
             "field": "install",
             "description": "<p>Triggered after a plugin has been installed. The <code>Plugin</code> object is passed to the hook.</p>"
+          },
+          {
+            "group": "Hooks",
+            "optional": false,
+            "field": "live-query-classnames",
+            "description": "<p>Triggered before he server starts and after <code>init</code>. The ENV.LIVE_QUERY_SETTINGS.classNames value is passed allow you to mutate the list of classNames before the server starts. This will execute regardless of the plugin's active state.</p>"
           },
           {
             "group": "Hooks",
