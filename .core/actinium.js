@@ -59,6 +59,12 @@ Actinium.init = async options => {
     // Run init Hook
     await Actinium.Hook.run('init', app, options);
 
+    // Run live-query-classnames hook
+    await Actinium.Hook.run(
+        'live-query-classnames',
+        op.get(ENV.LIVE_QUERY_SETTINGS, 'classNames', []),
+    );
+
     LOG(' ', chalk.cyan('Initialized!'));
 
     return Promise.resolve(Actinium.app);

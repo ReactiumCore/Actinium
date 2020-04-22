@@ -50,8 +50,9 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) directories Triggered after the list of upload directories is retrieved. Passes the `Array` of directories as the only paramter.
  * @apiParam (Hooks) directory-create Triggered after a directory is created. Passes the `Parse.Object('MediaDirectory')` object as the only parameter.
  * @apiParam (Hooks) directory-query Triggered when the query for a directory is created. Passes the `Parse.Query` object as the only parameter.
- * @apiParam (Hooks) init Triggered after Actinium has initialized Express, Middleware, and Plugins. `init` is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it.
+ * @apiParam (Hooks) init Triggered after Actinium has initialized Express, Middleware, and Plugins. `init` is the very first hook triggered. If you have any pre-configuration that needs to take place, this is an optimal time to do it. This will execute regardless of the plugin's active state.
  * @apiParam (Hooks) install Triggered after a plugin has been installed. The `Plugin` object is passed to the hook.
+ * @apiParam (Hooks) live-query-classnames Triggered before he server starts and after `init`. The ENV.LIVE_QUERY_SETTINGS.classNames value is passed allow you to mutate the list of classNames before the server starts. This will execute regardless of the plugin's active state.
  * @apiParam (Hooks) login Triggered when a user has logged in. The user object will be saved after changes have been made. The `Parse.User` object is passed to the hook.
  * @apiParam (Hooks) mailer-transport
  * @apiParam (Hooks) reset-request-context Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email.
