@@ -15,7 +15,11 @@ const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
  * @apiVersion 3.0.3
  * @apiDescription Set of functions to interact with the User collection.
  */
-const User = { Meta: {}, Pref: {} };
+class User extends Parse.User {}
+
+User.Meta = {};
+
+User.Pref = {};
 
 /**
  * @api {Asyncronous} Actinium.User.currentUser(options) User.currentUser()
