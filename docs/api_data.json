@@ -3813,6 +3813,12 @@
           {
             "group": "Hooks",
             "optional": false,
+            "field": "plugin-load",
+            "description": "<p>Triggered after a plugin has been loaded. This hook runs before <code>start</code> making it a good place to extend the Actinium SDK or do any before-start but after init actions.</p>"
+          },
+          {
+            "group": "Hooks",
+            "optional": false,
             "field": "reset-request-context",
             "description": "<p>Triggered when the context object is created for a password reset request. Use this hook to add additional context data to a reset request email.</p>"
           },
