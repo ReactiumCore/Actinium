@@ -28,7 +28,7 @@ const indexContent = async () => {
 const CRON_SETTING = 'index-frequency';
 Actinium.Hook.register('start', async () => {
     Actinium.Search = require('./sdk');
-    indexContent();
+    await indexContent();
 
     // By default, index at midnight everyday
     Actinium.Pulse.define(

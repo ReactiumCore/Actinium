@@ -65,7 +65,9 @@ Actinium.init = async options => {
         op.get(ENV.LIVE_QUERY_SETTINGS, 'classNames', []),
     );
 
+    LOG(' ');
     LOG(' ', chalk.cyan('Initialized!'));
+    LOG(' ');
 
     return Promise.resolve(Actinium.app);
 };
@@ -105,8 +107,12 @@ Actinium.start = options =>
                     );
 
                     if (!ENV.NO_PARSE && ENV.LIVE_QUERY_SERVER) {
+                        LOG(' ');
                         LOG(chalk.cyan('Starting Live Query Server...'));
-                        ParseServer.createLiveQueryServer(Actinium.server);
+                        await ParseServer.createLiveQueryServer(
+                            Actinium.server,
+                        );
+                        LOG(' ', chalk.cyan('Started'), 'Live Query Server');
                     }
 
                     Actinium.started = true;
@@ -145,7 +151,16 @@ Actinium.start = options =>
                     await Actinium.Harness.run();
 
                     LOG('');
+                    LOG('');
+                    LOG(
+                        chalk.cyan.bold('Actinium'),
+                        chalk.bold('bootstrap complete!'),
+                    );
+                    LOG('');
 
+                    await Actinium.Hook.run('running');
+
+                    LOG('');
                     resolve(Actinium.server);
                 }
             });

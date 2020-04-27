@@ -66,6 +66,7 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) route-defaults Triggered when the list of default Routes is generated. Introduces a way to add to the default Routes. The Route Array is passed to the hook.
  * @apiParam (Hooks) route-list
  * @apiParam (Hooks) route-retrieve
+ * @apiParam (Hooks) running Triggered before the end of the Actinium bootstrap after warnings and tests have run. 
  * @apiParam (Hooks) setting-capability
  * @apiParam (Hooks) setting-change Triggered when the value of a setting has been changed. The setting key and value are passed to the hook.
  * @apiParam (Hooks) setting-set Triggered when a new setting has been registered. The setting key and value are passed to the hook.

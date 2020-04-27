@@ -95,9 +95,9 @@ FilesAdapter.update = async () => {
         LOG(' ');
         LOG(chalk.cyan('Updating Files Adapter:'));
         const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
-        proxy._set(adapter);
+        await proxy._set(adapter);
     } catch (error) {
-        console.log('Error setting files-adapter.');
+        LOG('Error setting files-adapter.');
     }
 };
 
@@ -131,18 +131,20 @@ FilesAdapter.register = (plugin, installer, order) => {
 };
 
 Hook.register('start', async () => {
-    FilesAdapter.update();
+    await FilesAdapter.update();
 });
 
 Hook.register('activate', async ({ ID }) => {
     if (ID in plugins) {
-        FilesAdapter.update();
+        console.log(2);
+        await FilesAdapter.update();
     }
 });
 
 Hook.register('deactivate', async ({ ID }) => {
     if (ID in plugins) {
-        FilesAdapter.update();
+        console.log(3);
+        await FilesAdapter.update();
     }
 });
 

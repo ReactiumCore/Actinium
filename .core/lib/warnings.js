@@ -22,11 +22,11 @@ module.exports = {
                 LOG(' ', 'You should definitely change that bruh!');
             }
 
-            const adminUser =
+            const dashboardUser =
                 _.findWhere(ENV.PARSE_DASHBOARD_USERS, { user: 'admin' }) || {};
 
-            const user = op.get(adminUser, 'user');
-            const pass = op.get(adminUser, 'pass');
+            const user = op.get(dashboardUser, 'user');
+            const pass = op.get(dashboardUser, 'pass');
             if (pass === 'admin') {
                 LOG('');
                 LOG(

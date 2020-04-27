@@ -33,20 +33,20 @@ const getNamespace = () => {
     );
 };
 
-Actinium.Hook.register('start', async () => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        const namespace = getNamespace();
-        if (namespace === UNINSTALLED_NAMESPACE) {
-            LOG('');
-            LOG(
-                chalk.cyan.bold('Warning:'),
-                'It appears you have not set the ID_NAMESPACE to a unique random uuid/v4. The default will be used and your content ids will not be unique!',
-            );
-            LOG(
-                chalk.cyan(`  PLUGINS[${PLUGIN.ID}].meta.namespace → `),
-                namespace,
-            );
-        }
+Actinium.Hook.register('warning', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    const namespace = getNamespace();
+    if (namespace === UNINSTALLED_NAMESPACE) {
+        LOG('');
+        LOG(
+            chalk.cyan.bold('Warning:'),
+            'It appears you have not set the ID_NAMESPACE to a unique random uuid/v4. The default will be used and your content ids will not be unique!',
+        );
+        LOG(
+            chalk.cyan(`  PLUGINS['${PLUGIN.ID}'].meta.namespace → `),
+            namespace,
+        );
     }
 });
 

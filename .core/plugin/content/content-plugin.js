@@ -48,7 +48,7 @@ Actinium.Hook.register('route-defaults', routes => {
     PLUGIN_ROUTES.forEach(item => routes.push(item));
 });
 
-Actinium.Hook.register('start', async () => {
+Actinium.Hook.register('running', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
     Actinium.Pulse.define(

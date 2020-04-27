@@ -103,6 +103,7 @@ const afterSave = req => {
 };
 
 const beforeSave = async req => {
+    req.object.unset('confirm');
     await Actinium.Hook.run('user-before-save', req);
 };
 
@@ -273,6 +274,12 @@ Actinium.Hook.register('start', async () => {
         { cache: true },
         { useMasterKey: true },
     );
+});
+
+Actinium.Hook.register('warning', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    return Actinium.User.init();
 });
 
 Actinium.Hook.register('content-saved', contentList);

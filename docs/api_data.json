@@ -3879,6 +3879,12 @@
           {
             "group": "Hooks",
             "optional": false,
+            "field": "running",
+            "description": "<p>Triggered before the end of the Actinium bootstrap after warnings and tests have run.</p>"
+          },
+          {
+            "group": "Hooks",
+            "optional": false,
             "field": "setting-capability",
             "description": ""
           },
@@ -6918,7 +6924,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.Meta.save(params,options)",
     "title": "User.Meta.save()",
     "group": "Actinium",
@@ -7009,7 +7015,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.Meta.update(params,options)",
     "title": "User.Meta.update()",
     "group": "Actinium",
@@ -7093,7 +7099,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.Pref.save(params,options)",
     "title": "User.Pref.save()",
     "group": "Actinium",
@@ -7184,7 +7190,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.Pref.update(params,options)",
     "title": "User.Pref.update()",
     "group": "Actinium",
@@ -7337,7 +7343,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.currentUser(options)",
     "title": "User.currentUser()",
     "group": "Actinium",
@@ -7371,6 +7377,17 @@
         "type": "json"
       }
     ],
+    "version": "0.0.0",
+    "filename": ".core/plugin/users/sdk.js",
+    "groupTitle": "Actinium"
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Actinium.User.init()",
+    "title": "User.init()",
+    "group": "Actinium",
+    "name": "User_init",
+    "description": "<p>Create the initial <code>Parse.User</code> object as a Super Admin if there are no users found in the User collection.</p>",
     "version": "0.0.0",
     "filename": ".core/plugin/users/sdk.js",
     "groupTitle": "Actinium"
@@ -7414,7 +7431,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.list(params,options)",
     "title": "User.list()",
     "group": "Actinium",
@@ -7628,7 +7645,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.retrieve(params,options)",
     "title": "User.retrieve()",
     "group": "Actinium",
@@ -7698,7 +7715,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.save(params,options)",
     "title": "User.save()",
     "group": "Actinium",
@@ -7775,7 +7792,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Asyncronous",
+    "type": "Asynchronous",
     "url": "Actinium.User.trash(params,options)",
     "title": "User.trash()",
     "group": "Actinium",

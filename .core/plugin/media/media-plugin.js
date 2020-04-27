@@ -72,17 +72,13 @@ Actinium.Hook.register('start', async () => {
 Actinium.Hook.register('install', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
-    if (_.pluck(Actinium.Pulse.definitions, 'id').includes('media-directories'))
+    if (
+        _.pluck(Actinium.Pulse.definitions, 'id').includes('media-directories')
+    ) {
         return;
+    }
 
     Actinium.Pulse.define('media-directories', Actinium.Media.load);
-});
-
-Actinium.Hook.register('plugin-load', async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-
-    LOG(ID, 'loaded');
 });
 
 // Remove pulses on uninstall

@@ -1,7 +1,9 @@
 const COLLECTION = '_User';
 const COLLECTION_ROLE = '_Role';
 
+const chalk = require('chalk');
 const _ = require('underscore');
+const uuid = require('uuid/v4');
 const ENUMS = require('./enums');
 const moment = require('moment');
 const op = require('object-path');
@@ -17,12 +19,8 @@ const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
  */
 class User extends Parse.User {}
 
-User.Meta = {};
-
-User.Pref = {};
-
 /**
- * @api {Asyncronous} Actinium.User.currentUser(options) User.currentUser()
+ * @api {Asynchronous} Actinium.User.currentUser(options) User.currentUser()
  * @apiGroup Actinium
  * @apiName User.currentUser
  * @apiDescription Get the current user from the options object.
@@ -40,7 +38,49 @@ User.currentUser = async (options, toObject = false) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.list(params,options) User.list()
+ * @api {Asynchronous} Actinium.User.init() User.init()
+ * @apiGroup Actinium
+ * @apiName User.init
+ * @apiDescription Create the initial `Parse.User` object as a Super Admin if there are no users found in the User collection.
+ */
+User.init = async () => {
+    const options = { useMasterKey: true };
+
+    // check the User collection for objects
+    let qry = new Actinium.Query(COLLECTION);
+    const results = await qry.find(options);
+
+    if (results.length > 0) return;
+
+    const password = uuid().substr(0, 8);
+    const params = {
+        username: 'admin',
+        password,
+        confirm: password,
+        email: 'admin@reactium.io',
+        fname: 'Super',
+        lname: 'Admin',
+        role: 'super-admin',
+    };
+
+    const adminUser = await User.save(params, options);
+
+    if (adminUser) {
+        LOG('');
+        LOG(
+            chalk.cyan.bold('Warning:'),
+            'The default Super Admin user has been created:',
+        );
+        LOG(' ', 'Username' + chalk.cyan(':'), chalk.magenta(params.username));
+        LOG(' ', 'Password' + chalk.cyan(':'), chalk.magenta(password));
+        LOG(' ', 'Be sure to change this password!');
+    }
+
+    return adminUser;
+};
+
+/**
+ * @api {Asynchronous} Actinium.User.list(params,options) User.list()
  * @apiGroup Actinium
  * @apiName User.list
  * @apiDescription Retrieve a list of `Parse.User` objects.
@@ -222,7 +262,7 @@ User.list = async (params, options) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.retrieve(params,options) User.retrieve()
+ * @api {Asynchronous} Actinium.User.retrieve(params,options) User.retrieve()
  * @apiGroup Actinium
  * @apiName User.retrieve
  * @apiDescription Retrieve a single `Parse.User` object.
@@ -289,7 +329,7 @@ User.retrieve = async (params, options) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.save(params,options) User.save()
+ * @api {Asynchronous} Actinium.User.save(params,options) User.save()
  * @apiGroup Actinium
  * @apiName User.save
  * @apiDescription Save a `Parse.User` object.
@@ -377,10 +417,11 @@ User.save = async (params, options) => {
     user = serialize(user);
 
     const current = await User.currentUser(options);
+
     await Actinium.Recycle.revision(
         {
             collection: COLLECTION,
-            object: user,
+            object: { ...user, password: null },
             user: current,
         },
         options,
@@ -390,7 +431,7 @@ User.save = async (params, options) => {
 };
 
 /**
- * @api {Asyncronous} Actinium.User.trash(params,options) User.trash()
+ * @api {Asynchronous} Actinium.User.trash(params,options) User.trash()
  * @apiGroup Actinium
  * @apiName User.trash
  * @apiDescription Send a single `Parse.User` object to the recycle bin.
@@ -431,8 +472,10 @@ User.trash = async (params, options) => {
     await userObj.destroy(options);
 };
 
+User.Meta = {};
+
 /**
-* @api {Asyncronous} Actinium.User.Meta.save(params,options) User.Meta.save()
+* @api {Asynchronous} Actinium.User.Meta.save(params,options) User.Meta.save()
 * @apiGroup Actinium
 * @apiName User.Meta.save
 * @apiDescription Mutate the Parse.User.meta object.
@@ -495,7 +538,7 @@ User.Meta.delete = async (params, options) => {
 };
 
 /**
-* @api {Asyncronous} Actinium.User.Meta.update(params,options) User.Meta.update()
+* @api {Asynchronous} Actinium.User.Meta.update(params,options) User.Meta.update()
 * @apiGroup Actinium
 * @apiName User.Meta.update
 * @apiDescription Mutate the Parse.User.meta object.
@@ -560,8 +603,10 @@ User.Meta.update = async (params, options) => {
     return user;
 };
 
+User.Pref = {};
+
 /**
-* @api {Asyncronous} Actinium.User.Pref.save(params,options) User.Pref.save()
+* @api {Asynchronous} Actinium.User.Pref.save(params,options) User.Pref.save()
 * @apiGroup Actinium
 * @apiName User.Pref.save
 * @apiDescription Mutate the Parse.User.pref object.
@@ -624,7 +669,7 @@ User.Pref.delete = async (params, options) => {
 };
 
 /**
-* @api {Asyncronous} Actinium.User.Pref.update(params,options) User.Pref.update()
+* @api {Asynchronous} Actinium.User.Pref.update(params,options) User.Pref.update()
 * @apiGroup Actinium
 * @apiName User.Pref.update
 * @apiDescription Mutate the Parse.User.pref object.
