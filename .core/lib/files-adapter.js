@@ -10,12 +10,14 @@ const op = require('object-path');
 class FilesAdapterProxy {
     constructor(config) {
         this.config = { ...config };
-        this._set();
+        this._set(null, true);
     }
 
-    async _set(adapter) {
+    async _set(adapter, silent) {
         if (!adapter) {
-            LOG('  Files Adapter set to GridFSBucketAdapter.');
+            if (silent !== true) {
+                LOG('  Files Adapter set to GridFSBucketAdapter.');
+            }
             this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
         } else this._adapter = adapter;
     }
@@ -136,14 +138,12 @@ Hook.register('start', async () => {
 
 Hook.register('activate', async ({ ID }) => {
     if (ID in plugins) {
-        console.log(2);
         await FilesAdapter.update();
     }
 });
 
 Hook.register('deactivate', async ({ ID }) => {
     if (ID in plugins) {
-        console.log(3);
         await FilesAdapter.update();
     }
 });
