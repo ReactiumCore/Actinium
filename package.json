@@ -45,7 +45,7 @@
         "object-path": "^0.11.4",
         "parse": "^2.8.0",
         "parse-dashboard": "^2.0.5",
-        "parse-server": "git+https://github.com/Atomic-Reactor/parse-server.git#3.9.x-actinium",
+        "parse-server": "^4.2.0",
         "pluralize": "^8.0.0",
         "promise": "^8.0.3",
         "request": "^2.88.0",
@@ -59,7 +59,7 @@
         "uuid": "^3.3.3"
     },
     "devDependencies": {
-        "atomic-reactor-cli": "^2.1.19",
+        "atomic-reactor-cli": "^2.1.23",
         "eslint": "^5.13.0",
         "husky": "^3.0.9",
         "lint-staged": "^9.4.2",

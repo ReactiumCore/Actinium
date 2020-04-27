@@ -48,7 +48,7 @@ class FilesAdapterProxy {
 
     // validateFilename(filename: string): ?Parse.Error {}
     validateFilename(filename) {
-        if ('validateFilename' in this._get()) {
+        if (typeof this._get().validateFilename === 'function') {
             return this._get().validateFilename(filename);
         }
 

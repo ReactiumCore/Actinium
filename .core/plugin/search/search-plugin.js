@@ -29,12 +29,13 @@ const CRON_SETTING = 'index-frequency';
 Actinium.Hook.register('start', async () => {
     Actinium.Search = require('./sdk');
     await indexContent();
+    const schedule = await Actinium.Setting.get(CRON_SETTING, '0 0 * * *');
 
     // By default, index at midnight everyday
     Actinium.Pulse.define(
         'content-search-indexing',
         {
-            schedule: Actinium.Setting.get(CRON_SETTING, '0 0 * * *'),
+            schedule,
         },
         indexContent,
     );
@@ -42,10 +43,11 @@ Actinium.Hook.register('start', async () => {
 
 Actinium.Hook.register('setting-set', async (key, value) => {
     if (key === CRON_SETTING) {
+        const schedule = await Actinium.Setting.get(CRON_SETTING, '0 0 * * *');
         Actinium.Pulse.replace(
             'content-search-indexing',
             {
-                schedule: Actinium.Setting.get(CRON_SETTING, '0 0 * * *'),
+                schedule,
             },
             indexContent,
         );
