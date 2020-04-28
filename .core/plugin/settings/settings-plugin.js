@@ -168,7 +168,6 @@ const list = async req => {
     const limit = 1000;
     const qry = new Parse.Query(COLLECTION).skip(skip).limit(limit);
 
-    // result-set filtered by capability
     let results = await qry.find({ useMasterKey: true });
 
     const fullAccess = CloudHasCapabilities(req, `${COLLECTION}.retrieve`);
@@ -189,7 +188,7 @@ const list = async req => {
         results = await qry.find({ useMasterKey: true });
     }
 
-    Actinium.Cache.set('setting', output);
+    Actinium.Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
 
     return Promise.resolve(output);
 };
@@ -238,6 +237,8 @@ const set = async req => {
         strict,
     );
 
+    Actinium.Cache.del(`setting.${group}`);
+
     let obj = await new Parse.Query(COLLECTION)
         .equalTo('key', group)
         .first(opts);
@@ -255,6 +256,13 @@ const set = async req => {
     obj.set('value', { value: objValue });
 
     const setting = await obj.save(null, opts);
+
+    Actinium.Cache.set(
+        `setting.${key}`,
+        objValue,
+        Actinium.Enums.cache.dataLoading,
+    );
+
     // Make setting publicly readable
     if (publicSetting) {
         await Actinium.Cloud.run(
@@ -388,6 +396,13 @@ const get = async req => {
 
     const result = op.get(obj, 'value.value');
     if (settingPath.length) return op.get(result, settingPath);
+
+    Actinium.Cache.set(
+        `setting.${key}`,
+        result,
+        Actinium.Enums.cache.dataLoading,
+    );
+
     return result;
 };
 
@@ -468,8 +483,16 @@ Actinium.Cloud.define(PLUGIN.ID, 'setting-rm', del);
 Actinium.Cloud.beforeSave(COLLECTION, beforeSave);
 Actinium.Cloud.afterDelete(COLLECTION, afterDel);
 
-Actinium.Pulse.define('settings-sync', async () => {
-    const prevSettings = Actinium.Setting.get();
-    const settings = await Actinium.Setting.load();
-    Actinium.Hook.run('settings-sync', settings, prevSettings);
+Actinium.Hook.register('running', async () => {
+    Actinium.Pulse.define(
+        'settings-sync',
+        {
+            schedule: op.get(ENV, 'SETTINGS_SYNC_SCHEDULE', '* * * * *'),
+        },
+        async () => {
+            const prevSettings = Actinium.Cache.get('setting');
+            const settings = await Actinium.Setting.load();
+            Actinium.Hook.run('settings-sync', settings, prevSettings);
+        },
+    );
 });

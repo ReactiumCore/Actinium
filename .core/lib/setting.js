@@ -12,15 +12,16 @@ Actinium.Cache.set('setting', ENV.SETTINGS);
 const Setting = {};
 
 Setting.schema = async () => {
+    const options = Actinium.Utils.MasterOptions();
     const schema = new Parse.Schema(COLLECTION);
     let isSchema;
 
     try {
-        isSchema = await schema.get({ useMasterKey: true });
+        isSchema = await schema.get(options);
     } catch (err) {
         schema.addString('key');
         schema.addObject('value');
-        return schema.save(null, { useMasterKey: true });
+        return schema.save(null, options);
     }
 
     return Promise.resolve(isSchema);
@@ -64,7 +65,7 @@ Setting.set = async (key, value) => {
 };
 
 /**
- * @api {Function} Actinium.Setting.get(key,default) Setting.get()
+ * @api {Asynchronous} Actinium.Setting.get(key,default) Setting.get()
  * @apiVersion 3.1.1
  * @apiGroup Actinium
  * @apiName Setting.get
@@ -78,12 +79,20 @@ Actinium.Setting.get('site.hostname');
 // get object of all site settings
 Actinium.Setting.get('site');
  */
-Setting.get = (key, defaultValue) => {
-    if (key) {
-        return Actinium.Cache.get(`setting.${key}`, defaultValue);
-    } else {
-        return Actinium.Cache.get('setting') || defaultValue;
+Setting.get = async (key, defaultValue) => {
+    const options = Actinium.Utils.MasterOptions();
+    const karr = String(key).split('.');
+    const rootKey = karr.shift();
+
+    if (!rootKey) return Setting.load();
+
+    const obj = await Parse.Cloud.run('setting-get', { key }, options);
+
+    if (typeof obj === 'undefined') {
+        return defaultValue;
     }
+
+    return obj;
 };
 
 /**
@@ -100,14 +109,19 @@ Actinium.Setting.unset('site.title');
 // remove the entire site setting group, including all settings and the capabilities associated
 Actinium.Setting.unset('site');
  */
-Setting.unset = key =>
-    key.split('.').length > 0
+Setting.unset = key => {
+    const options = Actinium.Utils.MasterOptions();
+
+    return key.split('.').length > 0
         ? Setting.set(key)
-        : Parse.Cloud.run('setting-unset', { key }, { useMasterKey: true });
+        : Parse.Cloud.run('setting-unset', { key }, options);
+};
 
 Setting.load = async () => {
+    const options = Actinium.Utils.MasterOptions();
+
     await Setting.schema();
-    return Parse.Cloud.run('settings', {}, { useMasterKey: true });
+    return Parse.Cloud.run('settings', {}, options);
 };
 
 module.exports = Setting;

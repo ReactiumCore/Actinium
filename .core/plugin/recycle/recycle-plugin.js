@@ -49,8 +49,8 @@ Actinium.Cloud.run('recycle-archive', {
   object: MyUserObject,
 });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-archive', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.create', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-archive', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.create', [
         'Recycle.create',
     ]);
 
@@ -73,8 +73,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'recycle-archive', req => {
  * @apiExample Example Usage:
 Actinium.Cloud.run('recycle-archived', { collection: '_User' });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-archived', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.retrieve', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-archived', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.retrieve', [
         'Recycle.retrieve',
     ]);
 
@@ -100,8 +100,8 @@ Actinium.Cloud.run('recycle', {
   object: SomeObject,
 });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.create', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.create', [
         'Recycle.create',
     ]);
 
@@ -124,8 +124,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'recycle', req => {
  * @apiExample Example Usage:
 Actinium.Cloud.run('recycle-purge', { collect: '_User' });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-purge', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.delete', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-purge', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.delete', [
         'Recycle.delete',
     ]);
 
@@ -147,8 +147,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'recycle-purge', req => {
  * @apiExample Example Usage:
 Actinium.Cloud.run('recycled', { collection: '_User' });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycled', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.retrieve', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycled', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.retrieve', [
         'Recycle.retrieve',
     ]);
 
@@ -169,8 +169,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'recycled', req => {
  * @apiExample Example Usage:
 Actinium.Cloud.run('recycle-restore', { object: 'aetkalq43r'});
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-restore', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.create', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-restore', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.create', [
         'Recycle.create',
     ]);
 
@@ -195,8 +195,8 @@ Actinium.Cloud.run('recycle-revision', {
   object: SomeObject,
 });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-revision', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.create', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-revision', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.create', [
         'Recycle.create',
     ]);
 
@@ -219,8 +219,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'recycle-revision', req => {
  * @apiExample Example Usage:
 Actinium.Cloud.run('recycle-revisions', { collection: '_User' });
  */
-Actinium.Cloud.define(PLUGIN.ID, 'recycle-revisions', req => {
-    const cap = Actinium.Setting.get('recycle.capabilities.retrieve', [
+Actinium.Cloud.define(PLUGIN.ID, 'recycle-revisions', async req => {
+    const cap = await Actinium.Setting.get('recycle.capabilities.retrieve', [
         'Recycle.retrieve',
     ]);
 

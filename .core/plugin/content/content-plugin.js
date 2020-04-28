@@ -50,11 +50,15 @@ Actinium.Hook.register('route-defaults', routes => {
 
 Actinium.Hook.register('running', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    const schedule = await Actinium.Setting.get(
+        ENUMS.CRON_SETTING,
+        '*/30 * * * *',
+    );
 
     Actinium.Pulse.define(
         'scheduled-publish',
         {
-            schedule: Actinium.Setting.get(ENUMS.CRON_SETTING, '*/30 * * * *'),
+            schedule,
         },
         Actinium.Content.publishScheduled,
     );
@@ -86,14 +90,16 @@ Actinium.Hook.register('start', async () => {
 });
 
 Actinium.Hook.register('setting-set', async (key, value) => {
+    const schedule = await Actinium.Setting.get(
+        ENUMS.CRON_SETTING,
+        '*/30 * * * *',
+    );
+
     if (key === ENUMS.CRON_SETTING) {
         Actinium.Pulse.replace(
             'scheduled-publish',
             {
-                schedule: Actinium.Setting.get(
-                    ENUMS.CRON_SETTING,
-                    '*/30 * * * *',
-                ),
+                schedule,
             },
             Actinium.Content.publishScheduled,
         );
