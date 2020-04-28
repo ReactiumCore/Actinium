@@ -144,11 +144,11 @@ Actinium.start = options =>
                     // Runtime schema initialization
                     await Actinium.Hook.run('schema');
 
-                    // Run warnings hook
-                    await Actinium.Warnings.run();
-
                     // Run tests in local development
                     await Actinium.Harness.run();
+
+                    // Run warnings hook
+                    await Actinium.Warnings.run();
 
                     LOG('');
                     LOG('');

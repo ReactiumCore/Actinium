@@ -2295,7 +2295,9 @@ Content.unschedule = async (params, options) => {
 Content.publishScheduled = async () => {
     const options = Actinium.Utils.MasterOptions();
     const { types = [] } = await Actinium.Type.list({}, options);
-    LOG(chalk.cyan('Content Scheduler:'));
+
+    let logged = false;
+
     for (const type of types) {
         const { collection } = type;
         const query = new Parse.Query(collection);
@@ -2303,7 +2305,14 @@ Content.publishScheduled = async () => {
         query.notEqualTo('publish', null);
 
         const items = await query.find(options);
-        LOG(`(${items.length})` + chalk.cyan(` ${collection}:`));
+
+        if (items.length > 0 && logged === false) {
+            if (logged === false) {
+                logged = true;
+                LOG(chalk.cyan('Content Scheduler:'));
+            }
+            LOG(`(${items.length})` + chalk.cyan(` ${collection}:`));
+        }
 
         const now = moment();
 
@@ -2381,7 +2390,10 @@ Content.publishScheduled = async () => {
                 await obj.save(null, options);
             }
         }
-        LOG(' - ', 'Done');
+
+        if (items.length > 0) {
+            LOG(' - ', 'Done');
+        }
     }
 };
 
