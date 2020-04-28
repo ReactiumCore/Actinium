@@ -2969,6 +2969,17 @@
   },
   {
     "type": "Asynchronous",
+    "url": "Content.typeMaintenance()",
+    "title": "Content.typeMaintenance()",
+    "description": "<p>Manually run content maintenance. Primarily makes sure that the current content slugs are accounted for in the Type object, but also runs the Hook <code>type-maintenance</code> for each type, giving plugins an opportunity to do their own maintenance.</p>",
+    "name": "Content_typeMaintenance",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Actinium"
+  },
+  {
+    "type": "Asynchronous",
     "url": "Content.unpublish(params,options)",
     "title": "Content.unpublish()",
     "description": "<p>Unpublish current version of content.</p>",
@@ -6429,7 +6440,7 @@
     "groupTitle": "Actinium"
   },
   {
-    "type": "Function",
+    "type": "Asynchronous",
     "url": "Actinium.Setting.get(key,default)",
     "title": "Setting.get()",
     "version": "3.1.1",
@@ -12354,6 +12365,30 @@
     "groupTitle": "Hooks"
   },
   {
+    "type": "Hook",
+    "url": "type-maintenance",
+    "title": "type-maintenance",
+    "description": "<p>Hook called on each scheduled Pulse type-maintenance job. Useful for regular jobs that must be run on content types or their content.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "typeObj",
+            "description": "<p>the type object of the content</p>"
+          }
+        ]
+      }
+    },
+    "name": "type_maintenance",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
     "success": {
       "fields": {
         "Success 200": [
@@ -12377,8 +12412,8 @@
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
-    "groupTitle": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
+    "group": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
+    "groupTitle": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
     "name": ""
   }
 ]

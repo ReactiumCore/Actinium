@@ -2393,10 +2393,9 @@ Content.publishScheduled = async () => {
 
         if (items.length > 0) {
             LOG(' - ', 'Done');
+            LOG('');
         }
     }
-
-    LOG(' ');
 };
 
 /**
@@ -2411,7 +2410,7 @@ Content.publishScheduled = async () => {
 Content.typeMaintenance = async () => {
     const options = Actinium.Utils.MasterOptions();
     const { types = [] } = await Actinium.Type.list({}, options);
-    LOG(chalk.cyan('Content Type Maintenance:'));
+    let logged = false;
     for (const type of types) {
         const { collection, slugs } = type;
         const query = new Parse.Query(collection);
@@ -2427,6 +2426,11 @@ Content.typeMaintenance = async () => {
         }
 
         if (_.difference(slugs, currentSlugs).length > 0) {
+            if (logged === false) {
+                LOG(chalk.cyan('Content Type Maintenance:'));
+                logged = true;
+            }
+
             const typeLabel = op.get(type, 'meta.label', op.get(type, 'type'));
             LOG(` - Cleanup ${typeLabel} slugs`);
             const typeObj = new Parse.Object('Type');
@@ -2445,8 +2449,9 @@ Content.typeMaintenance = async () => {
          */
         await Actinium.Hook.run('type-maintenance', type);
     }
-
-    LOG(' ');
+    if (logged === true) {
+        LOG('');
+    }
 };
 
 Actinium.Harness.test(
