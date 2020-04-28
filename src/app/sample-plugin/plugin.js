@@ -21,18 +21,22 @@ Actinium.Hook.register('install', ({ ID }) => {
     LOG(`  Installed ${PLUGIN.ID}!`);
 });
 
-Actinium.Hook.register('warning', () => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    LOG('');
-    LOG(
-        chalk.cyan.bold('Warning:'),
-        'The',
-        chalk.bold('sample-plugin'),
-        'is active.',
-    );
-    LOG(' ', 'If you do not need it, deactivate or remove it!');
-    LOG(' ', chalk.magenta(__dirname));
-});
+Actinium.Hook.register(
+    'warning',
+    () => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        LOG('');
+        LOG(
+            chalk.cyan.bold('Warning:'),
+            'The',
+            chalk.bold('sample-plugin'),
+            'is active.',
+        );
+        LOG(' ', 'If you do not need it, deactivate or remove it!');
+        LOG(' ', chalk.magenta(__dirname));
+    },
+    -1,
+);
 
 Actinium.Hook.register('activate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;

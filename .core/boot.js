@@ -1,4 +1,6 @@
-const fs = require('fs');
+const path = require('path');
+const fs = require('fs-extra');
+const chalk = require('chalk');
 const assert = require('assert');
 
 /**
@@ -7,14 +9,39 @@ const assert = require('assert');
 const boot = {
     get environment() {
         const file = environmentFile();
-        let env = {};
+        let env = {
+            ENV_WARNING: false,
+        };
+
         try {
-            env = JSON.parse(fs.readFileSync(file, 'utf8'));
+            const ENV_WARNING = envDev();
+            env = {
+                ...env,
+                ...JSON.parse(fs.readFileSync(file, 'utf8')),
+                ENV_WARNING,
+            };
         } catch (err) {
             console.error(err);
         }
-        return Object.assign(env, process.env);
+        return { ...env, ...process.env };
     },
+};
+
+const envDev = () => {
+    // Check for env.dev.json file
+    const filePath = path.normalize(`${SRC_DIR}/env.dev.json`);
+
+    // Exit if found
+    if (fs.existsSync(filePath)) return false;
+
+    // Get the template file
+    const templatePath = path.normalize(
+        `${BASE_DIR}/.core/plugin/env/env.dev.json`,
+    );
+
+    // Copy to src
+    fs.copySync(templatePath, filePath);
+    return true;
 };
 
 function environmentFile() {
