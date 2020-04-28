@@ -2383,6 +2383,58 @@ Content.publishScheduled = async () => {
         }
         LOG(' - ', 'Done');
     }
+
+    LOG(' ');
+};
+
+/**
+ * @api {Asynchronous} Content.typeMaintenance() Content.typeMaintenance()
+ * @apiDescription Manually run content maintenance. Primarily makes sure that
+ the current content slugs are accounted for in the Type object, but also runs
+ the Hook `type-maintenance` for each type, giving plugins an opportunity to do
+ their own maintenance.
+ * @apiName Content.typeMaintenance
+ * @apiGroup Actinium
+ */
+Content.typeMaintenance = async () => {
+    const options = Actinium.Utils.MasterOptions();
+    const { types = [] } = await Actinium.Type.list({}, options);
+    LOG(chalk.cyan('Content Type Maintenance:'));
+    for (const type of types) {
+        const { collection, slugs } = type;
+        const query = new Parse.Query(collection);
+        query.limit(1000);
+        query.skip(0);
+
+        let results = await query.find(options);
+        const currentSlugs = [];
+        while (results.length > 0) {
+            results.forEach(result => currentSlugs.push(result.get('slug')));
+            query.skip(currentSlugs.length);
+            results = await query.find(options);
+        }
+
+        if (_.difference(slugs, currentSlugs).length > 0) {
+            const typeLabel = op.get(type, 'meta.label', op.get(type, 'type'));
+            LOG(` - Cleanup ${typeLabel} slugs`);
+            const typeObj = new Parse.Object('Type');
+            typeObj.id = type.objectId;
+            typeObj.set('slugs', currentSlugs);
+            typeObj.save(null, options);
+        }
+
+        /**
+         * @api {Hook} type-maintenance type-maintenance
+         * @apiDescription Hook called on each scheduled Pulse type-maintenance job.
+         * Useful for regular jobs that must be run on content types or their content.
+         * @apiParam {Object} typeObj the type object of the content
+         * @apiName type-maintenance
+         * @apiGroup Hooks
+         */
+        await Actinium.Hook.run('type-maintenance', type);
+    }
+
+    LOG(' ');
 };
 
 Actinium.Harness.test(
@@ -2433,6 +2485,12 @@ Actinium.Harness.test(
                 { machineName: 'test_content' },
                 options,
             );
+            const typeObj = new Parse.Object('Type');
+            typeObj.id = type.objectId;
+            typeObj.fetch(options);
+            typeObj.set('slugs', []);
+            typeObj.save(null, options);
+
             collection = type.collection;
         } catch (error) {}
 

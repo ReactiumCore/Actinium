@@ -62,7 +62,16 @@ Actinium.Hook.register('running', async () => {
         },
         Actinium.Content.publishScheduled,
     );
-    Actinium.Content.publishScheduled();
+    await Actinium.Content.publishScheduled();
+
+    Actinium.Pulse.define(
+        'type-maintenance',
+        {
+            schedule,
+        },
+        Actinium.Content.typeMaintenance,
+    );
+    await Actinium.Content.typeMaintenance();
 });
 
 Actinium.Hook.register('start', async () => {
