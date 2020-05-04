@@ -1,11 +1,9 @@
-const { version } = require('../package');
-
 /**
  * Use liberally for additional core configuration.
  * @type {Object}
  */
 module.exports = {
-    version,
+    version: '3.2.5',
     semver: '^3.0.0',
     update: {
         package: {

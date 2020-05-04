@@ -99,6 +99,8 @@ ENV.PARSE_FILES_DIRECT_ACCESS = stringToBoolean(
     op.get(ENV, 'PARSE_FILES_DIRECT_ACCESS', true),
 );
 
+ENV.RUN_TEST = stringToBoolean(op.get(ENV, 'RUN_TEST', true));
+
 ENV.ACTINIUM_MOUNT = ENV.PARSE_MOUNT;
 
 global.LOG = (...args) => {

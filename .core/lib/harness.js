@@ -7,7 +7,7 @@ const results = {};
 
 const Harness = {
     run: async () => {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' && ENV.RUN_TEST === true) {
             LOG(' ');
             LOG(chalk.cyan('Test Runner:'));
 
