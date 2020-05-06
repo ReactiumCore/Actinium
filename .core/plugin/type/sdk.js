@@ -21,6 +21,16 @@ const getNamespace = () => {
 Type.getNamespace = getNamespace;
 
 /**
+ * @apiDefine FieldType Field Type configuration
+ * @apiParam (field) {String} fieldId (uuid) unique id of field in content type
+ * @apiParam (field) {String} fieldName unique name of field in content type, in general becomes slugified column name
+for storing the field data.
+ * @apiParam (field) {String} fieldType field identifier used in `content-schema-field-types` and `content-schema` hooks,
+ describing how the schema should store data submitted for this field using the Content SDK.
+ * @apiParam (field) {String} region id of the region where the field will appear in the Content Editor
+ */
+
+/**
  * @api {Asynchronous} Type.create(params,options) Type.create()
  * @apiDescription Save a content type definition.
  *
@@ -32,16 +42,16 @@ Type.getNamespace = getNamespace;
  * @apiParam (params) {Object} regions indexed by region id, this object contains multiple region objects,
  each with the same id ('default' by default), a label, and a slug. Each field
  in the `fields` has a `region` property with the id of the region to which it belongs.
- * @apiParam (params) {Object} fields indexed by fieldId (an uuid), this object
- contains 1 or more objects that describe the configuration for one "field type"
-  in the content type. The only required properties in each object are
- `fieldId`, which matches the index, a string `fieldType` which identifies a supported
- Actinium field type, a string `region`id ("default" region id by default), and
- a unique `fieldName` which will ultimately be the name of the field in the content schema.
+ * @apiParam (params) {Object} fields indexed by fieldId (an uuid), a `field` object. Except for required `fieldId`,
+ `fieldName`, `fieldType` and `region` properties, each field object may contain free-form variants
+ that aid in the presentation of the editor/configuration of Content Editor.
+ e.g. fieldType "Text" has a "defaultValue" property which is used for the Content Editor to display the default value
+ in the field editor. fieldType "Publisher" has a boolean "simple" property that changes the behavior of the publishing
+ feature in the Content Editor.
  * @apiParam (params) {Object} [meta] largely free-form metadata object associated with this content type.
  Actinium will use this to store the current label of the type.
  * @apiParam {Object} options Parse query options object
- *
+ * @apiUse FieldType
  * @apiName Type.create
  * @apiGroup Actinium
  */
@@ -107,14 +117,15 @@ Type.create = async (params, options) => {
  * @apiParam (params) {Object} regions indexed by region id, this object contains multiple region objects,
  each with the same id ('default' by default), a label, and a slug. Each field
  in the `fields` has a `region` property with the id of the region to which it belongs.
- * @apiParam (params) {Object} fields indexed by fieldId (an uuid), this object
- contains 1 or more objects that describe the configuration for one "field type"
-  in the content type. The only required properties in each object are
- `fieldId`, which matches the index, a string `fieldType` which identifies a supported
- Actinium field type, a string `region`id ("default" region id by default), and
- a unique `fieldName` which will ultimately be the name of the field in the content schema.
+ * @apiParam (params) {Object} fields indexed by fieldId (an uuid), a `field` object. Except for required `fieldId`,
+ `fieldName`, `fieldType` and `region` properties, each field object may contain free-form variants
+ that aid in the presentation of the editor/configuration of Content Editor.
+ e.g. fieldType "Text" has a "defaultValue" property which is used for the Content Editor to display the default value
+ in the field editor. fieldType "Publisher" has a boolean "simple" property that changes the behavior of the publishing
+ feature in the Content Editor.
  * @apiParam (params) {Object} [meta] largely free-form metadata object associated with this content type.
  Actinium will use this to store the current label of the type.
+ * @apiUse FieldType
  * @apiParam {Object} options Parse query options object
  *
  * @apiName Type.update

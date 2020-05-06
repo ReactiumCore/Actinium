@@ -6587,7 +6587,7 @@ define({ "api": [
             "type": "Object",
             "optional": false,
             "field": "fields",
-            "description": "<p>indexed by fieldId (an uuid), this object contains 1 or more objects that describe the configuration for one &quot;field type&quot; in the content type. The only required properties in each object are <code>fieldId</code>, which matches the index, a string <code>fieldType</code> which identifies a supported Actinium field type, a string <code>region</code>id (&quot;default&quot; region id by default), and a unique <code>fieldName</code> which will ultimately be the name of the field in the content schema.</p>"
+            "description": "<p>indexed by fieldId (an uuid), a <code>field</code> object. Except for required <code>fieldId</code>, <code>fieldName</code>, <code>fieldType</code> and <code>region</code> properties, each field object may contain free-form variants that aid in the presentation of the editor/configuration of Content Editor. e.g. fieldType &quot;Text&quot; has a &quot;defaultValue&quot; property which is used for the Content Editor to display the default value in the field editor. fieldType &quot;Publisher&quot; has a boolean &quot;simple&quot; property that changes the behavior of the publishing feature in the Content Editor.</p>"
           },
           {
             "group": "params",
@@ -6604,6 +6604,36 @@ define({ "api": [
             "optional": false,
             "field": "options",
             "description": "<p>Parse query options object</p>"
+          }
+        ],
+        "field": [
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldId",
+            "description": "<p>(uuid) unique id of field in content type</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldName",
+            "description": "<p>unique name of field in content type, in general becomes slugified column name for storing the field data.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldType",
+            "description": "<p>field identifier used in <code>content-schema-field-types</code> and <code>content-schema</code> hooks, describing how the schema should store data submitted for this field using the Content SDK.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "region",
+            "description": "<p>id of the region where the field will appear in the Content Editor</p>"
           }
         ]
       }
@@ -6907,7 +6937,7 @@ define({ "api": [
             "type": "Object",
             "optional": false,
             "field": "fields",
-            "description": "<p>indexed by fieldId (an uuid), this object contains 1 or more objects that describe the configuration for one &quot;field type&quot; in the content type. The only required properties in each object are <code>fieldId</code>, which matches the index, a string <code>fieldType</code> which identifies a supported Actinium field type, a string <code>region</code>id (&quot;default&quot; region id by default), and a unique <code>fieldName</code> which will ultimately be the name of the field in the content schema.</p>"
+            "description": "<p>indexed by fieldId (an uuid), a <code>field</code> object. Except for required <code>fieldId</code>, <code>fieldName</code>, <code>fieldType</code> and <code>region</code> properties, each field object may contain free-form variants that aid in the presentation of the editor/configuration of Content Editor. e.g. fieldType &quot;Text&quot; has a &quot;defaultValue&quot; property which is used for the Content Editor to display the default value in the field editor. fieldType &quot;Publisher&quot; has a boolean &quot;simple&quot; property that changes the behavior of the publishing feature in the Content Editor.</p>"
           },
           {
             "group": "params",
@@ -6924,6 +6954,36 @@ define({ "api": [
             "optional": false,
             "field": "options",
             "description": "<p>Parse query options object</p>"
+          }
+        ],
+        "field": [
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldId",
+            "description": "<p>(uuid) unique id of field in content type</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldName",
+            "description": "<p>unique name of field in content type, in general becomes slugified column name for storing the field data.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldType",
+            "description": "<p>field identifier used in <code>content-schema-field-types</code> and <code>content-schema</code> hooks, describing how the schema should store data submitted for this field using the Content SDK.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "region",
+            "description": "<p>id of the region where the field will appear in the Content Editor</p>"
           }
         ]
       }
@@ -12412,8 +12472,8 @@ define({ "api": [
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
-    "groupTitle": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
+    "group": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
+    "groupTitle": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
     "name": ""
   }
 ] });
