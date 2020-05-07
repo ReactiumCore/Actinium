@@ -17,13 +17,7 @@ const stringToBoolean = val => {
     return val;
 };
 
-const stringToObject = val => {
-    if (typeof val === 'string') {
-        return JSON.parse(val);
-    }
-
-    return val;
-};
+const stringToObject = val => (typeof val === 'string' ? JSON.parse(val) : val);
 
 global.Actinium = {};
 global.BASE_DIR = path.normalize(path.resolve(path.join(__dirname, '..')));
@@ -39,12 +33,14 @@ const defaults = {
         cloud: [
             `${ACTINIUM_DIR}/cloud/**/*.js`,
             `${BASE_DIR}/node_modules/**/actinium/*cloud.js`,
+            `${BASE_DIR}/actinium_modules/**/*cloud.js`,
             `${APP_DIR}/cloud/**/*.js`, // deprecated 3.1.8
             `${APP_DIR}/**/*cloud.js`, // since 3.1.8
         ],
         plugins: [
             `${ACTINIUM_DIR}/plugin/**/*.js`,
             `${BASE_DIR}/node_modules/**/actinium/*plugin.js`,
+            `${BASE_DIR}/actinium_modules/**/*plugin.js`,
             `${APP_DIR}/**/*plugin.js`,
             `!${ACTINIUM_DIR}/plugin/**/assets/**/*.js`,
             `!${ACTINIUM_DIR}/plugin/**/plugin-assets/**/*.js`,
@@ -53,6 +49,7 @@ const defaults = {
             `${ACTINIUM_DIR}/middleware/**/*.js`,
             `${ACTINIUM_DIR}/**/*middleware.js`,
             `${BASE_DIR}/node_modules/**/actinium/*middleware.js`,
+            `${BASE_DIR}/actinium_modules/**/*middleware.js`,
             `${APP_DIR}/**/*middleware.js`,
         ],
     },

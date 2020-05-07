@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.2.5',
+    version: '3.2.6',
     semver: '^3.0.0',
     update: {
         package: {
@@ -31,6 +31,12 @@ module.exports = {
                     version: '>=3.0.1',
                     destination: '/src/index.js',
                     source: '/tmp/update/src/index.js',
+                },
+                {
+                    overwrite: false,
+                    version: '>=3.2.5',
+                    destination: '/actinium_modules/.gitkeep',
+                    source: '/tmp/update/actinium_modules/.gitkeep',
                 },
             ],
             remove: [],
