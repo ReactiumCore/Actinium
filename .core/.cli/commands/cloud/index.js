@@ -13,9 +13,7 @@ const slugify = require('slugify');
 const mod = path.dirname(require.main.filename);
 const { error, message } = require(`${mod}/lib/messenger`);
 
-const beforeBoolean = val => {
-    return String(val).toLowerCase() === 'y';
-};
+const beforeBoolean = val => Boolean(String(val).toLowerCase() === 'y');
 
 const formatDefinitions = val => {
     if (val === '' || !val) {
@@ -114,7 +112,7 @@ const CONFIRM = ({ props, params }) => {
                         type: 'string',
                         required: true,
                         pattern: /^y|n|Y|N/,
-                        message: ` `,
+                        message: ' ',
                         before: beforeBoolean,
                     },
                 },
@@ -327,7 +325,7 @@ const ACTION = ({ opt, props }) => {
         }
 
         message(
-            `A new Parse.Cloud file will be created with the following options:`,
+            'A new Parse.Cloud file will be created with the following options:',
         );
         const preflight = { ...params };
 

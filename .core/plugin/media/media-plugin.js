@@ -23,7 +23,7 @@ Actinium[COLLECTION.MEDIA] = op.get(Actinium, COLLECTION.MEDIA, PLUGIN_SDK);
 Actinium.Plugin.register(PLUGIN, true);
 
 // Register Capabilities & Schema
-Actinium.Hook.register('activate', async ({ ID }) => {
+Actinium.Hook.register('schema', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
     Object.keys(PLUGIN_SCHEMA.ACTIONS.MEDIA).forEach(action =>

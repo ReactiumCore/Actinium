@@ -161,6 +161,7 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
         await Actinium.Hook.run('install', obj, req);
         if (active) {
             Actinium.Cache.set(`plugins.${obj.ID}.active`, true);
+            await Actinium.Hook.run('schema', obj, req);
             await Actinium.Hook.run('activate', obj, req);
         }
     } else {
@@ -176,12 +177,13 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
             await Actinium.Hook.run('update', obj, old, req);
         }
 
-        if (active !== prev && active === true) {
+        if (active === true && active !== prev) {
             Actinium.Cache.set(`plugins.${obj.ID}.active`, true);
+            await Actinium.Hook.run('schema', obj, req);
             await Actinium.Hook.run('activate', obj, req);
         }
 
-        if (active !== prev && active === false) {
+        if (active === false && active !== prev) {
             Actinium.Cache.set(`plugins.${obj.ID}.active`, false);
             await Actinium.Hook.run('deactivate', obj, req);
         }
