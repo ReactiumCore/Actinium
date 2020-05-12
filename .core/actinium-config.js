@@ -11,7 +11,7 @@ module.exports = {
                 remove: [],
             },
             devDependencies: {
-                remove: ['atomic-reactor-cli'],
+                remove: ['@atomic-reactor/cli', 'camelcase'],
             },
             scripts: {
                 add: {},
