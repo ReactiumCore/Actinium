@@ -39,7 +39,7 @@ const getDirectories = async options => {
     await Actinium.Hook.run('directory-query', qry);
 
     let results = await qry.find(options);
-    const directories = [];
+    let directories = [];
 
     while (results.length > 0) {
         results.forEach(item => directories.push(item.toJSON()));
@@ -47,6 +47,7 @@ const getDirectories = async options => {
         results = await qry.find(options);
     }
 
+    directories = _.compact(directories);
     Actinium.Cache.set('media-directories-fetch', directories, 5000);
     return directories;
 };
