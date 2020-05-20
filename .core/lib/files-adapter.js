@@ -19,6 +19,7 @@ class FilesAdapterProxy {
                 LOG('  Files Adapter set to GridFSBucketAdapter.');
             }
             this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
+            this._adapter.validateFilename = this._validateFilenameDefault;
         } else this._adapter = adapter;
     }
 
@@ -46,12 +47,7 @@ class FilesAdapterProxy {
         return this._get().getFileLocation(config, filename);
     }
 
-    // validateFilename(filename: string): ?Parse.Error {}
-    validateFilename(filename) {
-        if (typeof this._get().validateFilename === 'function') {
-            return this._get().validateFilename(filename);
-        }
-
+    _validateFilenameDefault(filename) {
         const regx = /^[_a-zA-Z0-9][a-zA-Z0-9@./ ~_-]*$/;
         if (!filename.match(regx)) {
             return new Parse.Error(
@@ -61,6 +57,15 @@ class FilesAdapterProxy {
         }
 
         return null;
+    }
+
+    // validateFilename(filename: string): ?Parse.Error {}
+    validateFilename(filename) {
+        if (typeof this._get().validateFilename === 'function') {
+            return this._get().validateFilename(filename);
+        }
+
+        return this._validateFilenameDefault(filename);
     }
 
     // handleFileStream(filename: string, res: any, req: any, contentType: string): Promise
