@@ -46,6 +46,18 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     return new S3Adapter(settings);
 });
 
+Actinium.Hook.register('add-meta-asset', async metaAsset => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID) || PLUGIN.ID === metaAsset.ID)
+        return;
+    const parsedFilename = path.parse(metaAsset.targetFileName);
+    const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
+
+    const appVer = op.get(config, 'version');
+    const version = op.get(plugin, 'version', appVer);
+    const { name, ext } = parsedFilename;
+    metaAsset.targetFileName = `${name}-${version}${ext}`;
+});
+
 const static = true;
 Actinium.Plugin.addLogo(
     PLUGIN.ID,
@@ -62,14 +74,3 @@ Actinium.Plugin.addStylesheet(
     path.resolve(__dirname, 'plugin-assets/s3-adapter-plugin.css'),
     static,
 );
-
-Actinium.Hook.register('add-meta-asset', async metaAsset => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    const parsedFilename = path.parse(metaAsset.targetFileName);
-    const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
-    const appVer = op.get(config, 'version');
-    const version = op.get(plugin, 'version', appVer);
-    const { name, ext } = parsedFilename;
-
-    metaAsset.targetFileName = `${name}-${version}${ext}`;
-});
