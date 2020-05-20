@@ -111,133 +111,202 @@
             var n = r(0),
                 o = r.n(n),
                 i = r(1),
-                c = r.n(i),
-                u = r(2),
+                u = r.n(i),
+                c = r(2),
                 a = r(3),
-                s = r.n(a),
-                l = function(e) {
-                    var t = Object(n.useHandle)('AdminTools'),
-                        r = s.a.get(t, 'Modal'),
-                        i = s.a.get(t, 'Toast'),
-                        a = Object(n.useHookComponent)('ConfirmBox'),
-                        l = Object(n.__)('Actinium Reset'),
-                        f = { header: { title: l }, dismissable: !1 },
-                        m = function() {
-                            return regeneratorRuntime.async(
-                                function(e) {
-                                    for (;;)
-                                        switch ((e.prev = e.next)) {
-                                            case 0:
-                                                return (
-                                                    (e.prev = 0),
-                                                    (e.next = 3),
-                                                    regeneratorRuntime.awrap(
-                                                        o.a.Cloud.run(
-                                                            'reset-actinium',
-                                                        ),
-                                                    )
-                                                );
-                                            case 3:
-                                                i.show({
-                                                    type: i.TYPE.SUCCESS,
-                                                    message: Object(n.__)(
-                                                        'Success! You should restart Actinium.',
-                                                    ),
-                                                    icon: c.a.createElement(
-                                                        u.Icon.Feather.Check,
-                                                        {
-                                                            style: {
-                                                                marginRight: 12,
-                                                            },
-                                                        },
-                                                    ),
-                                                }),
-                                                    (e.next = 10);
-                                                break;
-                                            case 6:
-                                                (e.prev = 6),
-                                                    (e.t0 = e.catch(0)),
-                                                    i.show({
-                                                        type: i.TYPE.ERROR,
-                                                        message: Object(n.__)(
-                                                            'Error resetting actinium!',
-                                                        ),
-                                                        icon: c.a.createElement(
-                                                            u.Icon.Feather
-                                                                .AlertOctagon,
-                                                            {
-                                                                style: {
-                                                                    marginRight: 12,
+                s = r.n(a);
+            function f(e, t, r, n, o, i, u) {
+                try {
+                    var c = e[i](u),
+                        a = c.value;
+                } catch (e) {
+                    return void r(e);
+                }
+                c.done ? t(a) : Promise.resolve(a).then(n, o);
+            }
+            var l = function(e) {
+                var t = Object(n.useHandle)('AdminTools'),
+                    r = s.a.get(t, 'Modal'),
+                    i = s.a.get(t, 'Toast'),
+                    a = Object(n.useHookComponent)('ConfirmBox'),
+                    l = Object(n.__)('Actinium Reset'),
+                    p = { header: { title: l }, dismissable: !1 },
+                    m = (function() {
+                        var e,
+                            t =
+                                ((e = regeneratorRuntime.mark(function e() {
+                                    return regeneratorRuntime.wrap(
+                                        function(e) {
+                                            for (;;)
+                                                switch ((e.prev = e.next)) {
+                                                    case 0:
+                                                        return (
+                                                            (e.prev = 0),
+                                                            (e.next = 3),
+                                                            o.a.Cloud.run(
+                                                                'reset-actinium',
+                                                            )
+                                                        );
+                                                    case 3:
+                                                        i.show({
+                                                            type:
+                                                                i.TYPE.SUCCESS,
+                                                            message: Object(
+                                                                n.__,
+                                                            )(
+                                                                'Success! You should restart Actinium.',
+                                                            ),
+                                                            icon: u.a.createElement(
+                                                                c.Icon.Feather
+                                                                    .Check,
+                                                                {
+                                                                    style: {
+                                                                        marginRight: 12,
+                                                                    },
                                                                 },
-                                                            },
-                                                        ),
-                                                    }),
-                                                    console.error(e.t0);
-                                            case 10:
-                                                r.dismiss();
-                                            case 11:
-                                            case 'end':
-                                                return e.stop();
+                                                            ),
+                                                        }),
+                                                            (e.next = 10);
+                                                        break;
+                                                    case 6:
+                                                        (e.prev = 6),
+                                                            (e.t0 = e.catch(0)),
+                                                            i.show({
+                                                                type:
+                                                                    i.TYPE
+                                                                        .ERROR,
+                                                                message: Object(
+                                                                    n.__,
+                                                                )(
+                                                                    'Error resetting actinium!',
+                                                                ),
+                                                                icon: u.a.createElement(
+                                                                    c.Icon
+                                                                        .Feather
+                                                                        .AlertOctagon,
+                                                                    {
+                                                                        style: {
+                                                                            marginRight: 12,
+                                                                        },
+                                                                    },
+                                                                ),
+                                                            }),
+                                                            console.error(e.t0);
+                                                    case 10:
+                                                        r.dismiss();
+                                                    case 11:
+                                                    case 'end':
+                                                        return e.stop();
+                                                }
+                                        },
+                                        e,
+                                        null,
+                                        [[0, 6]],
+                                    );
+                                })),
+                                function() {
+                                    var t = this,
+                                        r = arguments;
+                                    return new Promise(function(n, o) {
+                                        var i = e.apply(t, r);
+                                        function u(e) {
+                                            f(i, n, o, u, c, 'next', e);
                                         }
-                                },
-                                null,
-                                null,
-                                [[0, 6]],
-                            );
+                                        function c(e) {
+                                            f(i, n, o, u, c, 'throw', e);
+                                        }
+                                        u(void 0);
+                                    });
+                                });
+                        return function() {
+                            return t.apply(this, arguments);
                         };
-                    return c.a.createElement(
-                        u.Dialog,
-                        f,
-                        c.a.createElement(
-                            'div',
-                            { className: 'plugin-settings-reset' },
-                            c.a.createElement(
-                                u.Button,
-                                {
-                                    color: u.Button.ENUMS.COLOR.DANGER,
-                                    size: u.Button.ENUMS.SIZE.LG,
-                                    onClick: function() {
-                                        return r.show(
-                                            c.a.createElement(a, {
-                                                message: Object(n.__)(
-                                                    'Are you sure? This is a destructive operation.',
-                                                ),
-                                                onCancel: function() {
-                                                    return r.hide();
-                                                },
-                                                onConfirm: m,
-                                                title: l,
-                                            }),
-                                        );
-                                    },
+                    })();
+                return u.a.createElement(
+                    c.Dialog,
+                    p,
+                    u.a.createElement(
+                        'div',
+                        { className: 'plugin-settings-reset' },
+                        u.a.createElement(
+                            c.Button,
+                            {
+                                color: c.Button.ENUMS.COLOR.DANGER,
+                                size: c.Button.ENUMS.SIZE.LG,
+                                onClick: function() {
+                                    return r.show(
+                                        u.a.createElement(a, {
+                                            message: Object(n.__)(
+                                                'Are you sure? This is a destructive operation.',
+                                            ),
+                                            onCancel: function() {
+                                                return r.hide();
+                                            },
+                                            onConfirm: m,
+                                            title: l,
+                                        }),
+                                    );
                                 },
-                                Object(n.__)('Reset Actinium'),
-                            ),
+                            },
+                            Object(n.__)('Reset Actinium'),
                         ),
-                    );
-                };
-            regeneratorRuntime.async(function(e) {
-                for (;;)
-                    switch ((e.prev = e.next)) {
-                        case 0:
-                            return (
-                                (e.next = 2),
-                                regeneratorRuntime.awrap(
-                                    o.a.Plugin.register('reset-plugin'),
-                                )
-                            );
-                        case 2:
-                            o.a.Zone.addComponent({
-                                id: 'RESET-PLUGIN-SETTINGS',
-                                zone: 'plugin-settings-Reset',
-                                component: l,
-                                order: 0,
+                    ),
+                );
+            };
+            function p(e, t, r, n, o, i, u) {
+                try {
+                    var c = e[i](u),
+                        a = c.value;
+                } catch (e) {
+                    return void r(e);
+                }
+                c.done ? t(a) : Promise.resolve(a).then(n, o);
+            }
+            (function() {
+                var e,
+                    t =
+                        ((e = regeneratorRuntime.mark(function e() {
+                            return regeneratorRuntime.wrap(function(e) {
+                                for (;;)
+                                    switch ((e.prev = e.next)) {
+                                        case 0:
+                                            return (
+                                                (e.next = 2),
+                                                o.a.Plugin.register(
+                                                    'reset-plugin',
+                                                )
+                                            );
+                                        case 2:
+                                            o.a.Zone.addComponent({
+                                                id: 'RESET-PLUGIN-SETTINGS',
+                                                zone: 'plugin-settings-Reset',
+                                                component: l,
+                                                order: 0,
+                                            });
+                                        case 3:
+                                        case 'end':
+                                            return e.stop();
+                                    }
+                            }, e);
+                        })),
+                        function() {
+                            var t = this,
+                                r = arguments;
+                            return new Promise(function(n, o) {
+                                var i = e.apply(t, r);
+                                function u(e) {
+                                    p(i, n, o, u, c, 'next', e);
+                                }
+                                function c(e) {
+                                    p(i, n, o, u, c, 'throw', e);
+                                }
+                                u(void 0);
                             });
-                        case 3:
-                        case 'end':
-                            return e.stop();
-                    }
-            });
+                        });
+                return function() {
+                    return t.apply(this, arguments);
+                };
+            })()();
         },
     ]);
 });
