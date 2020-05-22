@@ -3,30 +3,18 @@
         ? (module.exports = t(
               require('reactium-core/sdk'),
               require('react'),
-              require('@atomic-reactor/reactium-ui'),
               require('object-path'),
           ))
         : 'function' == typeof define && define.amd
-        ? define([
-              'reactium-core/sdk',
-              'react',
-              '@atomic-reactor/reactium-ui',
-              'object-path',
-          ], t)
+        ? define(['reactium-core/sdk', 'react', 'object-path'], t)
         : 'object' == typeof exports
         ? (exports.reset = t(
               require('reactium-core/sdk'),
               require('react'),
-              require('@atomic-reactor/reactium-ui'),
               require('object-path'),
           ))
-        : (e.reset = t(
-              e['reactium-core/sdk'],
-              e.react,
-              e['@atomic-reactor/reactium-ui'],
-              e['object-path'],
-          ));
-})(window, function(e, t, r, n) {
+        : (e.reset = t(e['reactium-core/sdk'], e.react, e['object-path']));
+})(window, function(e, t, r) {
     return (function(e) {
         var t = {};
         function r(n) {
@@ -87,7 +75,7 @@
                 return Object.prototype.hasOwnProperty.call(e, t);
             }),
             (r.p = ''),
-            r((r.s = 4))
+            r((r.s = 3))
         );
     })([
         function(t, r) {
@@ -99,11 +87,8 @@
         function(e, t) {
             e.exports = r;
         },
-        function(e, t) {
-            e.exports = n;
-        },
         function(e, t, r) {
-            r(5);
+            r(4);
         },
         function(e, t, r) {
             'use strict';
@@ -113,9 +98,8 @@
                 i = r(1),
                 u = r.n(i),
                 c = r(2),
-                a = r(3),
-                s = r.n(a);
-            function f(e, t, r, n, o, i, u) {
+                a = r.n(c);
+            function s(e, t, r, n, o, i, u) {
                 try {
                     var c = e[i](u),
                         a = c.value;
@@ -124,14 +108,18 @@
                 }
                 c.done ? t(a) : Promise.resolve(a).then(n, o);
             }
-            var l = function(e) {
+            var f = function(e) {
                 var t = Object(n.useHandle)('AdminTools'),
-                    r = s.a.get(t, 'Modal'),
-                    i = s.a.get(t, 'Toast'),
-                    a = Object(n.useHookComponent)('ConfirmBox'),
-                    l = Object(n.__)('Actinium Reset'),
-                    p = { header: { title: l }, dismissable: !1 },
-                    m = (function() {
+                    r = a.a.get(t, 'Modal'),
+                    i = a.a.get(t, 'Toast'),
+                    c = Object(n.useHookComponent)('ConfirmBox'),
+                    f = Object(n.useHookComponent)('ReactiumUI'),
+                    l = f.Icon,
+                    p = f.Dialog,
+                    d = f.Button,
+                    m = Object(n.__)('Actinium Reset'),
+                    v = { header: { title: m }, dismissable: !1 },
+                    b = (function() {
                         var e,
                             t =
                                 ((e = regeneratorRuntime.mark(function e() {
@@ -157,8 +145,7 @@
                                                                 'Success! You should restart Actinium.',
                                                             ),
                                                             icon: u.a.createElement(
-                                                                c.Icon.Feather
-                                                                    .Check,
+                                                                l.Feather.Check,
                                                                 {
                                                                     style: {
                                                                         marginRight: 12,
@@ -181,8 +168,7 @@
                                                                     'Error resetting actinium!',
                                                                 ),
                                                                 icon: u.a.createElement(
-                                                                    c.Icon
-                                                                        .Feather
+                                                                    l.Feather
                                                                         .AlertOctagon,
                                                                     {
                                                                         style: {
@@ -210,10 +196,10 @@
                                     return new Promise(function(n, o) {
                                         var i = e.apply(t, r);
                                         function u(e) {
-                                            f(i, n, o, u, c, 'next', e);
+                                            s(i, n, o, u, c, 'next', e);
                                         }
                                         function c(e) {
-                                            f(i, n, o, u, c, 'throw', e);
+                                            s(i, n, o, u, c, 'throw', e);
                                         }
                                         u(void 0);
                                     });
@@ -223,27 +209,27 @@
                         };
                     })();
                 return u.a.createElement(
-                    c.Dialog,
                     p,
+                    v,
                     u.a.createElement(
                         'div',
                         { className: 'plugin-settings-reset' },
                         u.a.createElement(
-                            c.Button,
+                            d,
                             {
-                                color: c.Button.ENUMS.COLOR.DANGER,
-                                size: c.Button.ENUMS.SIZE.LG,
+                                color: d.ENUMS.COLOR.DANGER,
+                                size: d.ENUMS.SIZE.LG,
                                 onClick: function() {
                                     return r.show(
-                                        u.a.createElement(a, {
+                                        u.a.createElement(c, {
                                             message: Object(n.__)(
                                                 'Are you sure? This is a destructive operation.',
                                             ),
                                             onCancel: function() {
                                                 return r.hide();
                                             },
-                                            onConfirm: m,
-                                            title: l,
+                                            onConfirm: b,
+                                            title: m,
                                         }),
                                     );
                                 },
@@ -253,7 +239,7 @@
                     ),
                 );
             };
-            function p(e, t, r, n, o, i, u) {
+            function l(e, t, r, n, o, i, u) {
                 try {
                     var c = e[i](u),
                         a = c.value;
@@ -280,7 +266,7 @@
                                             o.a.Zone.addComponent({
                                                 id: 'RESET-PLUGIN-SETTINGS',
                                                 zone: 'plugin-settings-Reset',
-                                                component: l,
+                                                component: f,
                                                 order: 0,
                                             });
                                         case 3:
@@ -295,10 +281,10 @@
                             return new Promise(function(n, o) {
                                 var i = e.apply(t, r);
                                 function u(e) {
-                                    p(i, n, o, u, c, 'next', e);
+                                    l(i, n, o, u, c, 'next', e);
                                 }
                                 function c(e) {
-                                    p(i, n, o, u, c, 'throw', e);
+                                    l(i, n, o, u, c, 'throw', e);
                                 }
                                 u(void 0);
                             });
