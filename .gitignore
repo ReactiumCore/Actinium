@@ -63,8 +63,7 @@ dist
 # Webstorm IDE settings
 .idea
 
-# No package-lock
-.package-lock.json
+# No mac preview
 .DS_Store
 
 # copied public files
