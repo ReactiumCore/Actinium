@@ -49,10 +49,17 @@ Actinium.Hook.register('content-schema', async (schema, machineName) => {
 
     // Create relation column for `Collection` field types.
     Object.values(op.get(type, 'fields', [])).forEach(field => {
-        if (op.get(field, 'fieldType') !== 'Collection') return;
-        if (!op.get(field, 'targetClass')) return;
+        if (!op.get(field, 'targetClass')) {
+            return;
+        }
 
-        const fieldSlug = Actinium.Utils.slugify(field.fieldName);
+        if (String(op.get(field, 'fieldType')).toLowerCase() !== 'collection') {
+            return;
+        }
+
+        const fieldSlug = String(
+            Actinium.Utils.slugify(field.fieldName),
+        ).toLowerCase();
         schema[fieldSlug] = {
             type: 'Relation',
             targetClass: field.targetClass,
