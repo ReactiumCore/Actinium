@@ -973,6 +973,15 @@ Content.list = async (params, options) => {
         .limit(limit)
         .skip(skip);
 
+    /**
+     * @api {Hook} content-query content-query
+     * @apiDescription Called before a content query has taken place via Content.list() function.
+     * @apiParam {Array} query Actinium Query object
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The request options object
+     * @apiName content-query
+     * @apiGroup Hooks
+     */
     await Actinium.Hook.run('content-query', qry, params, options);
 
     const pages = Math.ceil(count / limit);
@@ -980,6 +989,15 @@ Content.list = async (params, options) => {
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     const results = await qry.find(options);
 
+    /**
+     * @api {Hook} content-query-results content-query-results
+     * @apiDescription Called after a content query has taken place via Content.list() function.
+     * @apiParam {Array} results Array of Actinium Objects
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The request options object
+     * @apiName content-query-results
+     * @apiGroup Hooks
+     */
     await Actinium.Hook.run('content-query-results', results, params, options);
 
     response = {
@@ -1000,6 +1018,17 @@ Content.list = async (params, options) => {
     }
 
     Actinium.Cache.set(cacheKey, response, ENUMS.CACHE);
+
+    /**
+     * @api {Hook} content-list content-list
+     * @apiDescription Called before the response object is return from Content.list()
+     * @apiParam {Object} response Response object
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The request options object
+     * @apiName content-list
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run('content-list', response, params, options);
 
     return response;
 };
@@ -1319,6 +1348,17 @@ Content.retrieve = async (params, options) => {
         );
 
         version['type'] = typeObj;
+
+        /**
+         * @api {Hook} content-retrieve content-retrieve
+         * @apiDescription Called after a content object is retrieved via Content.retrieve() function.
+         * @apiParam {Object} contentObject Serialized Actinium Content Object
+         * @apiParam {Object} params The request.params object
+         * @apiParam {Object} options The request options object
+         * @apiName content-retrieve
+         * @apiGroup Hooks
+         */
+        await Actinium.Hook.run('content-retrieve', version, params, options);
 
         return version;
     }
