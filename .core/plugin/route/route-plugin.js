@@ -353,9 +353,9 @@ Actinium.Hook.register('afterSave-route', updateRouteCache, -100000);
 
 Actinium.Hook.register('afterDelete-route', updateRouteCache, -100000);
 
-Actinium.Cloud.afterSave(COLLECTION, req =>
-    Actinium.Hook.run('afterSave-route', req),
-);
+Actinium.Cloud.afterSave(COLLECTION, async req => {
+    await Actinium.Hook.run('afterSave-route', req);
+});
 
 Actinium.Cloud.afterDelete(COLLECTION, req =>
     Actinium.Hook.run('afterDelete-route', req),

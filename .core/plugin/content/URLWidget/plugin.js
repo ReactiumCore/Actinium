@@ -1,4 +1,5 @@
 const _ = require('underscore');
+const op = require('object-path');
 
 const {
     CloudHasCapabilities,
@@ -18,10 +19,112 @@ Actinium.Hook.register('content-schema-field-types', fieldTypes => {
     fieldTypes['URLS'] = { type: 'Relation', targetClass: 'Route' };
 });
 
+// Actinium.Hook.register(
+//     'content-saved',
+//     async (content, typeObj, isNew, params, options) => {
+//         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+//         if (!op.get(params, 'urls')) return;
+//
+//         // get routes
+//         const contentId = op.get(content, 'objectId');
+//         const routes = await Actinium.Cloud.run('urls', { contentId }, options);
+//         console.log(routes);
+//     },
+// );
+
 Actinium.Hook.register(
     'content-before-save',
-    (content, type, isNew, params, options) => {
+    async (content, type, isNew, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        if (!op.get(params, 'urls')) return;
+
+        // 0.0 - Helpers
+        const validate = (url, reqParams) => {
+            reqParams = reqParams || ['route', 'meta.type', 'meta.blueprint'];
+            const count = reqParams.length;
+            return reqParams.filter(key => op.get(url, key)).length === count;
+        };
+
+        const routeObj = url => {
+            const blueprint = op.get(url, 'meta.blueprint');
+            op.del(url, 'meta.blueprint');
+
+            const urlObj = new Actinium.Object('Route');
+
+            if (!isNew) op.set(url, 'meta.contentId', content.id);
+            if (isNaN(op.get(url, 'objectId'))) {
+                urlObj.set('objectId', op.get(url, 'objectId'));
+            }
+
+            urlObj.set('user', op.get(params, 'user'));
+            urlObj.set('route', op.get(url, 'route'));
+            urlObj.set('meta', op.get(url, 'meta'));
+            urlObj.set('blueprint', blueprint);
+
+            return urlObj;
+        };
+
+        // 0.1 - Get the urls from params and remove them from the object so
+        //       they aren't accidently applied to the object.
+        const urls = op.get(params, 'urls');
+
+        op.del(params, 'urls');
+
+        // 1.0 - Get the relation
+        const rel = content.relation('urls');
+
+        //op.set(params, 'forceUpdate', true);
+
+        // 2.0 - Create Route items
+        let addURLS = await Actinium.Object.saveAll(
+            _.compact(
+                Object.values(urls)
+                    .filter(
+                        url =>
+                            url.pending === true &&
+                            !isNaN(url.objectId) &&
+                            validate(url) === true,
+                    )
+                    .map(url => routeObj(url)),
+            ),
+            options,
+        );
+
+        // console.log(addURLS);
+
+        // 2.1 - Add routes to relation
+        addURLS.forEach(route => rel.add(route));
+
+        // 3.0 - Update Route Items
+        const updURLS = await Actinium.Object.saveAll(
+            _.compact(
+                Object.values(urls)
+                    .filter(
+                        url =>
+                            url.pending === true &&
+                            isNaN(url.objectId) &&
+                            validate(url) === true,
+                    )
+                    .map(routeObj),
+            ),
+            options,
+        );
+
+        // 3.1 - Add routes to relation
+        updURLS.forEach(route => rel.add(route));
+
+        // 4.0 - Delete Route items
+        const delURLS = await Actinium.Object.fetchAll(
+            Object.values(urls)
+                .filter(url => url.pending === true && url.delete === true)
+                .map(url =>
+                    new Actinium.Object('Route').set('objectId', url.objectId),
+                ),
+            options,
+        );
+        if (delURLS.length > 0) {
+            await Actinium.Object.destroyAll(delURLS, options);
+        }
     },
 );
 

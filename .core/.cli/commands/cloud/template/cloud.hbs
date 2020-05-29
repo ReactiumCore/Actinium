@@ -15,8 +15,8 @@ Parse.Cloud.beforeSave(COLLECTION, req => {
 
 {{#if afterSave ~}}
 // AFTER SAVE {{collection}}
-Parse.Cloud.afterSave(COLLECTION, req => {
-    return Promise.resolve(true);
+Parse.Cloud.afterSave(COLLECTION, async req => {
+    await Promise.resolve(true);
 });
 {{/if ~}}
 

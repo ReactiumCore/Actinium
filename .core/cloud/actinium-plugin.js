@@ -206,7 +206,9 @@ Parse.Cloud.afterDelete(COLLECTION, async req => {
     await Actinium.Hook.run('afterDelete-plugin', req);
 });
 
-Parse.Cloud.afterSave(COLLECTION, req => Actinium.Hook.run('afterSave', req));
+Parse.Cloud.afterSave(COLLECTION, async req => {
+    await Actinium.Hook.run('afterSave', req);
+});
 
 /**
  * @api {Cloud} plugin-activate plugin-activate

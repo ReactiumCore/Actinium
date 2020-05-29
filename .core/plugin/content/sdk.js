@@ -1152,7 +1152,14 @@ Content.create = async (params, options) => {
      * @apiName content-saved
      * @apiGroup Hooks
      */
-    await Actinium.Hook.run('content-saved', contentObj, typeObj, true, params);
+    await Actinium.Hook.run(
+        'content-saved',
+        contentObj,
+        typeObj,
+        true,
+        params,
+        options,
+    );
     return contentObj;
 };
 
@@ -1612,9 +1619,10 @@ Content.update = async (params, options) => {
         op.set(contentRevision, 'history', history);
     }
 
-    const diff = await Actinium.Content.diff(contentRevision, params);
+    let diff = await Actinium.Content.diff(contentRevision, params);
+
     // No substantive change
-    if (!diff) return contentRevision;
+    if (!diff && !op.get(params, 'forceUpdate')) return contentRevision;
 
     // Create new revision branch
     const newRevision = {
@@ -1676,7 +1684,14 @@ Content.update = async (params, options) => {
     );
 
     // hook documented with api doc at bottom of Content.create()
-    await Actinium.Hook.run('content-saved', contentRevision, typeObj, false);
+    await Actinium.Hook.run(
+        'content-saved',
+        contentRevision,
+        typeObj,
+        false,
+        params,
+        options,
+    );
     return contentRevision;
 };
 
