@@ -1096,6 +1096,25 @@ Content.create = async (params, options) => {
     // only set content history on creation and publishing
     content.set('history', history);
 
+    /**
+     * @api {Hook} content-before-save content-before-save
+     * @apiDescription Called after content saved with `Content.create()` or `Content.update()`
+     * @apiParam {Object} contentObj the Content Actinium.Object
+     * @apiParam {Object} typeObj the content Type Actinium.Object
+     * @apiParam {Boolean} isNew If the content object is new or existing.
+     * @apiParam {Object} params The request.params object.
+     * @apiName content-before-save
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run(
+        'content-before-save',
+        content,
+        type,
+        true,
+        params,
+        options,
+    );
+
     await content.save(null, options);
 
     await type.save(null, masterOptions);
@@ -1129,10 +1148,11 @@ Content.create = async (params, options) => {
      * @apiParam {Object} contentObj the saved content object
      * @apiParam {Object} typeObj the type of the content
      * @apiParam {Boolean} isNew If the content object is new or existing.
+     * @apiParam {Object} params The request.params object.
      * @apiName content-saved
      * @apiGroup Hooks
      */
-    await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
+    await Actinium.Hook.run('content-saved', contentObj, typeObj, true, params);
     return contentObj;
 };
 
@@ -1561,6 +1581,15 @@ Content.update = async (params, options) => {
     }
     content.id = contentObj.objectId;
 
+    await Actinium.Hook.run(
+        'content-before-save',
+        content,
+        typeObj,
+        false,
+        params,
+        options,
+    );
+
     // verify that save is allowed, but do not apply new values
     // those will go in revision
     const saved = await content.save(null, options);
@@ -1774,6 +1803,24 @@ Content.delete = async (params, options) => {
     // update type to free up the slug
     type.remove('slugs', op.get(contentObj, 'slug'));
     await type.save(null, masterOptions);
+
+    /**
+     * @api {Hook} content-deleted content-deleted
+     * @apiDescription Called after `Content.delete()`
+     * @apiParam {Object} contentObj the Content Object
+     * @apiParam {Object} typeObj the Type Object
+     * @apiParam {Object} params the request.params object
+     * @apiParam {Object} options the Cloud run options
+     * @apiName content-deleted
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run(
+        'content-deleted',
+        contentObj,
+        typeObj,
+        params,
+        options,
+    );
 
     return trash;
 };
