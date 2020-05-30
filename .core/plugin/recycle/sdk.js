@@ -10,9 +10,9 @@ const create = ({ type = 'delete', collection, object, user }, options) => {
     if (typeof object.toJSON === 'function') object = object.toJSON();
 
     let ACL = op.get(object, 'ACL', {});
-    if (ACL && !(ACL instanceof Parse.ACL)) ACL = new Parse.ACL(ACL);
+    if (ACL && !(ACL instanceof Actinium.ACL)) ACL = new Actinium.ACL(ACL);
 
-    return new Parse.Object(COLLECTION).save(
+    return new Actinium.Object(COLLECTION).save(
         { ACL, type, collection, object, user },
         options,
     );
@@ -21,22 +21,28 @@ const create = ({ type = 'delete', collection, object, user }, options) => {
 const purge = async (params, options) => {
     const { results = [] } = await retrieve(params, options);
     const objs = results.map(({ objectId }) =>
-        new Parse.Object(COLLECTION).set('objectId', objectId),
+        new Actinium.Object(COLLECTION).set('objectId', objectId),
     );
-    return Parse.Object.destroyAll(objs);
+    return Actinium.Object.destroyAll(objs);
 };
 
 const restore = async (params, options) => {
-    const { results = [] } = await retrieve(params, options);
-    if (results.length < 1) return;
+    let items = op.get(params, 'items');
 
-    const { collection, object } = results[0];
+    if (!items) {
+        const list = await retrieve(params, options);
+        items = op.get(list, 'results', []);
+    }
+
+    if (items.length < 1) return;
+
+    const { collection, object } = items[0];
 
     if (!collection || !object) return;
 
     delete object.objectId;
     if (op.get(object, 'ACL')) {
-        object.ACL = new Parse.ACL(object.ACL);
+        object.ACL = new Actinium.ACL(object.ACL);
     }
 
     Object.entries(object).forEach(([key, value]) => {
@@ -50,17 +56,43 @@ const restore = async (params, options) => {
         }
     });
 
-    return new Parse.Object(collection).save(object, options);
+    return new Actinium.Object(collection).save(object, options);
+};
+
+const restoreAll = async (params, options) => {
+    const { results = [] } = await retrieveAll(params, options);
+
+    if (results.length < 1) return [];
+
+    return Promise.all(
+        results.map(item => restore({ items: [item] }, options)),
+    );
+};
+
+const retrieveAll = async (params = {}, options) => {
+    let results = [];
+    let page = op.get(params, 'page', 1);
+
+    let list = await retrieve(params, options);
+    const { pages } = list;
+
+    results = results.concat(list.results);
+
+    while (page < pages) {
+        page += 1;
+        op.set(params, 'page', page);
+        list = await retrieve(params, options);
+        results = results.concat(list.results);
+    }
+
+    return { count: results.length, page: 1, pages: 1, results };
 };
 
 const retrieve = async (params, options) => {
     const page = Math.max(op.get(params, 'page', 1), 1);
     const limit = Math.min(op.get(params, 'limit', 1000), 1000);
     const skip = page * limit - limit;
-    const qry = new Parse.Query(COLLECTION)
-        .descending('createdAt')
-        .limit(limit)
-        .skip(skip);
+    const qry = new Actinium.Query(COLLECTION).descending('createdAt');
 
     if (op.has(params, 'type')) {
         qry.containedIn('type', _.flatten([params.type]));
@@ -74,11 +106,26 @@ const retrieve = async (params, options) => {
         qry.equalTo('object.objectId', params.objectId);
     }
 
+    /**
+     * @api {Hook} recycle-query recycle-query
+     * @apiGroup Hooks
+     * @apiName recycle-query
+     * @apiParam {Query} query The Actinium.Query object
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The options object
+     * @apiDescription Triggered before the query is executed as a result of calling the Actinium.Recycle.retrieve function.
+     */
+    await Actinium.Hook.run('recycle-query', qry, params, options);
+
     const count = await qry.count(options);
     const pages = Math.ceil(count / limit);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
-    const results = await qry.find(options);
+
+    const results = await qry
+        .limit(limit)
+        .skip(skip)
+        .find(options);
 
     return {
         count,
@@ -90,7 +137,7 @@ const retrieve = async (params, options) => {
     };
 };
 
-const Recycle = { ...ENUMS, purge, restore, retrieve };
+const Recycle = { ...ENUMS, purge, restore, restoreAll, retrieve, retrieveAll };
 
 Recycle.archive = (params, options) =>
     create({ type: 'archive', ...params }, options);
@@ -107,7 +154,7 @@ module.exports = Recycle;
  * @apiVersion 3.1.7
  * @apiName Recycle
  * @apiGroup Actinium
- * @apiDescription Recycle allows you to temporarily store a `Parse.Object` and is useful for archiving and creating revisions of collection data.
+ * @apiDescription Recycle allows you to temporarily store a `Actinium.Object` and is useful for archiving and creating revisions of collection data.
  */
 
 /**
@@ -115,11 +162,11 @@ module.exports = Recycle;
  * @apiVersion 3.1.7
  * @apiGroup Actinium
  * @apiName Recycle.archive
- * @apiDescription Move a `Parse.Object` to the `Recycle` collection and mark it as an `archve` type.
+ * @apiDescription Move a `Actinium.Object` to the `Recycle` collection and mark it as an `archve` type.
  * @apiParam {Object} params Parameters object.
- * @apiParam {String} params.collection The Parse.Object type.
- * @apiParam {Object} params.object The Parse.Object data.
- * @apiParam {Parse.User} [params.user] The Parse.User object.
+ * @apiParam {String} params.collection The Actinium.Object type.
+ * @apiParam {Object} params.object The Actinium.Object data.
+ * @apiParam {Actinium.User} [params.user] The Actinium.User object.
  * @apiParam {Object} options Parse options object.
  * @apiExample Example Usage:
 Actinium.Recycle.archive({
@@ -148,7 +195,7 @@ Actinium.Recycle.purge({ collection: '_User' });
  * @apiVersion 3.1.7
  * @apiGroup Actinium
  * @apiName Recycle.restore
- * @apiDescription Restore a `Parse.Object` to it's original collection.
+ * @apiDescription Restore a `Actinium.Object` to it's original collection.
  * @apiParam {Object} params Parameters object.
  * @apiParam {String} [params.collection] Restore the most recent specified collection object.
  * @apiParam {String} [params.objectId] Restore a specific collection object.
@@ -179,11 +226,11 @@ Actinium.Recycle.retrieve({ collection: '_User' });
  * @apiVersion 3.1.7
  * @apiGroup Actinium
  * @apiName Recycle.revision
- * @apiDescription Move a `Parse.Object` to the `Recycle` collection and mark it as a `revision` type.
+ * @apiDescription Move a `Actinium.Object` to the `Recycle` collection and mark it as a `revision` type.
  * @apiParam {Object} params Parameters object.
- * @apiParam {String} params.collection The Parse.Object type.
- * @apiParam {Object} params.object The Parse.Object data.
- * @apiParam {Parse.User} [params.user] The Parse.User object.
+ * @apiParam {String} params.collection The Actinium.Object type.
+ * @apiParam {Object} params.object The Actinium.Object data.
+ * @apiParam {Actinium.User} [params.user] The Actinium.User object.
  * @apiParam {Object} options Parse options object.
  * @apiExample Example Usage:
 Actinium.Recycle.revision({
@@ -197,11 +244,11 @@ Actinium.Recycle.revision({
  * @apiVersion 3.1.7
  * @apiGroup Actinium
  * @apiName Recycle.trash
- * @apiDescription Move a `Parse.Object` to the `Recycle` collection and mark it as a `delete` type.
+ * @apiDescription Move a `Actinium.Object` to the `Recycle` collection and mark it as a `delete` type.
  * @apiParam {Object} params Parameters object.
- * @apiParam {String} params.collection The Parse.Object type.
- * @apiParam {Object} params.object The Parse.Object data.
- * @apiParam {Parse.User} [params.user] The Parse.User object.
+ * @apiParam {String} params.collection The Actinium.Object type.
+ * @apiParam {Object} params.object The Actinium.Object data.
+ * @apiParam {Actinium.User} [params.user] The Actinium.User object.
  * @apiParam {Object} options Parse options object.
  * @apiExample Example Usage:
 Actinium.Recycle.trash({

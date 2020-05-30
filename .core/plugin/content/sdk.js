@@ -1770,7 +1770,13 @@ Content.trash = async (params, options) => {
      * @apiName content-trashed
      * @apiGroup Hooks
      */
-    await Actinium.Hook.run('content-trashed', contentObj, typeObj);
+    await Actinium.Hook.run(
+        'content-trashed',
+        contentObj,
+        typeObj,
+        params,
+        options,
+    );
     return contentObj;
 };
 
@@ -1964,6 +1970,24 @@ Content.restore = async (params, options) => {
     await Parse.Object.saveAll(revisions, masterOptions);
 
     await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
+
+    /**
+     * @api {Hook} content-restored content-restored
+     * @apiGroup Hooks
+     * @apiName content-restored
+     * @apiParam {Object} contentObj The content marked trash
+     * @apiParam {Object} typeObj The type of the content
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The options object
+     * @apiDescription Called after `Content.restore()`
+     */
+    await Actinium.Hook.run(
+        'content-restored',
+        contentObj,
+        typeObj,
+        params,
+        options,
+    );
 
     return contentObj;
 };
