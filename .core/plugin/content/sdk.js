@@ -1862,10 +1862,11 @@ Content.delete = async (params, options) => {
     /**
      * @api {Hook} content-deleted content-deleted
      * @apiDescription Called after `Content.delete()`
-     * @apiParam {Object} contentObj the Content Object
-     * @apiParam {Object} typeObj the Type Object
-     * @apiParam {Object} params the request.params object
-     * @apiParam {Object} options the Cloud run options
+     * @apiParam {Object} contentObj The Content Object
+     * @apiParam {Object} typeObj The Type Object
+     * @apiParam {Object} trash The Trash Object
+     * @apiParam {Object} params The request.params object
+     * @apiParam {Object} options The Cloud run options
      * @apiName content-deleted
      * @apiGroup Hooks
      */
@@ -1873,6 +1874,7 @@ Content.delete = async (params, options) => {
         'content-deleted',
         contentObj,
         typeObj,
+        trash,
         params,
         options,
     );

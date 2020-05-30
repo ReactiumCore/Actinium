@@ -14,6 +14,7 @@ const PLUGIN = {
 
 Actinium.Plugin.register(PLUGIN, true);
 
+// content-schema-field-types hook
 Actinium.Hook.register('content-schema-field-types', fieldTypes => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     fieldTypes['URLS'] = { type: 'Relation', targetClass: 'Route' };
@@ -174,6 +175,26 @@ Actinium.Hook.register(
     },
 );
 
+// content-deleted hook
+Actinium.Hook.register(
+    'content-deleted',
+    async (contentObj, typeObj, trash, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        const contentId = op.get(contentObj, 'objectId');
+        const collection = op.get(typeObj, 'collection');
+
+        let routes = await Actinium.Cloud.run(
+            'urls',
+            { collection, contentId },
+            options,
+        );
+        routes = Object.values(routes.results).map(route =>
+            new Actinium.Object('Route').set('objectId', route.objectId),
+        );
+        if (routes.length > 0) Actinium.Object.destroyAll(routes);
+    },
+);
+
 Actinium.Cloud.define(PLUGIN.ID, 'url-retrieve', async req => {
     // TODO: Lock this down to capability check
     const options = CloudRunOptions(req);
@@ -209,7 +230,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'url-retrieve', async req => {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'urls', async req => {
-    const options = op.get(req, 'params.options') || CloudMasterOptions(req);
+    const options = CloudMasterOptions(req);
     let {
         contentId,
         limit = 100,
@@ -222,14 +243,22 @@ Actinium.Cloud.define(PLUGIN.ID, 'urls', async req => {
 
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
 
+    const defResponse = { count: 0, page: 1, pages: 1, limit, results: {} };
+
     let qry;
     let skip = page < 1 ? 0 : page * limit - limit;
 
     if (contentId && collection) {
-        const content = await new Actinium.Object(collection)
-            .set('objectId', contentId)
-            .fetch(options);
-        qry = content.relation('urls').query();
+        try {
+            const content = await new Actinium.Object(collection)
+                .set('objectId', contentId)
+                .fetch(options);
+
+            if (content) qry = content.relation('urls').query();
+        } catch (err) {
+            await Actinium.Hook.run('urls', defResponse, req.params, options);
+            return defResponse;
+        }
     } else {
         qry = new Actinium.Query('Route');
 
@@ -238,6 +267,11 @@ Actinium.Cloud.define(PLUGIN.ID, 'urls', async req => {
         } else {
             if (route) qry.equalTo('route', route);
         }
+    }
+
+    if (!qry) {
+        await Actinium.Hook.run('urls', defResponse, req.params, options);
+        return defResponse;
     }
 
     let count = 0;
