@@ -241,18 +241,12 @@ SDK.list = async (params, options) => {
 
     while (results.length > 0) {
         results = results.map(route => route.toJSON());
-        output = _.chain([output, results])
-            .flatten()
-            .sortBy('route')
-            .value()
-            .reverse();
+        output = _.flatten([output, results]);
 
         if (page < 1) {
             skip += limit;
             count = output.length;
             qry.skip(skip);
-
-            await Actinium.Hook.run('urls-query', qry, params, options);
 
             results = await qry.find(options);
         } else {
@@ -261,9 +255,9 @@ SDK.list = async (params, options) => {
     }
 
     const pages = Math.ceil(count / limit);
-    page = page < 1 ? 1 : page;
-    let next = Math.min(page + 1, pages + 1);
-    let prev = Math.max(page - 1, 0);
+    page = Math.max(page, 1);
+    let next = page + 1;
+    let prev = page - 1;
 
     const pagination = {
         page,

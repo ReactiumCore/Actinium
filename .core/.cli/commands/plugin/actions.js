@@ -41,9 +41,9 @@ module.exports = spinner => {
         },
         schema: ({ params }) => {
             if (!op.has(params, 'collections')) return;
-            const file = normalize(destination, 'schemas.js');
+            const file = normalize(destination, 'schema.js');
             message('Creating', chalk.cyan('schema'), 'file...');
-            generateFile('schemas.hbs', file, params);
+            generateFile('schema.hbs', file, params);
         },
         routes: ({ params }) => {
             if (!op.has(params, 'routes')) return;

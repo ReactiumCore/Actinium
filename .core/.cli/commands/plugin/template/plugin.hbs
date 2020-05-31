@@ -109,14 +109,14 @@ Actinium.Hook.register('deactivate', ({ ID }) => {
 });
 
 
-{{#if functions}}
+{{#if cloud}}
 /**
  * ----------------------------------------------------------------------------
  * Cloud Functions
  * ----------------------------------------------------------------------------
  */
 
-{{#each functions}}
+{{#each cloud}}
 // {{this}}
 Actinium.Cloud.define(PLUGIN.ID, '{{this}}', req => {
 

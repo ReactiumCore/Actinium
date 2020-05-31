@@ -1,7 +1,11 @@
-const { CloudACL, AclTargets } = require('./acl');
-const serialize = require('./serialize');
 const slugify = require('./slugify');
 const FileAPI = require('./file-api');
+const serialize = require('./serialize');
+const hookedSave = require('./hookedSave');
+const hookedQuery = require('./hookedQuery');
+const { CloudACL, AclTargets } = require('./acl');
+const hookedRetrieve = require('./hookedRetrieve');
+
 const {
     CloudRunOptions,
     CloudCapOptions,
@@ -25,4 +29,7 @@ module.exports = {
     serialize,
     slugify,
     FileAPI,
+    hookedSave,
+    hookedQuery,
+    hookedRetrieve,
 };

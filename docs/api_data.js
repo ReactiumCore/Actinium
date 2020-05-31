@@ -5566,7 +5566,7 @@ define({ "api": [
     "version": "3.1.7",
     "name": "Recycle",
     "group": "Actinium",
-    "description": "<p>Recycle allows you to temporarily store a <code>Parse.Object</code> and is useful for archiving and creating revisions of collection data.</p>",
+    "description": "<p>Recycle allows you to temporarily store a <code>Actinium.Object</code> and is useful for archiving and creating revisions of collection data.</p>",
     "filename": ".core/plugin/recycle/sdk.js",
     "groupTitle": "Actinium"
   },
@@ -5577,7 +5577,7 @@ define({ "api": [
     "version": "3.1.7",
     "group": "Actinium",
     "name": "Recycle_archive",
-    "description": "<p>Move a <code>Parse.Object</code> to the <code>Recycle</code> collection and mark it as an <code>archve</code> type.</p>",
+    "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as an <code>archve</code> type.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -5593,21 +5593,21 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "params.collection",
-            "description": "<p>The Parse.Object type.</p>"
+            "description": "<p>The Actinium.Object type.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": false,
             "field": "params.object",
-            "description": "<p>The Parse.Object data.</p>"
+            "description": "<p>The Actinium.Object data.</p>"
           },
           {
             "group": "Parameter",
-            "type": "Parse.User",
+            "type": "Actinium.User",
             "optional": true,
             "field": "params.user",
-            "description": "<p>The Parse.User object.</p>"
+            "description": "<p>The Actinium.User object.</p>"
           },
           {
             "group": "Parameter",
@@ -5695,7 +5695,7 @@ define({ "api": [
     "version": "3.1.7",
     "group": "Actinium",
     "name": "Recycle_restore",
-    "description": "<p>Restore a <code>Parse.Object</code> to it's original collection.</p>",
+    "description": "<p>Restore a <code>Actinium.Object</code> to it's original collection.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -5822,7 +5822,7 @@ define({ "api": [
     "version": "3.1.7",
     "group": "Actinium",
     "name": "Recycle_revision",
-    "description": "<p>Move a <code>Parse.Object</code> to the <code>Recycle</code> collection and mark it as a <code>revision</code> type.</p>",
+    "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as a <code>revision</code> type.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -5838,21 +5838,21 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "params.collection",
-            "description": "<p>The Parse.Object type.</p>"
+            "description": "<p>The Actinium.Object type.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": false,
             "field": "params.object",
-            "description": "<p>The Parse.Object data.</p>"
+            "description": "<p>The Actinium.Object data.</p>"
           },
           {
             "group": "Parameter",
-            "type": "Parse.User",
+            "type": "Actinium.User",
             "optional": true,
             "field": "params.user",
-            "description": "<p>The Parse.User object.</p>"
+            "description": "<p>The Actinium.User object.</p>"
           },
           {
             "group": "Parameter",
@@ -5881,7 +5881,7 @@ define({ "api": [
     "version": "3.1.7",
     "group": "Actinium",
     "name": "Recycle_trash",
-    "description": "<p>Move a <code>Parse.Object</code> to the <code>Recycle</code> collection and mark it as a <code>delete</code> type.</p>",
+    "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as a <code>delete</code> type.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -5897,21 +5897,21 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "params.collection",
-            "description": "<p>The Parse.Object type.</p>"
+            "description": "<p>The Actinium.Object type.</p>"
           },
           {
             "group": "Parameter",
             "type": "Object",
             "optional": false,
             "field": "params.object",
-            "description": "<p>The Parse.Object data.</p>"
+            "description": "<p>The Actinium.Object data.</p>"
           },
           {
             "group": "Parameter",
-            "type": "Parse.User",
+            "type": "Actinium.User",
             "optional": true,
             "field": "params.user",
-            "description": "<p>The Parse.User object.</p>"
+            "description": "<p>The Actinium.User object.</p>"
           },
           {
             "group": "Parameter",
@@ -11665,6 +11665,51 @@ define({ "api": [
   },
   {
     "type": "Hook",
+    "url": "content-before-save",
+    "title": "content-before-save",
+    "description": "<p>Called after content saved with <code>Content.create()</code> or <code>Content.update()</code></p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "contentObj",
+            "description": "<p>the Content Actinium.Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "typeObj",
+            "description": "<p>the content Type Actinium.Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isNew",
+            "description": "<p>If the content object is new or existing.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object.</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_before_save",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
     "url": "content-default-change-types",
     "title": "content-default-change-types",
     "description": "<p>Hook during <code>start</code> if content plugin is active. You can use this to add additional change log reasons.</p>",
@@ -11709,6 +11754,58 @@ define({ "api": [
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-deleted",
+    "title": "content-deleted",
+    "description": "<p>Called after <code>Content.delete()</code></p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "contentObj",
+            "description": "<p>The Content Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "typeObj",
+            "description": "<p>The Type Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "trash",
+            "description": "<p>The Trash Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The Cloud run options</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_deleted",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
     "groupTitle": "Hooks"
   },
   {
@@ -11765,6 +11862,44 @@ define({ "api": [
   },
   {
     "type": "Hook",
+    "url": "content-list",
+    "title": "content-list",
+    "description": "<p>Called before the response object is return from Content.list()</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "response",
+            "description": "<p>Response object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_list",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
     "url": "content-published",
     "title": "content-published",
     "description": "<p>Called after <code>Content.publish()</code></p>",
@@ -11789,6 +11924,165 @@ define({ "api": [
       }
     },
     "name": "content_published",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-query",
+    "title": "content-query",
+    "description": "<p>Called before a content query has taken place via Content.list() function.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "query",
+            "description": "<p>Actinium Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_query",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-query-results",
+    "title": "content-query-results",
+    "description": "<p>Called after a content query has taken place via Content.list() function.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "results",
+            "description": "<p>Array of Actinium Objects</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_query_results",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-restored",
+    "title": "content-restored",
+    "group": "Hooks",
+    "name": "content_restored",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "contentObj",
+            "description": "<p>The content marked trash</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "typeObj",
+            "description": "<p>The type of the content</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Called after <code>Content.restore()</code></p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-retrieve",
+    "title": "content-retrieve",
+    "description": "<p>Called after a content object is retrieved via Content.retrieve() function.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "contentObject",
+            "description": "<p>Serialized Actinium Content Object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content_retrieve",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -11822,6 +12116,13 @@ define({ "api": [
             "optional": false,
             "field": "isNew",
             "description": "<p>If the content object is new or existing.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object.</p>"
           }
         ]
       }
@@ -12117,6 +12418,44 @@ define({ "api": [
   },
   {
     "type": "Hook",
+    "url": "recycle-query",
+    "title": "recycle-query",
+    "group": "Hooks",
+    "name": "recycle_query",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Query",
+            "optional": false,
+            "field": "query",
+            "description": "<p>The Actinium.Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered before the query is executed as a result of calling the Actinium.Recycle.retrieve function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/recycle/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
     "url": "search-index",
     "title": "search-index",
     "description": "<p>Hook called in <code>Actinium.Search.index()</code> to trigger actual indexing of content. Implement this hook to perform indexing.</p>",
@@ -12290,6 +12629,431 @@ define({ "api": [
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-attached",
+    "title": "url-attached",
+    "group": "Hooks",
+    "name": "url_attached",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "attached",
+            "description": "<p>The Array of url Route objects attached</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after url Route objects have been attached to a Content object as a result of calliing Actinium.URL.attach() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-before-delete",
+    "title": "url-before-delete",
+    "group": "Hooks",
+    "name": "url_before_delete",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "urls",
+            "description": "<p>The Array of url Route objects to delete</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after urls have been deleted as a result of calling Actinium.URL.delete() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-before-trashed",
+    "title": "url-before-trashed",
+    "group": "Hooks",
+    "name": "url_before_trashed",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "urls",
+            "description": "<p>Array of url Route Objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered before a url is trashed as a result of calling Actinium.URL.trash() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-created",
+    "title": "url-created",
+    "group": "Hooks",
+    "name": "url_created",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after url Route objects have been created as a result of calling the Actinium.URL.create() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-deleted",
+    "title": "url-deleted",
+    "group": "Hooks",
+    "name": "url_deleted",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "urls",
+            "description": "<p>The Array of url Route objects to delete</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "deleted",
+            "description": "<p>Array of deleted url Route objects</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after urls have been deleted as a result of calling Actinium.URL.delete() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-query",
+    "title": "url-query",
+    "group": "Hooks",
+    "name": "url_query",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Query",
+            "optional": false,
+            "field": "query",
+            "description": "<p>The Actinium.Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered before the url query is executed as a result of calling Actinium.URL.retrieve() function</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-retrieved",
+    "title": "url-retrieved",
+    "group": "Hooks",
+    "name": "url_retrieved",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "route",
+            "description": "<p>the serialized Actinium.Route object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after the url query is executed as a result of calling Actinium.URL.retrieve() function</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "url-trashed",
+    "title": "url-trashed",
+    "group": "Hooks",
+    "name": "url_trashed",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "urls",
+            "description": "<p>Array of url Route Objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "trash",
+            "description": "<p>Array of Recycle Objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered after a url is trashed as a result of calling Actinium.URL.trash() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "urls",
+    "title": "urls",
+    "description": "<p>Called before the urls response is returned.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "response",
+            "description": "<p>Serialized response object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "urls",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "urls-query",
+    "title": "urls-query",
+    "description": "<p>Called before the urls query is executed.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "query",
+            "description": "<p>Actinium.Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "urls_query",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "urls-restored",
+    "title": "urls-restored",
+    "group": "Hooks",
+    "name": "urls_restored",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Array",
+            "optional": false,
+            "field": "restored",
+            "description": "<p>Array of url Route Objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The options object</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Triggered when a url is restored as a result of calling the Actinium.URL.resotre() function.</p>",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/URLWidget/sdk.js",
     "groupTitle": "Hooks"
   },
   {
