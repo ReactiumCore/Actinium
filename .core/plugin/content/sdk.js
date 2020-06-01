@@ -1084,7 +1084,10 @@ Content.create = async (params, options) => {
 
     content.set('slug', slug);
     content.set('title', title);
-    content.set('type', { objectId: type.id });
+    content.set('type', {
+        machineName: typeObj.machineName,
+        uuid: typeObj.uuid,
+    });
     content.set('uuid', uuidv5(slug, namespace));
     content.set('meta', op.get(params, 'meta', {}));
     content.set('status', ENUMS.STATUS.DRAFT);
@@ -1627,6 +1630,10 @@ Content.update = async (params, options) => {
         content.set('title', title);
     }
     content.id = contentObj.objectId;
+    content.set('type', {
+        machineName: typeObj.machineName,
+        uuid: typeObj.uuid,
+    });
 
     await Actinium.Hook.run(
         'content-before-save',
