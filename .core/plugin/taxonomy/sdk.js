@@ -1,4 +1,5 @@
 const PLUGIN = require('./info');
+const op = require('object-path');
 
 const Taxonomy = {};
 

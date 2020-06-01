@@ -1,5 +1,5 @@
-const _ = require('underscore');
 const chalk = require('chalk');
+const _ = require('underscore');
 const op = require('object-path');
 const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
 
@@ -7,7 +7,7 @@ const PLUGIN = require('./info');
 
 /**
  * ----------------------------------------------------------------------------
- * Extend Actiniun SDK
+ * Extend Actinium SDK
  * ----------------------------------------------------------------------------
  */
 const SDK = require('./sdk');
@@ -26,12 +26,18 @@ Actinium.Plugin.register(PLUGIN, true);
  * ----------------------------------------------------------------------------
  */
 
-Actinium.Hook.register('blueprint-defaults', blueprints => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    const PLUGIN_BLUEPRINTS = require('./blueprints');
-    PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-});
+// blueprint-defaults hook
+Actinium.Hook.register(
+    'blueprint-defaults',
+    blueprints => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        const PLUGIN_BLUEPRINTS = require('./blueprints');
+        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
+    },
+    -1000,
+);
 
+// route-defaults hook
 Actinium.Hook.register(
     'route-defaults',
     routes => {
@@ -42,6 +48,7 @@ Actinium.Hook.register(
     100,
 );
 
+// schema hook
 Actinium.Hook.register('schema', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
@@ -57,6 +64,7 @@ Actinium.Hook.register('schema', async ({ ID }) => {
     });
 });
 
+// warning hook
 Actinium.Hook.register('warning', () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     if (SDK.warning !== true) return;
@@ -65,31 +73,47 @@ Actinium.Hook.register('warning', () => {
     LOG(chalk.cyan.bold('Notice:'), 'The default Taxonomy has been created');
 });
 
-Actinium.Hook.register('start', async () => {
-    await SDK.install();
-});
+// start hook
+Actinium.Hook.register(
+    'start',
+    async () => {
+        await SDK.install();
+    },
+    -1000,
+);
 
-Actinium.Hook.register('uninstall', async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
+// taxonomy-query hook
+Actinium.Hook.register(
+    'taxonomy-query',
+    async (qry, params, options) => {
+        if (op.get(params, 'name')) {
+            qry.containedIn('name', _.flatten([params.name]));
+        }
+        if (op.get(params, 'slug')) {
+            qry.containedIn('slug', _.flatten([params.slug]));
+        }
+        if (op.get(params, 'type')) {
+            qry.containedIn('type', _.flatten([params.type]));
+        }
+    },
+    -1000,
+);
 
-    // Your uninstall code here
-});
+// taxonomy-type-query hook
+Actinium.Hook.register(
+    'taxonomy-type-query',
+    async (qry, params, options) => {
+        if (op.get(params, 'name')) {
+            qry.containedIn('name', _.flatten([params.name]));
+        }
+        if (op.get(params, 'slug')) {
+            qry.containedIn('slug', _.flatten([params.slug]));
+        }
+    },
+    -1000,
+);
 
-Actinium.Hook.register('activate', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-
-    // Your activation code here
-});
-
-Actinium.Hook.register('deactivate', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-
-    // Your deactivation code here
-});
-
-/*
-{"name": "Category", "slug": "category", "description": "Default taxonomy type"}
-*/
+// taxonomy-type-retrieve-query hook
 Actinium.Hook.register(
     'taxonomy-type-retrieve-query',
     async (qry, params, options) => {
@@ -100,8 +124,10 @@ Actinium.Hook.register(
             qry.containedIn('slug', _.flatten([params.slug]));
         }
     },
+    -1000,
 );
 
+// taxonomy-retrieve-query hook
 Actinium.Hook.register(
     'taxonomy-retrieve-query',
     async (qry, params, options) => {
@@ -109,8 +135,10 @@ Actinium.Hook.register(
         if (op.get(params, 'slug')) qry.equalTo('slug', params.slug);
         if (op.get(params, 'type')) qry.equalTo('type', params.type);
     },
+    -1000,
 );
 
+// taxonomy-save hook
 Actinium.Hook.register(
     'taxonomy-save',
     async req => {
@@ -128,6 +156,7 @@ Actinium.Hook.register(
     -1000,
 );
 
+// taxonomy-type-save hook
 Actinium.Hook.register(
     'taxonomy-type-save',
     async req => {
@@ -148,6 +177,32 @@ Actinium.Hook.register(
             );
 
             if (lookup) req.context.error.push('slug must be unique');
+        }
+    },
+    -1000,
+);
+
+// taxonomy-type-after-delete hook
+Actinium.Hook.register(
+    'taxonomy-type-after-delete',
+    req => {
+        SDK.delete({ type: req.object }, { useMasterKey: true });
+    },
+    -1000,
+);
+
+// taxonomy-type-retrieved hook
+Actinium.Hook.register(
+    'taxonomy-type-retrieved',
+    async (obj, params, options) => {
+        const type = op.get(obj, 'objectId', op.get(obj, 'id'));
+
+        const tax = await SDK.list({ type }, options);
+
+        if (op.has(obj, 'toJSON')) {
+            obj.set('taxonomies', tax);
+        } else {
+            op.set(obj, 'taxonomies', tax);
         }
     },
     -1000,

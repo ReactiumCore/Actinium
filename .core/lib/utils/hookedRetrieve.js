@@ -11,7 +11,7 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     let qry = new Actinium.Query(collection);
 
     // 1.1 - Default search params
-    if (op.get(params, 'objectId')) qry.equalTo('objectId', objectId);
+    if (op.get(params, 'objectId')) qry.equalTo('objectId', params.objectId);
 
     // 1.2 - Default sort
     qry[order](orderBy);
