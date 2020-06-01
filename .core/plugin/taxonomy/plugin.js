@@ -10,8 +10,8 @@ const PLUGIN = require('./info');
  * Extend Actinium SDK
  * ----------------------------------------------------------------------------
  */
-const SDK = require('./sdk');
-Actinium['Taxonomy'] = op.get(Actinium, 'Taxonomy', SDK);
+const Taxonomy = require('./sdk');
+Actinium['Taxonomy'] = op.get(Actinium, 'Taxonomy', Taxonomy);
 
 /**
  * ----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ Actinium.Hook.register('schema', async ({ ID }) => {
 // warning hook
 Actinium.Hook.register('warning', () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    if (SDK.warning !== true) return;
+    if (Taxonomy.warning !== true) return;
 
     LOG('');
     LOG(chalk.cyan.bold('Notice:'), 'The default Taxonomy has been created');
@@ -77,9 +77,50 @@ Actinium.Hook.register('warning', () => {
 Actinium.Hook.register(
     'start',
     async () => {
-        await SDK.install();
+        await Taxonomy.install();
     },
     -1000,
+);
+
+// content-schema-field-types hook
+Actinium.Hook.register('content-schema-field-types', fieldTypes => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    fieldTypes['taxonomy'] = { type: 'Relation', targetClass: 'Taxonomy' };
+});
+
+// content-retrieve hook
+Actinium.Hook.register('content-retrieve', async (content, params, options) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    const { type } = content;
+    const tax = await Taxonomy.Content.retrieve({ content, type }, options);
+    op.set(content, 'taxonomy', tax);
+});
+
+// content-saved hook
+Actinium.Hook.register(
+    'content-saved',
+    async (content, type, isNew, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        const tax = Object.values({ ...op.get(params, 'taxonomy', {}) });
+
+        // prettier-ignore
+        const add = tax.filter(item => !op.has(item, 'delete') && op.get(item, 'pending') === true);
+        const del = tax.filter(item => op.get(item, 'delete') === true);
+
+        // prettier-ignore
+        const [addTAX, delTAX] = await Promise.all([
+            add.map(({ taxonomy, type }) => Taxonomy.Content.attach({ content, taxonomy, type, update: false }), options),
+            del.map(({ taxonomy, type }) => Taxonomy.Content.detach({ content, taxonomy, type, update: false }), options)
+        ]);
+
+        const newTax = await Taxonomy.Content.retrieve(
+            { content, type },
+            options,
+        );
+        op.set(content, 'taxonomy', newTax);
+    },
 );
 
 // taxonomy-query hook
@@ -93,7 +134,22 @@ Actinium.Hook.register(
             qry.containedIn('slug', _.flatten([params.slug]));
         }
         if (op.get(params, 'type')) {
-            qry.containedIn('type', _.flatten([params.type]));
+            let typeArray = [];
+            let types = _.flatten([params.type]);
+
+            for (let type of types) {
+                if (typeof type === 'string') {
+                    // prettier-ignore
+                    type = await Actinium.Query.or(
+                        new Actinium.Query('Type_taxonomy').equalTo('slug', type),
+                        new Actinium.Query('Type_taxonomy').equalTo('objectId', type),
+                    ).first({ useMasterKey: true });
+                }
+
+                if (type) typeArray.push(type);
+            }
+
+            if (typeArray.length > 0) qry.containedIn('type', typeArray);
         }
     },
     -1000,
@@ -133,7 +189,18 @@ Actinium.Hook.register(
     async (qry, params, options) => {
         if (op.get(params, 'name')) qry.equalTo('name', params.name);
         if (op.get(params, 'slug')) qry.equalTo('slug', params.slug);
-        if (op.get(params, 'type')) qry.equalTo('type', params.type);
+        if (op.get(params, 'type')) {
+            let type = params.type;
+
+            if (typeof type === 'string') {
+                // prettier-ignore
+                type = await Actinium.Query.or(
+                    new Actinium.Query('Type_taxonomy').equalTo('slug', type),
+                    new Actinium.Query('Type_taxonomy').equalTo('objectId', type),
+                ).first({ useMasterKey: true });
+            }
+            if (type) qry.equalTo('type', type);
+        }
     },
     -1000,
 );
@@ -171,7 +238,7 @@ Actinium.Hook.register(
         // Check slug if new
         if (req.object.isNew()) {
             const slug = req.object.get('slug');
-            const lookup = await SDK.Type.retrieve(
+            const lookup = await Taxonomy.Type.retrieve(
                 { slug },
                 { useMasterKey: true },
             );
@@ -186,7 +253,7 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-after-delete',
     req => {
-        SDK.delete({ type: req.object }, { useMasterKey: true });
+        Taxonomy.delete({ type: req.object }, { useMasterKey: true });
     },
     -1000,
 );
@@ -197,7 +264,7 @@ Actinium.Hook.register(
     async (obj, params, options) => {
         const type = op.get(obj, 'objectId', op.get(obj, 'id'));
 
-        const tax = await SDK.list({ type }, options);
+        const tax = await Taxonomy.list({ type }, options);
 
         if (op.has(obj, 'toJSON')) {
             obj.set('taxonomies', tax);
@@ -292,41 +359,49 @@ Actinium.Cloud.afterDelete('Type_taxonomy', async req => {
  * Cloud functions
  */
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-create', req =>
-    SDK.create(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.create(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-update', req =>
-    SDK.update(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.update(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-delete', req =>
-    SDK.delete(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.delete(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-retrieve', req =>
-    SDK.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomies', req =>
-    SDK.list(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.list(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-create', req =>
-    SDK.Type.create(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.Type.create(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-update', req =>
-    SDK.Type.update(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.Type.update(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-delete', req =>
-    SDK.Type.delete(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.Type.delete(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-retrieve', req =>
-    SDK.Type.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.Type.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-types', req =>
-    SDK.Type.list(req.params, Actinium.Utils.CloudRunOptions(req)),
+    Taxonomy.Type.list(req.params, Actinium.Utils.CloudRunOptions(req)),
+);
+
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-attach', async req =>
+    Taxonomy.Content.attach(req.params, Actinium.Utils.CloudRunOptions(req)),
+);
+
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-detach', async req =>
+    Taxonomy.Content.detach(req.params, Actinium.Utils.CloudRunOptions(req)),
 );

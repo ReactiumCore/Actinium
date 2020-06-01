@@ -230,11 +230,8 @@ Type.delete = async (params, options) => {
  * @apiGroup Actinium
  */
 Type.retrieve = async (params, options) => {
-    const id = op.get(
-        params,
-        'id',
-        op.get(params, 'ID', op.get(params, 'objectId')),
-    );
+    const id = op.get(params, 'id') || op.get(params, 'objectId');
+
     const machineName = op.get(params, 'machineName');
     const namespace = op.get(params, 'namespace', getNamespace());
     const uuid = machineName
@@ -246,7 +243,7 @@ Type.retrieve = async (params, options) => {
 
     const query = new Parse.Query(COLLECTION);
     if (id) query.equalTo('objectId', id);
-    if (uuid) query.equalTo('uuid', uuid);
+    if (!id && uuid) query.equalTo('uuid', uuid);
 
     const contentType = await query.first(options);
 

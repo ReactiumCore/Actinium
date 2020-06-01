@@ -1,7 +1,11 @@
 const PLUGIN = require('./info');
 const op = require('object-path');
 
-const Taxonomy = {};
+const Taxonomy = {
+    Content: {},
+    Type: {},
+    warning: false,
+};
 
 Taxonomy.install = async () => {
     const { count = 0 } = await Taxonomy.Type.list({ page: 1, limit: 1 });
@@ -84,10 +88,6 @@ Taxonomy.list = (params, options) =>
         'taxonomy-list',
     );
 
-Taxonomy.warning = false;
-
-Taxonomy.Type = {};
-
 Taxonomy.Type.create = (params, options) =>
     Actinium.Utils.hookedSave(params, options, 'Type_taxonomy');
 
@@ -118,4 +118,100 @@ Taxonomy.Type.list = (params, options) =>
         'taxonomy-type-list',
     );
 
+Taxonomy.Content.attach = async (params, options) => {
+    options = options || { useMasterKey: true };
+    let { content, taxonomy, type, update = true } = params;
+
+    let contentObj = content;
+
+    if (!op.has(content, 'toJSON')) {
+        contentObj = await Actinium.Content.retrieve(content, options);
+
+        if (!contentObj) return new Error('Content not found');
+
+        contentObj = await new Actinium.Query(contentObj.type.collection)
+            .equalTo(contentObj.objectId)
+            .first(options);
+    }
+
+    if (!op.has(contentObj, 'id')) {
+        return new Error('Cannot attach taxonomy to an unsaved object');
+    }
+
+    const tax = await Taxonomy.retrieve(
+        { type, slug: taxonomy, outputType: 'OBJECT' },
+        options,
+    );
+
+    if (!tax) return new Error(`${type} ${taxonomy} not found`);
+
+    contentObj.relation('taxonomy').add(tax);
+
+    return update === true ? contentObj.save(null, options) : contentObj;
+};
+
+Taxonomy.Content.detach = async (params, options) => {
+    let { content, taxonomy, type, update = true } = params;
+
+    let collection, contentObj;
+
+    if (!op.has(content, 'toJSON')) {
+        collection = op.get(contentObj, 'type.collection');
+        contentObj = await Actinium.Content.retrieve(content, options);
+
+        if (!contentObj) return new Error('Content not found');
+
+        contentObj = new Actinium.Query(contentObj.type.collection)
+            .equalTo(contentObj.objectId)
+            .first(options);
+    } else {
+        contentObj = await content.fetch();
+        collection = op.get(contentObj.toPointer(), 'className');
+    }
+
+    const tax = await Taxonomy.retrieve({ type, slug: taxonomy }, options);
+
+    if (!tax) return new Error(`${type} ${taxonomy} not found`);
+
+    contentObj.relation('taxonomy').remove(tax);
+
+    return update === true ? contentObj.save(null, options) : contentObj;
+};
+
+Taxonomy.Content.retrieve = async (params, options) => {
+    let { content, type } = params;
+
+    const contentId = op.get(content, 'objectId');
+    const collection = op.get(type, 'collection');
+
+    const rel = await new Actinium.Object(collection)
+        .set('objectId', contentId)
+        .relation('taxonomy');
+
+    const count = await rel.query().count({ useMasterKey: true });
+
+    let tax =
+        count > 0
+            ? await rel
+                  .query()
+                  .skip(0)
+                  .limit(count)
+                  .find(options)
+            : [];
+
+    return tax.map(item => item.toJSON());
+};
+
 module.exports = Taxonomy;
+
+/*
+{"content": { "slug": "x-23", "type": { "machineName": "page" } }, "type": "tag", "taxonomy": "featured"}
+*/
+
+/*
+const contentObj = Actinium.Content.retrieve({
+    slug: 'x-23',
+    objectId: 'vobIyxz1lk',
+    type: { "objectId"": 'page' },
+});
+*/

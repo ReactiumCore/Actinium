@@ -66,9 +66,7 @@ Actinium.Hook.register(
             SDK.delete({ urls: del }, options),
         ]);
 
-        if (addURLS.length > 0) {
-            op.set(params, 'forceUpdate', true);
-        }
+        if (addURLS.length > 0) op.set(params, 'forceUpdate', true);
     },
 );
 
