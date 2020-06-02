@@ -83,9 +83,8 @@ Actinium.Hook.register(
 );
 
 // content-schema-field-types hook
-Actinium.Hook.register('content-schema-field-types', fieldTypes => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    fieldTypes['taxonomy'] = { type: 'Relation', targetClass: 'Taxonomy' };
+Actinium.Hook.register('content-schema-field-types', async fieldTypes => {
+    fieldTypes['Taxonomy'] = { type: 'Relation', targetClass: 'Taxonomy' };
 });
 
 // content-retrieve hook
@@ -94,7 +93,7 @@ Actinium.Hook.register('content-retrieve', async (content, params, options) => {
 
     const { type } = content;
     const tax = await Taxonomy.Content.retrieve({ content, type }, options);
-    op.set(content, 'taxonomy', tax);
+    Object.entries(tax).forEach(([key, value]) => op.set(content, key, value));
 });
 
 // content-saved hook
@@ -103,7 +102,11 @@ Actinium.Hook.register(
     async (content, type, isNew, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
-        const tax = Object.values({ ...op.get(params, 'taxonomy', {}) });
+        const tax = _.flatten(
+            Taxonomy.Content.fields(content).map(field =>
+                Object.values({ ...op.get(params, field, {}), field }),
+            ),
+        );
 
         // prettier-ignore
         const add = tax.filter(item => !op.has(item, 'delete') && op.get(item, 'pending') === true);
@@ -111,15 +114,18 @@ Actinium.Hook.register(
 
         // prettier-ignore
         const [addTAX, delTAX] = await Promise.all([
-            add.map(({ taxonomy, type }) => Taxonomy.Content.attach({ content, taxonomy, type, update: false }), options),
-            del.map(({ taxonomy, type }) => Taxonomy.Content.detach({ content, taxonomy, type, update: false }), options)
+            add.map(({ field, taxonomy, type }) => Taxonomy.Content.attach({ content, field, taxonomy, type, update: false }), options),
+            del.map(({ field, taxonomy, type }) => Taxonomy.Content.detach({ content, field, taxonomy, type, update: false }), options)
         ]);
 
         const newTax = await Taxonomy.Content.retrieve(
             { content, type },
             options,
         );
-        op.set(content, 'taxonomy', newTax);
+
+        Object.entries(newTax).forEach(([key, value]) =>
+            op.set(content, key, value),
+        );
     },
 );
 
@@ -398,10 +404,14 @@ Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-types', req =>
     Taxonomy.Type.list(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
-Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-attach', async req =>
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-content-attach', async req =>
     Taxonomy.Content.attach(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
-Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-detach', async req =>
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-content-detach', async req =>
     Taxonomy.Content.detach(req.params, Actinium.Utils.CloudRunOptions(req)),
+);
+
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-content-retrieve', async req =>
+    Taxonomy.Content.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
 );

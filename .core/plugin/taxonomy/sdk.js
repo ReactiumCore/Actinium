@@ -1,3 +1,4 @@
+const _ = require('underscore');
 const PLUGIN = require('./info');
 const op = require('object-path');
 
@@ -120,7 +121,7 @@ Taxonomy.Type.list = (params, options) =>
 
 Taxonomy.Content.attach = async (params, options) => {
     options = options || { useMasterKey: true };
-    let { content, taxonomy, type, update = true } = params;
+    let { content, field, taxonomy, type, update = true } = params;
 
     let contentObj = content;
 
@@ -145,13 +146,13 @@ Taxonomy.Content.attach = async (params, options) => {
 
     if (!tax) return new Error(`${type} ${taxonomy} not found`);
 
-    contentObj.relation('taxonomy').add(tax);
+    contentObj.relation(field).add(tax);
 
     return update === true ? contentObj.save(null, options) : contentObj;
 };
 
 Taxonomy.Content.detach = async (params, options) => {
-    let { content, taxonomy, type, update = true } = params;
+    let { content, field, taxonomy, type, update = true } = params;
 
     let collection, contentObj;
 
@@ -173,10 +174,23 @@ Taxonomy.Content.detach = async (params, options) => {
 
     if (!tax) return new Error(`${type} ${taxonomy} not found`);
 
-    contentObj.relation('taxonomy').remove(tax);
+    contentObj.relation(field).remove(tax);
 
     return update === true ? contentObj.save(null, options) : contentObj;
 };
+
+Taxonomy.Content.fields = content =>
+    _.compact(
+        Object.entries(content).map(([field, value]) => {
+            if (op.has(value, 'className')) {
+                return op.get(value, 'className') === 'Taxonomy' ? field : null;
+            }
+
+            if (Array.isArray(value)) {
+                return _.findWhere(value, { isTaxonomy: true }) ? field : null;
+            }
+        }),
+    );
 
 Taxonomy.Content.retrieve = async (params, options) => {
     let { content, type } = params;
@@ -184,34 +198,31 @@ Taxonomy.Content.retrieve = async (params, options) => {
     const contentId = op.get(content, 'objectId');
     const collection = op.get(type, 'collection');
 
-    const rel = await new Actinium.Object(collection)
-        .set('objectId', contentId)
-        .relation('taxonomy');
+    const fields = Taxonomy.Content.fields(content);
 
-    const count = await rel.query().count({ useMasterKey: true });
+    if (fields.length < 1) return {};
 
-    let tax =
-        count > 0
-            ? await rel
-                  .query()
-                  .skip(0)
-                  .limit(count)
-                  .find(options)
-            : [];
+    const taxonomies = {};
+    const obj = new Actinium.Object(collection).set('objectId', contentId);
 
-    return tax.map(item => item.toJSON());
+    for (field of fields) {
+        const rel = obj.relation(field);
+        const count = await rel.query().count({ useMasterKey: true });
+
+        let tax =
+            count > 0
+                ? await rel
+                      .query()
+                      .skip(0)
+                      .limit(count)
+                      .find(options)
+                : [];
+
+        tax = tax.map(item => ({ ...item.toJSON(), field, isTaxonomy: true }));
+        op.set(taxonomies, field, tax);
+    }
+
+    return taxonomies;
 };
 
 module.exports = Taxonomy;
-
-/*
-{"content": { "slug": "x-23", "type": { "machineName": "page" } }, "type": "tag", "taxonomy": "featured"}
-*/
-
-/*
-const contentObj = Actinium.Content.retrieve({
-    slug: 'x-23',
-    objectId: 'vobIyxz1lk',
-    type: { "objectId"": 'page' },
-});
-*/
