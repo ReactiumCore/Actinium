@@ -160,7 +160,7 @@ Taxonomy.Type.list = (params, options) =>
 
 Taxonomy.Content.attach = async (params, options) => {
     options = options || { useMasterKey: true };
-    let { content, field, taxonomy, type, update = true } = params;
+    let { content, slug, type, update = true } = params;
 
     let contentObj = content;
 
@@ -179,19 +179,21 @@ Taxonomy.Content.attach = async (params, options) => {
     }
 
     const tax = await Taxonomy.retrieve(
-        { type, slug: taxonomy, outputType: 'OBJECT' },
+        { type, slug, outputType: 'OBJECT' },
         options,
     );
 
     if (!tax) return new Error(`${type} ${taxonomy} not found`);
 
-    contentObj.relation(field).add(tax);
+    contentObj.relation(type).add(tax);
 
     return update === true ? contentObj.save(null, options) : contentObj;
 };
 
 Taxonomy.Content.detach = async (params, options) => {
-    let { content, field, taxonomy, type, update = true } = params;
+    options = options || { useMasterKey: true };
+
+    let { content, slug, type, update = true } = params;
 
     let collection, contentObj;
 
@@ -201,50 +203,62 @@ Taxonomy.Content.detach = async (params, options) => {
 
         if (!contentObj) return new Error('Content not found');
 
-        contentObj = new Actinium.Query(contentObj.type.collection)
+        contentObj = await new Actinium.Query(contentObj.type.collection)
             .equalTo(contentObj.objectId)
             .first(options);
     } else {
-        contentObj = await content.fetch();
+        contentObj = await content.fetch(options);
         collection = op.get(contentObj.toPointer(), 'className');
     }
 
-    const tax = await Taxonomy.retrieve({ type, slug: taxonomy }, options);
-
-    if (!tax) return new Error(`${type} ${taxonomy} not found`);
-
-    contentObj.relation(field).remove(tax);
-
-    return update === true ? contentObj.save(null, options) : contentObj;
-};
-
-Taxonomy.Content.fields = content =>
-    _.compact(
-        Object.entries(content).map(([field, value]) => {
-            if (op.has(value, 'className')) {
-                return op.get(value, 'className') === 'Taxonomy' ? field : null;
-            }
-
-            if (Array.isArray(value)) {
-                return _.findWhere(value, { isTaxonomy: true }) ? field : null;
-            }
-        }),
+    let tax = await Taxonomy.retrieve(
+        { type, slug, outputType: 'OBJECT' },
+        options,
     );
 
+    if (!tax) return new Error(`${type} ${slug} not found`);
+
+    contentObj.relation(type).remove(tax);
+
+    return update === true ? await contentObj.save(null, options) : contentObj;
+};
+
+Taxonomy.Content.fields = content => {
+    return (
+        _.compact(
+            Object.entries(content).map(([field, value]) => {
+                if (op.has(value, 'className')) {
+                    return op.get(value, 'className') === 'Taxonomy'
+                        ? field
+                        : null;
+                }
+
+                if (Array.isArray(value)) {
+                    return _.findWhere(value, { isTaxonomy: true })
+                        ? field
+                        : null;
+                }
+            }),
+        ) || []
+    );
+};
+
 Taxonomy.Content.retrieve = async (params, options) => {
+    options = options || { useMasterKey: true };
+
     let { content, type } = params;
 
     const contentId = op.get(content, 'objectId');
     const collection = op.get(type, 'collection');
 
-    const fields = Taxonomy.Content.fields(content);
+    const fields = Taxonomy.Content.fields(content, options) || [];
 
     if (fields.length < 1) return {};
 
     const taxonomies = {};
     const obj = new Actinium.Object(collection).set('objectId', contentId);
 
-    for (field of fields) {
+    for (const field of fields) {
         const rel = obj.relation(field);
         const count = await rel.query().count({ useMasterKey: true });
 

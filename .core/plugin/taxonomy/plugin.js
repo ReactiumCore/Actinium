@@ -103,19 +103,19 @@ Actinium.Hook.register(
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
         const tax = _.flatten(
-            Taxonomy.Content.fields(content).map(field =>
-                Object.values({ ...op.get(params, field, {}), field }),
+            Taxonomy.Content.fields(content, options).map(field =>
+                Object.values({ ...op.get(params, field, {}) }),
             ),
         );
 
         // prettier-ignore
-        const add = tax.filter(item => !op.has(item, 'delete') && op.get(item, 'pending') === true);
-        const del = tax.filter(item => op.get(item, 'delete') === true);
+        const add = tax.filter(item => !op.has(item, 'deleted') && op.get(item, 'pending') === true);
+        const del = tax.filter(item => op.get(item, 'deleted') === true);
 
         // prettier-ignore
         const [addTAX, delTAX] = await Promise.all([
-            add.map(({ field, taxonomy, type }) => Taxonomy.Content.attach({ content, field, taxonomy, type, update: false }), options),
-            del.map(({ field, taxonomy, type }) => Taxonomy.Content.detach({ content, field, taxonomy, type, update: false }), options)
+            add.map(({ slug, type }) => Taxonomy.Content.attach({ content, slug, type }), options),
+            del.map(({ slug, type }) => Taxonomy.Content.detach({ content, slug, type }), options)
         ]);
 
         const newTax = await Taxonomy.Content.retrieve(
