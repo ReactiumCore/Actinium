@@ -133,6 +133,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-query',
     async (qry, params, options) => {
+        qry.include('type');
+
         if (op.get(params, 'name')) {
             qry.containedIn('name', _.flatten([params.name]));
         }
@@ -193,6 +195,7 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-retrieve-query',
     async (qry, params, options) => {
+        qry.include('type');
         if (op.get(params, 'name')) qry.equalTo('name', params.name);
         if (op.get(params, 'slug')) qry.equalTo('slug', params.slug);
         if (op.get(params, 'type')) {
@@ -225,6 +228,8 @@ Actinium.Hook.register(
         if (!req.object.get('type')) {
             req.context.errors.push('type is a required parameter');
         }
+
+        // get type obj
     },
     -1000,
 );
@@ -249,7 +254,7 @@ Actinium.Hook.register(
                 { useMasterKey: true },
             );
 
-            if (lookup) req.context.error.push('slug must be unique');
+            if (lookup) req.context.errors.push('slug must be unique');
         }
     },
     -1000,
@@ -288,22 +293,22 @@ Actinium.Hook.register(
  */
 
 Actinium.Cloud.beforeSave('Taxonomy', async req => {
-    req.context = { error: [] };
+    req.context = { errors: [] };
 
     await Actinium.Hook.run('taxonomy-save', req);
 
-    if (_.flatten([op.get(req.context, 'error', [])]).length > 0) {
-        throw req.context.error.join(',');
+    if (_.flatten([op.get(req.context, 'errors', [])]).length > 0) {
+        throw req.context.errors.join(',');
     }
 });
 
 Actinium.Cloud.beforeSave('Type_taxonomy', async req => {
-    req.context = { error: [] };
+    req.context = { errors: [] };
 
     await Actinium.Hook.run('taxonomy-type-save', req);
 
-    if (_.flatten([op.get(req.context, 'error', [])]).length > 0) {
-        throw req.context.error.join(',');
+    if (_.flatten([op.get(req.context, 'errors', [])]).length > 0) {
+        throw req.context.errors.join(',');
     }
 });
 
@@ -318,7 +323,7 @@ Actinium.Cloud.beforeDelete('Taxonomy', async req => {
 
     await Actinium.Hook.run('taxonomy-delete', req);
 
-    if (_.flatten([op.get(req.context, 'error', [])]).length > 0) {
+    if (_.flatten([op.get(req.context, 'errors', [])]).length > 0) {
         throw req.context.error.join(',');
     }
 });
@@ -328,7 +333,7 @@ Actinium.Cloud.beforeDelete('Type_taxonomy', async req => {
 
     await Actinium.Hook.run('taxonomy-type-delete', req);
 
-    if (_.flatten([op.get(req.context, 'error', [])]).length > 0) {
+    if (_.flatten([op.get(req.context, 'errors', [])]).length > 0) {
         throw req.context.error.join(',');
     }
 });
@@ -380,6 +385,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-retrieve', req =>
     Taxonomy.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-exists', req =>
+    Taxonomy.exists(req.params, Actinium.Utils.CloudRunOptions(req)),
+);
+
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomies', req =>
     Taxonomy.list(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
@@ -398,6 +407,10 @@ Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-delete', req =>
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-retrieve', req =>
     Taxonomy.Type.retrieve(req.params, Actinium.Utils.CloudRunOptions(req)),
+);
+
+Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-type-exists', req =>
+    Taxonomy.Type.exists(req.params, Actinium.Utils.CloudRunOptions(req)),
 );
 
 Actinium.Cloud.define(PLUGIN.ID, 'taxonomy-types', req =>

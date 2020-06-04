@@ -59,11 +59,32 @@ Taxonomy.install = async () => {
     return Promise.all([cat.save(null, options), tag.save(null, options)]);
 };
 
-Taxonomy.create = (params, options) =>
-    Actinium.Utils.hookedSave(params, options, 'Taxonomy');
+Taxonomy.create = async (params, options) => {
+    if (op.has(params, 'type')) {
+        if (typeof params.type === 'string') {
+            const type = await Taxonomy.Type.retrieve(
+                { slug: params.type, outputType: 'OBJECT' },
+                options,
+            );
+            params.type = type;
+        }
+    }
 
-Taxonomy.update = (params, options) =>
-    Actinium.Utils.hookedSave(params, options, 'Taxonomy');
+    return Actinium.Utils.hookedSave(params, options, 'Taxonomy');
+};
+
+Taxonomy.update = async (params, options) => {
+    if (op.has(params, 'type')) {
+        if (typeof params.type === 'string') {
+            const type = await Taxonomy.Type.retrieve(
+                { type: params.type, outputType: 'OBJECT' },
+                options,
+            );
+            params.type = type;
+        }
+    }
+    return Actinium.Utils.hookedSave(params, options, 'Taxonomy');
+};
 
 Taxonomy.delete = async (params, options) => {
     op.set(params, 'outputType', 'OBJECT');
@@ -78,6 +99,15 @@ Taxonomy.retrieve = (params, options) =>
         'Taxonomy',
         'taxonomy-retrieve-query',
         'taxonomy-retrieved',
+    );
+
+Taxonomy.exists = (params, options) =>
+    Actinium.Utils.hookedRetrieve(
+        params,
+        options,
+        'Taxonomy',
+        'taxonomy-retrieve-query',
+        'taxonomy-exists',
     );
 
 Taxonomy.list = (params, options) =>
@@ -108,6 +138,15 @@ Taxonomy.Type.retrieve = (params, options) =>
         'Type_taxonomy',
         'taxonomy-type-retrieve-query',
         'taxonomy-type-retrieved',
+    );
+
+Taxonomy.Type.exists = (params, options) =>
+    Actinium.Utils.hookedRetrieve(
+        params,
+        options,
+        'Type_taxonomy',
+        'taxonomy-type-retrieve-query',
+        'taxonomy-type-exists',
     );
 
 Taxonomy.Type.list = (params, options) =>
@@ -215,10 +254,16 @@ Taxonomy.Content.retrieve = async (params, options) => {
                       .query()
                       .skip(0)
                       .limit(count)
+                      .include('type')
                       .find(options)
                 : [];
 
-        tax = tax.map(item => ({ ...item.toJSON(), field, isTaxonomy: true }));
+        tax = tax.map(item => ({
+            ...item.toJSON(),
+            field,
+            isTaxonomy: true,
+            type: item.get('type').toJSON(),
+        }));
         op.set(taxonomies, field, tax);
     }
 
