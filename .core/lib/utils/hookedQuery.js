@@ -14,7 +14,7 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
 
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
 
-    let resp = { count: 0, page: 1, pages: 1, limit, results: {} };
+    let resp = { count: 0, page: 1, pages: 1, limit, results: [] };
 
     // 1.0 - Initialize query
     let qry = new Actinium.Query(collection);
@@ -31,9 +31,7 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     await Actinium.Hook.run(queryHook, qry, params, options);
 
     // 2.0 - Get count
-    let count = 0;
-    if (page > 0) count = await qry.count(options);
-    op.set(resp, 'count', count);
+    let count = await qry.count(options);
 
     let skip = page < 1 ? 0 : page * limit - limit;
 
@@ -45,13 +43,7 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
 
     // 3.1 - Process results
     while (results.length > 0) {
-        results.forEach(item =>
-            op.set(
-                resp,
-                ['results', item.id],
-                outputType === 'JSON' ? item.toJSON() : item,
-            ),
-        );
+        op.set(resp, 'results', _.flatten([resp.results, results]));
 
         // 3.2 - Get next page if page < 1
         if (page < 1) {
@@ -65,7 +57,11 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
         }
     }
 
+    op.set(resp, 'results', _.indexBy(resp.results, 'id'));
+
     // 4.0 - Pagination info
+    op.set(resp, 'count', count);
+
     const pages = Math.ceil(count / limit);
     op.set(resp, 'pages', pages);
 
@@ -79,8 +75,18 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     if (prev > 0) op.set(resp, 'prev', prev);
 
     // 5.0 - Run hook: outputHook
+    if (outputHook === 'taxonomy-type-list') console.log(1);
     await Actinium.Hook.run(outputHook, resp, params, options);
 
-    // 6.0 - Return response
+    if (outputHook === 'taxonomy-type-list') console.log(2);
+    // 6.0 - Process toJSON
+    if (String(outputType).toUpperCase() === 'JSON') {
+        Object.entries(resp.results).forEach(([id, item]) => {
+            if (op.has(item, 'toJSON')) resp.results[id] = item.toJSON();
+        });
+    }
+
+    if (outputHook === 'taxonomy-type-list') console.log(3);
+    // 7.0 - Return response
     return resp;
 };

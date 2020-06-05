@@ -177,6 +177,30 @@ Actinium.Hook.register(
     -1000,
 );
 
+// taxonomy-type-list hook
+Actinium.Hook.register(
+    'taxonomy-type-list',
+    async (resp, params, options) => {
+        if (op.get(params, 'verbose') !== true) return;
+        let { results = {} } = resp;
+
+        const tax = await Promise.all(
+            Object.keys(results).map(id => {
+                return Taxonomy.Type.retrieve({
+                    objectId: id,
+                    outputType: op.get(params, 'outputType', 'JSON'),
+                });
+            }),
+        );
+
+        tax.forEach(item => {
+            const { id, objectId } = item;
+            resp.results[id || objectId] = item;
+        });
+    },
+    -1000,
+);
+
 // taxonomy-type-retrieve-query hook
 Actinium.Hook.register(
     'taxonomy-type-retrieve-query',
@@ -272,15 +296,29 @@ Actinium.Hook.register(
 // taxonomy-type-retrieved hook
 Actinium.Hook.register(
     'taxonomy-type-retrieved',
-    async (obj, params, options) => {
-        const type = op.get(obj, 'objectId', op.get(obj, 'id'));
+    async (resp, params, options) => {
+        const type = op.get(resp, 'objectId', op.get(resp, 'id'));
 
-        const tax = await Taxonomy.list({ type }, options);
+        const tax = await Taxonomy.list(
+            { type, outputType: 'OBJECT' },
+            options,
+        );
 
-        if (op.has(obj, 'toJSON')) {
-            obj.set('taxonomies', tax);
+        if (op.get(params, 'outputType') === 'JSON') {
+            Object.keys(tax.results).forEach(key => {
+                let item = tax.results[key];
+                if (op.has(item, 'className')) {
+                    item = item.toJSON();
+                    op.del(item, 'type');
+                    op.set(tax, ['results', key], item);
+                }
+            });
+        }
+
+        if (op.has(resp, 'className')) {
+            resp.set('taxonomies', tax);
         } else {
-            op.set(obj, 'taxonomies', tax);
+            op.set(resp, 'taxonomies', tax);
         }
     },
     -1000,

@@ -11,7 +11,7 @@ module.exports = [
             main: {
                 zones: [
                     'admin-header',
-                    'admin-taxonomy-blueprint-content',
+                    'admin-taxonomy-content',
                     'admin-actions',
                 ],
                 meta: {},
