@@ -75,10 +75,8 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     if (prev > 0) op.set(resp, 'prev', prev);
 
     // 5.0 - Run hook: outputHook
-    if (outputHook === 'taxonomy-type-list') console.log(1);
     await Actinium.Hook.run(outputHook, resp, params, options);
 
-    if (outputHook === 'taxonomy-type-list') console.log(2);
     // 6.0 - Process toJSON
     if (String(outputType).toUpperCase() === 'JSON') {
         Object.entries(resp.results).forEach(([id, item]) => {
@@ -86,7 +84,6 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
         });
     }
 
-    if (outputHook === 'taxonomy-type-list') console.log(3);
     // 7.0 - Return response
     return resp;
 };
