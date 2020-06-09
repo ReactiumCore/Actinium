@@ -26,7 +26,7 @@ const Client = {};
 
 Client.create = async (req, options) => {
     const { params } = req;
-    if (!Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.createClient']))
+    if (!Actinium.Utils.CloudHasCapabilities(req, ['SyndicateClient.create']))
         throw new Error('Permission denied creating new syndication client.');
 
     const user = await Actinium.Utils.UserFromSession(options);
@@ -106,6 +106,20 @@ Client.verify = async req => {
     });
 
     return payload;
+};
+
+Client.list = async (req, options) => {
+    const { params } = req;
+    if (!Actinium.Utils.CloudHasCapabilities(req, ['SyndicateClient.retrieve']))
+        throw new Error('Permission denied retrieving syndication clients.');
+
+    return Actinium.Utils.hookedQuery(
+        params,
+        options,
+        CLIENT,
+        'syndicate-client-query',
+        'syndicate-client-list',
+    );
 };
 
 const Content = {};
