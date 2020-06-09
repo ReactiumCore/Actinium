@@ -182,6 +182,11 @@ const CloudCapOptions = (req, capability, strict = false, match = null) => {
  * @apiGroup Actinium
  */
 const UserFromSession = async sessionToken => {
+    sessionToken =
+        typeof sessionToken === 'object'
+            ? op.get(sessionToken, 'sessionToken')
+            : sessionToken;
+
     const session = await new Parse.Query(Parse.Session)
         .equalTo('sessionToken', sessionToken)
         .include('user')
