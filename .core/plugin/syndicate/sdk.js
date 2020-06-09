@@ -56,6 +56,29 @@ Client.create = async (req, options) => {
     return Actinium.Utils.serialize(syndClient);
 };
 
+Client.retrieve = async (req, options) => {
+    const { params } = req;
+    const id = op.get(params, 'objectId');
+
+    if (!id) throw new Error('objectId required.');
+    const syndClient = new Parse.Object(CLIENT);
+    syndClient.id = id;
+    await syndClient.fetch(options);
+
+    return Actinium.Utils.serialize(syndClient);
+};
+
+Client.delete = async (req, options) => {
+    const { params } = req;
+    const id = op.get(params, 'objectId');
+
+    if (!id) throw new Error('objectId required.');
+    const syndClient = new Parse.Object(CLIENT);
+    syndClient.id = id;
+    return syndClient.destroy(options);
+};
+Client.destroy = Client.delete;
+
 Client.token = async req => {
     const options = Actinium.Utils.MasterOptions();
     const { params } = req;

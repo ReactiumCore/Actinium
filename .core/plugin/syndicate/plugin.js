@@ -104,6 +104,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-create', async req =>
     Actinium.Syndicate.Client.create(req, Actinium.Utils.CloudRunOptions(req)),
 );
 
+Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-retrieve', async req =>
+    Actinium.Syndicate.Client.retrieve(
+        req,
+        Actinium.Utils.CloudRunOptions(req),
+    ),
+);
+
 Actinium.Cloud.define(PLUGIN.ID, 'syndicate-clients', async req =>
     Actinium.Syndicate.Client.list(req, Actinium.Utils.CloudRunOptions(req)),
 );
