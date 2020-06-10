@@ -295,6 +295,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-retrieved',
     async (resp, params, options) => {
+        if (!resp) return;
+
         const type = op.get(resp, 'objectId', op.get(resp, 'id'));
 
         const tax = await Taxonomy.list(
@@ -313,10 +315,12 @@ Actinium.Hook.register(
             });
         }
 
-        if (op.has(resp, 'className')) {
-            resp.set('taxonomies', tax);
-        } else {
-            op.set(resp, 'taxonomies', tax);
+        if (tax) {
+            if (op.has(resp, 'className')) {
+                resp.set('taxonomies', tax);
+            } else {
+                op.set(resp, 'taxonomies', tax);
+            }
         }
     },
     -1000,
