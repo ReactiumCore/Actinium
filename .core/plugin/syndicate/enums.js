@@ -1,0 +1,7 @@
+module.exports = {
+    DEFAULT_ACCESS_SECRET:
+        '191bec2198e6fdb44fafb3e0cabbe631c0b03eef91f2f602d96898921e82506e916ddda5dab297f41fd5eb8e197f98cef98943c3d3de390d1e53e4fefe675771',
+    DEFAULT_REFRESH_SECRET:
+        '474e31e2478ed00f61b57b034c620191109a4da0c6be07021501c93c49ef06ed72c465e7ab50888bee2cdeb709063345e11cab7c19a1acdb97695bac45b7234f',
+    token_expiration: 60,
+};
