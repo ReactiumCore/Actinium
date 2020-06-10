@@ -2,6 +2,18 @@ const _ = require('underscore');
 const PLUGIN = require('./info');
 const op = require('object-path');
 
+const saveTaxonomy = async (params, options) => {
+    if (op.has(params, 'type')) {
+        if (typeof params.type === 'string') {
+            const type = await new Actinium.Query('Type_taxonomy')
+                .equalTo('slug', params.type)
+                .first(options);
+            params.type = type;
+        }
+    }
+    return Actinium.Utils.hookedSave(params, options, 'Taxonomy');
+};
+
 const Taxonomy = {
     Content: {},
     Type: {},
@@ -59,32 +71,9 @@ Taxonomy.install = async () => {
     return Promise.all([cat.save(null, options), tag.save(null, options)]);
 };
 
-Taxonomy.create = async (params, options) => {
-    if (op.has(params, 'type')) {
-        if (typeof params.type === 'string') {
-            const type = await Taxonomy.Type.retrieve(
-                { slug: params.type, outputType: 'OBJECT' },
-                options,
-            );
-            params.type = type;
-        }
-    }
+Taxonomy.create = saveTaxonomy;
 
-    return Actinium.Utils.hookedSave(params, options, 'Taxonomy');
-};
-
-Taxonomy.update = async (params, options) => {
-    if (op.has(params, 'type')) {
-        if (typeof params.type === 'string') {
-            const type = await Taxonomy.Type.retrieve(
-                { type: params.type, outputType: 'OBJECT' },
-                options,
-            );
-            params.type = type;
-        }
-    }
-    return Actinium.Utils.hookedSave(params, options, 'Taxonomy');
-};
+Taxonomy.update = saveTaxonomy;
 
 Taxonomy.delete = async (params, options) => {
     op.set(params, 'outputType', 'OBJECT');

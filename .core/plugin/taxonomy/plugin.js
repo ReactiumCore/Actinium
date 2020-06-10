@@ -252,8 +252,6 @@ Actinium.Hook.register(
         if (!req.object.get('type')) {
             req.context.errors.push('type is a required parameter');
         }
-
-        // get type obj
     },
     -1000,
 );
