@@ -1,7 +1,25 @@
 const _ = require('underscore');
 const op = require('object-path');
+const serialize = require('./serialize');
 
-module.exports = async (params, options, collection, queryHook, outputHook) => {
+/**
+ * @apiDefine HookedQuery
+ * @apiParam {Object} params Request params
+ * @apiParam {Object} options Parse options for request
+ * @apiParam (params) {String} [order=ascending] list order
+ * @apiParam (params) {String} [limit=100] number of items per page
+ * @apiParam (params) {String} [page=-1] current page, if < 0, all pages will be loaded
+ * @apiParam (params) {String} [orderBy=name] field to order by
+ * @apiParam (params) {String} [outputType=JSON]
+ */
+
+module.exports = async (
+    params,
+    options,
+    collection,
+    queryHook = 'hooked-query-query',
+    outputHook = 'hooked-query-output',
+) => {
     options = options || { useMasterKey: true };
 
     let {
@@ -28,7 +46,7 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     qry[order](orderBy);
 
     // 1.3 - Run hook: queryHook
-    await Actinium.Hook.run(queryHook, qry, params, options);
+    await Actinium.Hook.run(queryHook, qry, params, options, collection);
 
     // 2.0 - Get count
     let count = await qry.count(options);
@@ -75,12 +93,12 @@ module.exports = async (params, options, collection, queryHook, outputHook) => {
     if (prev > 0) op.set(resp, 'prev', prev);
 
     // 5.0 - Run hook: outputHook
-    await Actinium.Hook.run(outputHook, resp, params, options);
+    await Actinium.Hook.run(outputHook, resp, params, options, collection);
 
     // 6.0 - Process toJSON
     if (String(outputType).toUpperCase() === 'JSON') {
         Object.entries(resp.results).forEach(([id, item]) => {
-            if (op.has(item, 'toJSON')) resp.results[id] = item.toJSON();
+            resp.results[id] = serialize(item);
         });
     }
 

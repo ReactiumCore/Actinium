@@ -6555,6 +6555,274 @@ define({ "api": [
   },
   {
     "type": "Asynchronous",
+    "url": "Syndicate.Client.create(req,options)",
+    "title": "Syndicate.Client.create()",
+    "name": "Syndicate_Client_create",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Create a content syndication client record, which includes a refresh token for issuing new access tokens.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request containing params and sessionToken.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>Parse options for creating the client.</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "client",
+            "description": "<p>name of the client accessing the API.</p>"
+          },
+          {
+            "group": "params",
+            "type": "ParseUser",
+            "optional": true,
+            "field": "user",
+            "description": "<p>Used if no sessionToken provided.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "SDK",
+        "content": "Actinium.Client.create({\n    sessionToken,\n    params: {\n        client: 'My syndication client',\n    },\n}, Actinium.Utils.MasterOptions())\n.then(({ token: refreshToken, objectId: clientId }) => {\n    // later use refreshToken to issue accessToken\n})",
+        "type": "json"
+      },
+      {
+        "title": "Cloud",
+        "content": "Actinium.Cloud.run('syndicate-client-create', {\n  client: 'My Syndicate client'\n}).then(({ token: refreshToken, objectId: clientId }) => {\n   // later use refreshToken to issue accessToken\n})",
+        "type": "json"
+      }
+    ]
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Client.delete(req,options)",
+    "title": "Syndicate.Client.delete()",
+    "name": "Syndicate_Client_delete",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Delete one syndication client record by objectId</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "optional": false,
+            "field": "objectId",
+            "description": "<p>the id of the client</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Client.list(req,options)",
+    "title": "Syndicate.Client.list()",
+    "name": "Syndicate_Client_list",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>List syndication clients</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>Request params</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>Parse options for request</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "order",
+            "defaultValue": "ascending",
+            "description": "<p>list order</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "limit",
+            "defaultValue": "100",
+            "description": "<p>number of items per page</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "page",
+            "defaultValue": "-1",
+            "description": "<p>current page, if &lt; 0, all pages will be loaded</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "orderBy",
+            "defaultValue": "name",
+            "description": "<p>field to order by</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "outputType",
+            "defaultValue": "JSON",
+            "description": ""
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Client.retrieve(req,options)",
+    "title": "Syndicate.Client.retrieve()",
+    "name": "Syndicate_Client_retrieve",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Retrieve one syndication client record by objectId</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "optional": false,
+            "field": "objectId",
+            "description": "<p>the id of the client</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Client.token(req)",
+    "title": "Syndicate.Client.token()",
+    "name": "Syndicate_Client_token",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Retrieve a new access token for a client, for use with other syndication REST calls.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request containing request params.</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": "<p>the refresh token associate with the client.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "SDK",
+        "content": "Actinium.Client.token({\n    params: {\n        // Secret refresh token\n        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTUzMjJ9.pdttR2PPmDzDg6zzy5TEHcp2rkuYgNiqaZjahBITv4Y',\n    },\n})\n.then(({ token: accessToken }) => {\n    // access token is used for remote api call, and will expire\n})",
+        "type": "json"
+      },
+      {
+        "title": "POST /functions/syndicate-client-token",
+        "content": "{\n    \"_ApplicationId\": \"Actinium\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTUzMjJ9.pdttR2PPmDzDg6zzy5TEHcp2rkuYgNiqaZjahBITv4Y\"\n}",
+        "type": "json"
+      }
+    ]
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Client.token(req)",
+    "title": "Syndicate.Client.token()",
+    "name": "Syndicate_Client_token",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Verify an access token (See if it is expired)</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request containing request params.</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": "<p>the API access token from syndicate-client-token</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "SDK",
+        "content": "// from previous token() call\nconst accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTgyODMsImV4cCI6MTU5MTcxODM0M30.R1ASB71ab-TwZVi9OuB6ovOcTsC5SOpJ4UqPUzvcnKs';\nActinium.Client.verify({\n    params: {\n        // Possibly expired access token\n        token: accessToken\n    },\n})\n.then((payload = false) => {\n    // if not valid, fetch a new one from refreshToken (created with client)\n    if (!payload) return Actinium.Client.token({ params: { token: refreshToken } }).then(({token}) => token);\n    return accessToken;\n})\n.then(accessToken => {\n    // use accessToken\n})",
+        "type": "json"
+      },
+      {
+        "title": "POST /functions/syndicate-client-verify",
+        "content": "{\n    \"_ApplicationId\": \"Actinium\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTgyODMsImV4cCI6MTU5MTcxODM0M30.R1ASB71ab-TwZVi9OuB6ovOcTsC5SOpJ4UqPUzvcnKs\"\n}",
+        "type": "json"
+      }
+    ]
+  },
+  {
+    "type": "Asynchronous",
     "url": "Type.create(params,options)",
     "title": "Type.create()",
     "description": "<p>Save a content type definition.</p>",
@@ -13080,8 +13348,8 @@ define({ "api": [
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
-    "groupTitle": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
+    "group": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
+    "groupTitle": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
     "name": ""
   }
 ] });

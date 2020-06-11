@@ -24,13 +24,44 @@ const getSecrets = () => {
 
 const Client = {};
 
+/**
+ * @apiDefine Syndicate_Client_create
+ * @apiDescription Create a content syndication client record, which includes a refresh token for issuing
+ * new access tokens.
+ * @apiParam {Object} request The request containing params and sessionToken.
+ * @apiParam {Object} options Parse options for creating the client.
+ * @apiParam (params) {String} client name of the client accessing the API.
+ * @apiParam (params) {ParseUser} [user] Used if no sessionToken provided.
+ * @apiExample SDK
+Actinium.Client.create({
+    sessionToken,
+    params: {
+        client: 'My syndication client',
+    },
+}, Actinium.Utils.MasterOptions())
+.then(({ token: refreshToken, objectId: clientId }) => {
+    // later use refreshToken to issue accessToken
+})
+* @apiExample Cloud
+Actinium.Cloud.run('syndicate-client-create', {
+  client: 'My Syndicate client'
+}).then(({ token: refreshToken, objectId: clientId }) => {
+   // later use refreshToken to issue accessToken
+})
+ */
+/**
+ * @apiUse Syndicate_Client_create
+ * @api {Asynchronous} Syndicate.Client.create(req,options) Syndicate.Client.create()
+ * @apiName Syndicate.Client.create
+ * @apiGroup Actinium
+ */
 Client.create = async (req, options) => {
     const { params } = req;
     if (!Actinium.Utils.CloudHasCapabilities(req, ['SyndicateClient.create']))
         throw new Error('Permission denied creating new syndication client.');
 
-    const user = await Actinium.Utils.UserFromSession(options);
-    if (!user) throw new Error('User required to create syndication client.');
+    let user = await Actinium.Utils.UserFromSession(options);
+    user = user ? user : op.get(params, 'user', {});
 
     const client = op.get(params, 'client');
     if (!client)
@@ -56,6 +87,17 @@ Client.create = async (req, options) => {
     return Actinium.Utils.serialize(syndClient);
 };
 
+/**
+ * @apiDefine Syndicate_Client_retrieve
+ * @apiDescription Retrieve one syndication client record by objectId
+ * @apiParam (params) objectId the id of the client
+ */
+/**
+ * @apiUse Syndicate_Client_retrieve
+ * @api {Asynchronous} Syndicate.Client.retrieve(req,options) Syndicate.Client.retrieve()
+ * @apiName Syndicate.Client.retrieve
+ * @apiGroup Actinium
+ */
 Client.retrieve = async (req, options) => {
     const { params } = req;
     const id = op.get(params, 'objectId');
@@ -68,6 +110,17 @@ Client.retrieve = async (req, options) => {
     return Actinium.Utils.serialize(syndClient);
 };
 
+/**
+ * @apiDefine Syndicate_Client_delete
+ * @apiDescription Delete one syndication client record by objectId
+ * @apiParam (params) objectId the id of the client
+ */
+/**
+ * @apiUse Syndicate_Client_delete
+ * @api {Asynchronous} Syndicate.Client.delete(req,options) Syndicate.Client.delete()
+ * @apiName Syndicate.Client.delete
+ * @apiGroup Actinium
+ */
 Client.delete = async (req, options) => {
     const { params } = req;
     const id = op.get(params, 'objectId');
@@ -79,6 +132,33 @@ Client.delete = async (req, options) => {
 };
 Client.destroy = Client.delete;
 
+/**
+ * @apiDefine Syndicate_Client_token
+ * @apiDescription Retrieve a new access token for a client, for use with other syndication REST calls.
+ * @apiParam {Object} request The request containing request params.
+ * @apiParam (params) {String} token the refresh token associate with the client.
+ * @apiExample SDK
+Actinium.Client.token({
+    params: {
+        // Secret refresh token
+        token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTUzMjJ9.pdttR2PPmDzDg6zzy5TEHcp2rkuYgNiqaZjahBITv4Y',
+    },
+})
+.then(({ token: accessToken }) => {
+    // access token is used for remote api call, and will expire
+})
+* @apiExample POST /functions/syndicate-client-token
+{
+    "_ApplicationId": "Actinium",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTUzMjJ9.pdttR2PPmDzDg6zzy5TEHcp2rkuYgNiqaZjahBITv4Y"
+}
+ */
+/**
+ * @apiUse Syndicate_Client_token
+ * @api {Asynchronous} Syndicate.Client.token(req) Syndicate.Client.token()
+ * @apiName Syndicate.Client.token
+ * @apiGroup Actinium
+ */
 Client.token = async req => {
     const options = Actinium.Utils.MasterOptions();
     const { params } = req;
@@ -114,6 +194,40 @@ Client.token = async req => {
     return { token: accessToken };
 };
 
+/**
+ * @apiDefine Syndicate_Client_verify
+ * @apiDescription Verify an access token (See if it is expired)
+ * @apiParam {Object} request The request containing request params.
+ * @apiParam (params) {String} token the API access token from syndicate-client-token
+ * @apiExample SDK
+// from previous token() call
+const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTgyODMsImV4cCI6MTU5MTcxODM0M30.R1ASB71ab-TwZVi9OuB6ovOcTsC5SOpJ4UqPUzvcnKs';
+Actinium.Client.verify({
+    params: {
+        // Possibly expired access token
+        token: accessToken
+    },
+})
+.then((payload = false) => {
+    // if not valid, fetch a new one from refreshToken (created with client)
+    if (!payload) return Actinium.Client.token({ params: { token: refreshToken } }).then(({token}) => token);
+    return accessToken;
+})
+.then(accessToken => {
+    // use accessToken
+})
+* @apiExample POST /functions/syndicate-client-verify
+{
+    "_ApplicationId": "Actinium",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImpkaWxsaWNrIiwiY2xpZW50IjoiYXBpIHRlc3QiLCJpYXQiOjE1OTE3MTgyODMsImV4cCI6MTU5MTcxODM0M30.R1ASB71ab-TwZVi9OuB6ovOcTsC5SOpJ4UqPUzvcnKs"
+}
+ */
+/**
+ * @apiUse Syndicate_Client_verify
+ * @api {Asynchronous} Syndicate.Client.token(req) Syndicate.Client.token()
+ * @apiName Syndicate.Client.token
+ * @apiGroup Actinium
+ */
 Client.verify = async req => {
     const { params } = req;
     const { token } = params;
@@ -131,6 +245,17 @@ Client.verify = async req => {
     return payload;
 };
 
+/**
+ * @apiDefine Syndicate_Client_list
+ * @apiDescription List syndication clients
+ */
+/**
+ * @apiUse Syndicate_Client_list
+ * @apiUse HookedQuery
+ * @api {Asynchronous} Syndicate.Client.list(req,options) Syndicate.Client.list()
+ * @apiName Syndicate.Client.list
+ * @apiGroup Actinium
+ */
 Client.list = async (req, options) => {
     const { params } = req;
     if (!Actinium.Utils.CloudHasCapabilities(req, ['SyndicateClient.retrieve']))
