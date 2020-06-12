@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const op = require('object-path');
 const Enums = require('./enums');
+const path = require('path');
 
 const PLUGIN = {
     ID: 'Syndicate',
@@ -18,6 +19,15 @@ const PLUGIN = {
         builtIn: true,
     },
 };
+
+Actinium.Plugin.addScript(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/syndicate.js'),
+);
+Actinium.Plugin.addStylesheet(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/syndicate-plugin.css'),
+);
 
 /**
  * ----------------------------------------------------------------------------
