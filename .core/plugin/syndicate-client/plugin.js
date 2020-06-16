@@ -48,22 +48,10 @@ Actinium.Plugin.register(PLUGIN, false);
  * Hook registration
  * ----------------------------------------------------------------------------
  */
-
-const getClientSettings = async () => {
-    const SyndicateClient = await Actinium.Setting.get('SyndicateClient');
-    return {
-        appId: op.get(SyndicateClient, 'appId'),
-        host: op.get(SyndicateClient, 'host'),
-        token: op.get(SyndicateClient, 'token'),
-        cron: op.get(SyndicationClient, 'cron', '*/30 * * * *'),
-        enabled: op.get(SyndicationClient, 'enabled', false),
-    };
-};
-
 Actinium.Hook.register('warning', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
-    const { appId, host, token } = await getClientSettings();
+    const { appId, host, token } = await Actinium.SyndicateClient.settings();
 
     if (!appId) {
         LOG('');
@@ -83,3 +71,12 @@ Actinium.Hook.register('warning', async () => {
         );
     }
 });
+
+const cloudAPIs = [
+    { name: 'syndicate-satellite-test', sdk: 'SyndicateClient.test' },
+].forEach(({ name, sdk }) =>
+    Actinium.Cloud.define(PLUGIN.ID, name, async req => {
+        const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
+        return cloudFunc(req);
+    }),
+);
