@@ -123,7 +123,7 @@
                             tooltip: Object(i.__)(
                                 'Enable or disable sychronizing to this satellite.',
                             ),
-                            required: !0,
+                            required: !1,
                         },
                         'SyndicateClient.cron': {
                             type: 'text',
