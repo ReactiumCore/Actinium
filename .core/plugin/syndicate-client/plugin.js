@@ -18,6 +18,15 @@ const PLUGIN = {
     },
 };
 
+Actinium.Plugin.addScript(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/syndicate-client.js'),
+);
+Actinium.Plugin.addStylesheet(
+    PLUGIN.ID,
+    path.resolve(__dirname, 'plugin-assets/syndicate-client-plugin.css'),
+);
+
 /**
  * ----------------------------------------------------------------------------
  * Extend Actinium SDK
