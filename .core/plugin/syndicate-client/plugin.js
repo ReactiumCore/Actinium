@@ -1,6 +1,7 @@
 const chalk = require('chalk');
 const op = require('object-path');
 const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
+const path = require('path');
 
 const PLUGIN = {
     ID: 'SyndicateClient',
