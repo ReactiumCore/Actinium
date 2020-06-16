@@ -14,6 +14,7 @@
         "@atomic-reactor/actinium-auth": "^1.0.4",
         "action-sequence": "^1.1.1",
         "apidoc": "^0.17.7",
+        "axios": "^0.19.2",
         "body-parser": "*",
         "camelcase": "^5.3.1",
         "chalk": "^2.4.2",
@@ -60,7 +61,7 @@
         "uuid": "^3.3.3"
     },
     "devDependencies": {
-        "@atomic-reactor/cli": "^2.2.1",
+        "@atomic-reactor/cli": "^2.2.12",
         "eslint": "^5.13.0",
         "husky": "^3.0.9",
         "lint-staged": "^9.4.2",

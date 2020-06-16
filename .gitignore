@@ -73,3 +73,4 @@ public/plugins
 files
 .tmp
 src/env.dev.json
+src/env.local.json

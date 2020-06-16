@@ -56,6 +56,8 @@ Actinium.Cloud.run('syndicate-client-create', {
  * @apiGroup Actinium
  */
 Client.create = async (req, options) => {
+    options = options || Actinium.Utils.CloudRunOptions(req);
+
     const { params } = req;
     if (!Actinium.Utils.CloudHasCapabilities(req, ['SyndicateClient.create']))
         throw new Error('Permission denied creating new syndication client.');
@@ -99,6 +101,8 @@ Client.create = async (req, options) => {
  * @apiGroup Actinium
  */
 Client.retrieve = async (req, options) => {
+    options = options || Actinium.Utils.CloudRunOptions(req);
+
     const { params } = req;
     const id = op.get(params, 'objectId');
 
@@ -122,6 +126,7 @@ Client.retrieve = async (req, options) => {
  * @apiGroup Actinium
  */
 Client.delete = async (req, options) => {
+    options = options || Actinium.Utils.CloudRunOptions(req);
     const { params } = req;
     const id = op.get(params, 'objectId');
 
@@ -229,6 +234,10 @@ Actinium.Client.verify({
  * @apiGroup Actinium
  */
 Client.verify = async req => {
+    // bypass token check
+    if (Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.Client']))
+        return true;
+
     const { params } = req;
     const { token } = params;
 
@@ -271,6 +280,26 @@ Client.list = async (req, options) => {
 };
 
 const Content = {};
+
+/**
+ * @apiDefine Syndicate_Content_types
+ * @apiDescription Get list of syndicated types
+ */
+/**
+ * @apiUse Syndicate_Client_list
+ * @api {Asynchronous} Syndicate.Content.types(req,options) Syndicate.Content.types()
+ * @apiName Syndicate.Content.types
+ * @apiGroup Actinium
+ */
+Content.types = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const options = Actinium.Utils.MasterOptions();
+    const synTypes = await Actinium.Setting.get('Syndicate.types', []);
+    const { types } = await Actinium.Type.list({}, options);
+    return types.filter(type => op.get(synTypes, type.machineName));
+};
 
 const Syndicate = {
     Client,

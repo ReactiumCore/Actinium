@@ -111,29 +111,17 @@ Actinium.Hook.register('warning', () => {
     }
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-create', async req =>
-    Actinium.Syndicate.Client.create(req, Actinium.Utils.CloudRunOptions(req)),
-);
-
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-retrieve', async req =>
-    Actinium.Syndicate.Client.retrieve(
-        req,
-        Actinium.Utils.CloudRunOptions(req),
-    ),
-);
-
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-clients', async req =>
-    Actinium.Syndicate.Client.list(req, Actinium.Utils.CloudRunOptions(req)),
-);
-
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-delete', async req =>
-    Actinium.Syndicate.Client.delete(req, Actinium.Utils.CloudRunOptions(req)),
-);
-
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-token', async req =>
-    Actinium.Syndicate.Client.token(req),
-);
-
-Actinium.Cloud.define(PLUGIN.ID, 'syndicate-client-verify', async req =>
-    Actinium.Syndicate.Client.verify(req),
+const cloudAPIs = [
+    { name: 'syndicate-client-create', sdk: 'Syndicate.Client.create' },
+    { name: 'syndicate-client-retrieve', sdk: 'Syndicate.Client.retrieve' },
+    { name: 'syndicate-client-delete', sdk: 'Syndicate.Client.delete' },
+    { name: 'syndicate-clients', sdk: 'Syndicate.Client.list' },
+    { name: 'syndicate-client-token', sdk: 'Syndicate.Client.token' },
+    { name: 'syndicate-client-verify', sdk: 'Syndicate.Client.verify' },
+    { name: 'syndicate-content-types', sdk: 'Syndicate.Content.types' },
+].forEach(({ name, sdk }) =>
+    Actinium.Cloud.define(PLUGIN.ID, name, async req => {
+        const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
+        return cloudFunc(req);
+    }),
 );
