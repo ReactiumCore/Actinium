@@ -1,5 +1,6 @@
 const slugify = require('./slugify');
 const FileAPI = require('./file-api');
+const Registry = require('./registry');
 const serialize = require('./serialize');
 const hookedSave = require('./hookedSave');
 const hookedQuery = require('./hookedQuery');
@@ -32,4 +33,5 @@ module.exports = {
     hookedSave,
     hookedQuery,
     hookedRetrieve,
+    Registry,
 };
