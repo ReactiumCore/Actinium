@@ -72,8 +72,26 @@ Actinium.Hook.register('warning', async () => {
     }
 });
 
+Actinium.Hook.register('running', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    const { schedule } = await Actinium.SyndicateClient.settings();
+
+    Actinium.Pulse.define(
+        'syndicate-synchronize',
+        {
+            schedule,
+        },
+        Actinium.SyndicateClient.sync,
+    );
+
+    await Actinium.SyndicateClient.sync();
+});
+
 const cloudAPIs = [
     { name: 'syndicate-satellite-test', sdk: 'SyndicateClient.test' },
+
+    // TODO: Remove Me!!!!
+    { name: 'syndicate-satellite-types', sdk: 'SyndicateClient.syncTypes' },
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
