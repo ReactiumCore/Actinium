@@ -89,9 +89,6 @@ Actinium.Hook.register('running', async () => {
 
 const cloudAPIs = [
     { name: 'syndicate-satellite-test', sdk: 'SyndicateClient.test' },
-
-    // TODO: Remove Me!!!!
-    { name: 'syndicate-satellite-types', sdk: 'SyndicateClient.syncTypes' },
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);

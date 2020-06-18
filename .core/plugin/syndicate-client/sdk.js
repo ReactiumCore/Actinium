@@ -140,19 +140,172 @@ SyndicateClient.syncTypes = async () => {
             ),
         );
 
+        await Actinium.Hook.run('syndicate-type-before-save', type);
+
         // Update
+        let saved;
         if (types.find(t => t.machineName === type.machineName)) {
-            await Actinium.Type.update(type, masterOptions);
+            saved = await Actinium.Type.update(type, masterOptions);
         } else {
-            await Actinium.Type.create(type, masterOptions);
+            saved = await Actinium.Type.create(type, masterOptions);
         }
+
+        await Actinium.Hook.run('syndicate-type-saved', saved);
     }
 
-    return remoteTypes;
+    return remoteTypes.map(({ objectId, ...type }) => type);
+};
+
+SyndicateClient.syncContent = async remoteTypes => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    for (const type of remoteTypes) {
+        let page = 1;
+        let response = await SyndicateClient.runRemote(
+            'syndicate-content-list',
+            { type, limit: 10, page: page++ },
+        );
+        while (op.get(response, 'data.result.results', []).length) {
+            const results = op.get(response, 'data.result.results', []);
+            for (const content of results) {
+                const {
+                    objectId,
+                    type: sourceType,
+                    branches,
+                    history,
+                    user,
+                    ACL,
+                    publish,
+                    createdAt,
+                    updatedAt,
+                    ...syncContent
+                } = content;
+
+                op.set(syncContent, 'meta.syndicate.objectId', objectId);
+                op.set(syncContent, 'meta.syndicate.sourceType', sourceType);
+                op.set(syncContent, 'meta.syndicate.branches', branches);
+                op.set(syncContent, 'meta.syndicate.history', history);
+                op.set(syncContent, 'meta.syndicate.user', user);
+                op.set(syncContent, 'meta.syndicate.createdAt', createdAt);
+                op.set(syncContent, 'meta.syndicate.updatedAt', updatedAt);
+
+                // check to see if each result already exists
+                const existing = await Actinium.Content.retrieve(
+                    { type, slug: syncContent.slug },
+                    masterOptions,
+                );
+
+                const typeLabel = op.get(
+                    type,
+                    'meta.label',
+                    op.get(type, 'type'),
+                );
+                const contentLabel = op.get(
+                    syncContent,
+                    'title',
+                    op.get(syncContent, 'slug'),
+                );
+
+                // if it does exist, check to see if it shouldn't be automatically updated
+                if (existing) {
+                    const from =
+                        op.get(existing, 'meta.syndicate.history.branch') +
+                        op.get(existing, 'meta.syndicate.history.revision');
+                    const to =
+                        op.get(syncContent, 'meta.syndicate.history.branch') +
+                        op.get(syncContent, 'meta.syndicate.history.revision');
+
+                    // content updated
+                    if (from !== to) {
+                        LOG(
+                            chalk.cyan(
+                                `Updating syndicated ${typeLabel} content`,
+                                contentLabel,
+                            ),
+                        );
+                        if (op.get(existing, 'meta.syndicate.manual')) {
+                            await Actinium.Hook.run(
+                                'syndicate-content-before-save',
+                                type,
+                                syncContent,
+                            );
+                            const local = await Actinium.Content.update(
+                                {
+                                    type,
+                                    history: { branch: 'syndicate' },
+                                    ...syncContent,
+                                },
+                                masterOptions,
+                            );
+                            await Actinium.Hook.run(
+                                'syndicate-content-saved',
+                                type,
+                                local,
+                            );
+                        } else {
+                            await Actinium.Hook.run(
+                                'syndicate-content-before-save',
+                                type,
+                                syncContent,
+                            );
+                            const local = await Actinium.Content.update(
+                                { type, ...syncContent },
+                                masterOptions,
+                            );
+                            await Actinium.Content.publish(
+                                local,
+                                masterOptions,
+                            );
+                            await Actinium.Hook.run(
+                                'syndicate-content-saved',
+                                type,
+                                local,
+                            );
+                        }
+                    }
+                    // if it doesn't exist, create/publish it
+                } else {
+                    LOG(
+                        chalk.cyan(
+                            `Creating syndicated ${typeLabel} content`,
+                            contentLabel,
+                        ),
+                    );
+                    await Actinium.Hook.run(
+                        'syndicate-content-before-save',
+                        type,
+                        syncContent,
+                    );
+                    const local = await Actinium.Content.create(
+                        { type, ...syncContent },
+                        masterOptions,
+                    );
+                    await Actinium.Content.createBranch(
+                        local,
+                        type,
+                        'syndicate',
+                        'Syndicate',
+                        masterOptions,
+                    );
+                    await Actinium.Content.publish(local, masterOptions);
+                    await Actinium.Hook.run(
+                        'syndicate-content-saved',
+                        type,
+                        local,
+                    );
+                }
+            }
+            // console.log({machineName: type.machineName, page, results});
+            response = await SyndicateClient.runRemote(
+                'syndicate-content-list',
+                { type, limit: 10, page: page++ },
+            );
+        }
+    }
 };
 
 SyndicateClient.sync = async () => {
     const remoteTypes = await SyndicateClient.syncTypes();
+    await SyndicateClient.syncContent(remoteTypes);
 };
 
 module.exports = SyndicateClient;

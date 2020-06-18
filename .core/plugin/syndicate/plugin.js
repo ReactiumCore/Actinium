@@ -119,6 +119,7 @@ const cloudAPIs = [
     { name: 'syndicate-client-token', sdk: 'Syndicate.Client.token' },
     { name: 'syndicate-client-verify', sdk: 'Syndicate.Client.verify' },
     { name: 'syndicate-content-types', sdk: 'Syndicate.Content.types' },
+    { name: 'syndicate-content-list', sdk: 'Syndicate.Content.list' },
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
