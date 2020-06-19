@@ -19,6 +19,7 @@ Actinium.Hook.register(
     'content-retrieve',
     async (contentObj, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        if (op.get(params, 'serializeURLS') !== true) return;
 
         const contentId = op.get(contentObj, 'objectId');
         const collection = op.get(contentObj, 'type.collection');
