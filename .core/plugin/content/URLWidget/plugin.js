@@ -14,23 +14,6 @@ Actinium.Hook.register('content-schema-field-types', fieldTypes => {
     fieldTypes['URLS'] = { type: 'Relation', targetClass: 'Route' };
 });
 
-// content-retrieve hook
-// Actinium.Hook.register(
-//     'content-retrieve',
-//     async (contentObj, params, options) => {
-//         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-//         if (op.get(params, 'serializeURLS') !== true) return;
-//
-//         const contentId = op.get(contentObj, 'objectId');
-//         const collection = op.get(contentObj, 'type.collection');
-//
-//         let { results: urls = {} } = await SDK.list({ contentId, collection });
-//         urls = Object.values(urls);
-//
-//         op.set(contentObj, 'urls', urls);
-//     },
-// );
-
 // content-saved hook
 Actinium.Hook.register(
     'content-saved',
