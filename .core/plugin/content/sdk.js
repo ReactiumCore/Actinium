@@ -397,6 +397,9 @@ Content.sanitize = async content => {
             fieldIndex,
             fieldData,
             content,
+            op.get(existingSchema, ['fields', field.fieldSlug]), // field schema
+            existingSchema, // full schema
+            permittedFields,
         );
     }
 
@@ -409,6 +412,44 @@ Content.sanitize = async content => {
 
     return fieldData;
 };
+
+/**
+ * Default sanitization for Pointers and Relations
+ */
+Actinium.Hook.register(
+    'content-field-sanitize',
+    async (field, config, fieldIndex, fieldData, content, fieldSchema) => {
+        // handle missing field schema
+        if (!fieldSchema) op.del(fieldData, [fieldIndex]);
+
+        const valueToParseObj = value => {
+            if (typeof value === 'object') {
+                if (value instanceof Parse.Object) return value;
+                else if (value.objectId) {
+                    const obj = new Parse.Object(targetClass);
+                    obj.id = value.objectId;
+                    return obj;
+                }
+            }
+            return false;
+        };
+
+        const type = op.get(fieldSchema, 'type');
+        const targetClass = op.get(fieldSchema, 'targetClass');
+        if (type === 'Relation') {
+            const fieldValue = new Parse.Relation(targetClass);
+            const objects = _.compact([field.fieldValue].map(valueToParseObj));
+            if (objects.length) {
+                field.fieldValue = fieldValue;
+                objects.forEach(obj => field.fieldValue.add(obj));
+            } else op.del(fieldData, [fieldIndex]);
+        } else if (type === 'Pointer') {
+            const obj = valueToParseObj(field.fieldValue);
+            if (obj) field.fieldValue = obj;
+        }
+    },
+    Actinium.Enums.priority.lowest,
+);
 
 /**
  * @api {Asynchronous} Content.createBranch(content,type,branch,options) Content.createBranch()
