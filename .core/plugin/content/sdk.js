@@ -682,13 +682,17 @@ Content.cloneBranch = async (params, options) => {
 
     const contentObj = await Actinium.Content.retrieve(params, options);
 
+    let newBranchId = op.get(params, 'newBranchId', null);
+    if (newBranchId in op.get(contentObj, 'branches', {}))
+        newBranchId = uuidv4();
+
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
     const { branches, history } = await Content.createBranch(
         contentObj,
         typeObj,
-        null,
+        newBranchId,
         branchLabel,
         options,
     );

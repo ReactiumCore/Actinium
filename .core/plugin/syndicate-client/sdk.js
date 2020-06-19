@@ -279,11 +279,12 @@ SyndicateClient.syncContent = async remoteTypes => {
                         { type, ...syncContent },
                         masterOptions,
                     );
-                    await Actinium.Content.createBranch(
-                        local,
-                        type,
-                        'syndicate',
-                        'Syndicate',
+                    await Actinium.Content.cloneBranch(
+                        {
+                            ...local,
+                            branchLabel: 'Syndicate',
+                            newBranchId: 'syndicate',
+                        },
                         masterOptions,
                     );
                     await Actinium.Content.publish(local, masterOptions);
