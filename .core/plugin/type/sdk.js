@@ -222,6 +222,7 @@ Type.delete = async (params, options) => {
  * @apiParam (params) {String} [objectId] Parse objectId of content type
  * @apiParam (params) {String} [uuid] UUID of content type
  * @apiParam (params) {String} [machineName] the machine name of the existing content type
+ * @apiParam (params) {String} [collection] the collection associated with the content type
  * @apiParam (params) {String} [namespace] optional namespace. Will be used to derive the
   uuid from the machine name if the uuid is not known. By default, the current
   APIs content namespace will be used, and this will not be needed.
@@ -238,13 +239,17 @@ Type.retrieve = async (params, options) => {
     const uuid = machineName
         ? uuidv5(machineName, namespace)
         : op.get(params, 'uuid');
+    const collection = op.get(params, 'collection');
 
-    if (!id && !uuid)
-        throw new Error('id, uuid or machineName parameter required.');
+    if (!id && !uuid && !collection)
+        throw new Error(
+            'One of id, uuid, collection or machineName parameters required.',
+        );
 
     const query = new Parse.Query(COLLECTION);
     if (id) query.equalTo('objectId', id);
     if (!id && uuid) query.equalTo('uuid', uuid);
+    if (collection) query.equalTo('collection', collection);
 
     const contentType = await query.first(options);
 

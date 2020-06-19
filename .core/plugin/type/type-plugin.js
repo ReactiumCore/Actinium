@@ -133,7 +133,7 @@ Actinium.Collection.register(
             type: 'Array',
         },
     },
-    ['uuid', 'machineName'],
+    ['uuid', 'machineName', 'collection'],
 );
 
 const beforeSave = async req => {
@@ -245,6 +245,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-status', async req => {
  * @apiParam {String} [objectId] Parse objectId of content type
  * @apiParam {String} [uuid] UUID of content type
  * @apiParam {String} [machineName] the machine name of the existing content type
+ * @apiParam {String} [collection] the collection associated with the content type
  * @apiParam {String} [namespace] optional namespace. Will be used to derive the
   uuid from the machine name if the uuid is not known. By default, the current
   APIs content namespace will be used, and this will not be needed.
