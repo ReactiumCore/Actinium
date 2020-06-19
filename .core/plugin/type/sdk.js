@@ -58,9 +58,9 @@ for storing the field data.
 Type.create = async (params, options) => {
     const contentType = new Parse.Object(COLLECTION);
 
-    const { type } = params;
+    const type = op.get(params, 'meta.label', op.get(params, 'type'));
     if (!type) throw new Error('type parameter required.');
-    const machineName = slugify(type);
+    const machineName = slugify(op.get(params, 'machineName', type));
     const namespace = op.get(params, 'namespace', getNamespace());
     const uuid = uuidv5(machineName, namespace);
 
@@ -137,7 +137,8 @@ Type.update = async (params, options) => {
     const uuid = machineName
         ? uuidv5(machineName, namespace)
         : op.get(params, 'uuid');
-    const { type, fields = {} } = params;
+    const { fields = {} } = params;
+    const type = op.get(params, 'meta.label', op.get(params, 'type'));
     if (!uuid) throw new Error('uuid or machineName parameter required.');
 
     const query = new Parse.Query(COLLECTION);

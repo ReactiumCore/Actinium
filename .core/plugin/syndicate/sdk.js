@@ -286,7 +286,7 @@ const Content = {};
  * @apiDescription Get list of syndicated types
  */
 /**
- * @apiUse Syndicate_Client_list
+ * @apiUse Syndicate_Content_types
  * @api {Asynchronous} Syndicate.Content.types(req,options) Syndicate.Content.types()
  * @apiName Syndicate.Content.types
  * @apiGroup Actinium
@@ -299,6 +299,24 @@ Content.types = async req => {
     const synTypes = await Actinium.Setting.get('Syndicate.types', []);
     const { types } = await Actinium.Type.list({}, options);
     return types.filter(type => op.get(synTypes, type.machineName));
+};
+
+/**
+ * @apiDefine Syndicate_Content_list
+ * @apiDescription Get list of syndicated list
+ */
+/**
+ * @apiUse Syndicate_Content_list
+ * @api {Asynchronous} Syndicate.Content.list(req,options) Syndicate.Content.list()
+ * @apiName Syndicate.Content.list
+ * @apiGroup Actinium
+ */
+Content.list = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    return Actinium.Content.list(req.params, masterOptions);
 };
 
 const Syndicate = {
