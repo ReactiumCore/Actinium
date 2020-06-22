@@ -13,8 +13,8 @@ Actinium.Middleware.register(
             const rec = _.findWhere(files, { url: req.baseUrl });
 
             // Prioritize .redirect
-            if (op.get(rec, 'redirect')) {
-                res.redirect(rec.redirect);
+            if (op.get(rec, 'redirect.url')) {
+                res.redirect(rec.redirect.url);
                 return;
             }
 

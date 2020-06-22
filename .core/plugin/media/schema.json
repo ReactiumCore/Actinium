@@ -62,6 +62,9 @@
             },
             "uuid": {
                 "type": "String"
+            },
+            "redirect": {
+                "type": "Object"
             }
         }
     }
