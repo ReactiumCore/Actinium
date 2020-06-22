@@ -9,16 +9,29 @@ Actinium.Middleware.register(
         const router = express.Router();
 
         router.use('/media/*', (req, res) => {
-            const p = [80, 443].includes(PORT) ? '' : `:${PORT}`;
             const files = Object.values(Actinium.Cache.get('Media.files', {}));
             const rec = _.findWhere(files, { url: req.baseUrl });
-            const fileURL = String(op.get(rec, 'file.url', ''))
-                .replace('undefined/', `${ENV.PARSE_MOUNT}/`)
-                .substr(1);
 
-            const url = `${req.protocol}://${req.hostname}${p}/${fileURL}`;
+            // Prioritize .redirect
+            if (op.get(rec, 'redirect')) {
+                res.redirect(rec.redirect);
+                return;
+            }
 
-            request(url).pipe(res);
+            // Test file.url value and redirect or pipe given if it's an external file or local
+            const u = String(op.get(rec, 'file.url', ''));
+
+            if (/^https?:/.test(u)) {
+                res.redirect(u);
+            } else {
+                const p = [80, 443].includes(PORT) ? '' : `:${PORT}`;
+                const fileURL = u
+                    .replace('undefined/', `${ENV.PARSE_MOUNT}/`)
+                    .substr(1);
+
+                const url = `${req.protocol}://${req.hostname}${p}/${fileURL}`;
+                request(url).pipe(res);
+            }
         });
 
         app.use(router);

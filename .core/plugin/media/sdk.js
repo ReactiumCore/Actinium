@@ -56,8 +56,6 @@ const getMedia = async () => {
     const options = { useMasterKey: true };
     const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA)
         .descending('updatedAt')
-        .include('file')
-        .exists('file')
         .limit(1000)
         .skip(0);
 
