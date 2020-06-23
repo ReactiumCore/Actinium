@@ -192,6 +192,7 @@ Media.directories = (search, user) => {
     // Filter items by capability & search
     let items = Actinium.Cache.get('Media.directories', []).filter(item => {
         if (
+            op.get(item, 'user.objectId') &&
             user.id !== item.user.objectId &&
             !CloudHasCapabilities({ user }, item.capabilities)
         ) {
