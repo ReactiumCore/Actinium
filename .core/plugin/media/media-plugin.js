@@ -115,6 +115,8 @@ Actinium.Hook.register('directory-delete', req => {
     );
 });
 
+Actinium.Hook.register('directory-query', qry => qry.exists('directory'));
+
 // Media save
 Actinium.Hook.register('media-save', async req => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;

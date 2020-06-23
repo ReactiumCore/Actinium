@@ -29,48 +29,32 @@ const getDirectories = async options => {
     const cached = Actinium.Cache.get('media-directories-fetch');
     if (cached) return cached;
 
-    options = options || { useMasterKey: true };
-    const qry = new Parse.Query(ENUMS.COLLECTION.DIRECTORY)
-        .ascending('directory')
-        .exists('directory')
-        .limit(1000)
-        .skip(0);
+    const { results = {} } = await Actinium.Utils.hookedQuery(
+        { outputType: 'JSON', orderBy: 'directory' },
+        options,
+        ENUMS.COLLECTION.DIRECTORY,
+        'directory-query',
+        'directories',
+    );
 
-    await Actinium.Hook.run('directory-query', qry);
-
-    let results = await qry.find(options);
-    let directories = [];
-
-    while (results.length > 0) {
-        results.forEach(item => directories.push(item.toJSON()));
-        qry.skip(directories.length);
-        results = await qry.find(options);
-    }
-
-    directories = _.compact(directories);
+    const directories = Object.values(results);
     Actinium.Cache.set('media-directories-fetch', directories, 5000);
     return directories;
 };
 
-const getMedia = async () => {
-    const options = { useMasterKey: true };
-    const qry = new Parse.Query(ENUMS.COLLECTION.MEDIA)
-        .descending('updatedAt')
-        .limit(1000)
-        .skip(0);
-
-    await Actinium.Hook.run('media-query', qry);
-
-    let results = await qry.find(options);
-    const files = {};
-
-    while (results.length > 0) {
-        results.forEach(item => (files[item.id] = item.toJSON()));
-        qry.skip(Object.keys(files).length);
-        results = await qry.find(options);
+const getMedia = async (params = {}, options) => {
+    if (!op.get(params, 'orderBy')) {
+        op.set(params, 'orderBy', 'updatedAt');
     }
 
-    return files;
+    const { results = {} } = await Actinium.Utils.hookedQuery(
+        params,
+        options,
+        ENUMS.COLLECTION.MEDIA,
+        'media-query',
+        'media',
+    );
+    return results;
 };
 
 const isAdmin = userId => {

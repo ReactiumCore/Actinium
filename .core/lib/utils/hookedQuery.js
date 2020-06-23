@@ -30,6 +30,7 @@ module.exports = async (
         page = -1,
     } = params;
 
+    outputType = String(outputType).toUpperCase();
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
 
     let resp = { count: 0, page: 1, pages: 1, limit, results: [] };
@@ -96,7 +97,7 @@ module.exports = async (
     await Actinium.Hook.run(outputHook, resp, params, options, collection);
 
     // 6.0 - Process toJSON
-    if (String(outputType).toUpperCase() === 'JSON') {
+    if (outputType === 'JSON') {
         Object.entries(resp.results).forEach(([id, item]) => {
             resp.results[id] = serialize(item);
         });
