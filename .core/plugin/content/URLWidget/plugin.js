@@ -38,10 +38,11 @@ Actinium.Hook.register(
         const add = urls.filter(
             url => !op.has(url, 'delete') && op.get(url, 'pending') === true,
         );
+
         const del = urls.filter(url => op.get(url, 'delete') === true);
 
         const [addURLS, delURLS] = await Promise.all([
-            SDK.create({ content, urls: add, ...params }, options),
+            SDK.create({ ...params, content, urls: add }, options),
             SDK.delete({ urls: del }, options),
         ]);
 

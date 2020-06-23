@@ -33,7 +33,7 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
 
 SDK.attach = async (params, options) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return [];
-    let { content, contentId, collection } = params;
+    let { content, contentId, collection, type } = params;
 
     options = options || { useMasterKey: true };
 
@@ -63,7 +63,8 @@ SDK.attach = async (params, options) => {
     routes = routes.map(route => {
         const meta = route.get('meta');
         op.set(meta, 'contentId', content.id);
-        op.set(meta, 'type', collection);
+        op.set(meta, 'collection', collection);
+        op.set(meta, 'type', type);
         op.del(meta, 'blueprint');
         route.set('meta', meta);
         return route;
@@ -106,9 +107,12 @@ SDK.create = async ({ content = {}, urls, user, ...params }, options) => {
         urls.length > 0 ? await Actinium.Object.saveAll(urls, options) : [];
 
     // 3.0 - Add routes to relation
+
     if (op.has(content, 'id') && urls.length > 0) {
         const rel = content.relation('urls');
-        addURLS.forEach(route => rel.add(route));
+        addURLS.forEach(route => {
+            rel.add(route);
+        });
     }
 
     /**
