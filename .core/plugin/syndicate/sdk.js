@@ -319,6 +319,54 @@ Content.list = async req => {
     return Actinium.Content.list(req.params, masterOptions);
 };
 
+/**
+ * @apiDefine Syndicate_Content_media_directories
+ * @apiDescription Get list of media directories
+ */
+/**
+ * @apiUse Syndicate_Content_media_directories
+ * @api {Asynchronous} Syndicate.Content.mediaDirectories(req,options) Syndicate.Content.mediaDirectories()
+ * @apiName Syndicate.Content.mediaDirectories
+ * @apiGroup Actinium
+ */
+Content.mediaDirectories = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    return Actinium.Utils.hookedQuery(
+        req.params,
+        masterOptions,
+        'MediaDirectory',
+        'syndicate-media-directories-query',
+        'syndicate-media-directories-output',
+    );
+};
+
+/**
+ * @apiDefine Syndicate_Content_media
+ * @apiDescription Get syndicated list of media
+ */
+/**
+ * @apiUse Syndicate_Content_media
+ * @api {Asynchronous} Syndicate.Content.media(req,options) Syndicate.Content.media()
+ * @apiName Syndicate.Content.media
+ * @apiGroup Actinium
+ */
+Content.media = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    return Actinium.Utils.hookedQuery(
+        req.params,
+        masterOptions,
+        'Media',
+        'syndicate-media-query',
+        'syndicate-media-output',
+    );
+};
+
 const Syndicate = {
     Client,
     Content,

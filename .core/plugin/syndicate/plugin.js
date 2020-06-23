@@ -50,26 +50,26 @@ Actinium.Plugin.register(PLUGIN, false);
  * ----------------------------------------------------------------------------
  */
 
-Actinium.Hook.register('schema', async () => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    const options = Actinium.Utils.MasterOptions();
-
-    const { Syndicate } = require('./schema');
-    const { actions = {}, collection, schema = {} } = Syndicate;
-    if (!collection) return;
-
-    const { types = [] } = await Actinium.Type.list({}, options);
-
-    // Automatically Add Each Content Type Pointer
-    types.forEach(type => {
-        schema[type.machineName] = {
-            type: 'Pointer',
-            targetClass: type.collection,
-        };
-    });
-
-    Actinium.Collection.register(collection, actions, schema);
-});
+// Actinium.Hook.register('schema', async () => {
+//     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+//     const options = Actinium.Utils.MasterOptions();
+//
+//     const { Syndicate } = require('./schema');
+//     const { actions = {}, collection, schema = {} } = Syndicate;
+//     if (!collection) return;
+//
+//     const { types = [] } = await Actinium.Type.list({}, options);
+//
+//     // Automatically Add Each Content Type Pointer
+//     types.forEach(type => {
+//         schema[type.machineName] = {
+//             type: 'Pointer',
+//             targetClass: type.collection,
+//         };
+//     });
+//
+//     Actinium.Collection.register(collection, actions, schema);
+// });
 
 Actinium.Hook.register('schema', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
@@ -120,6 +120,11 @@ const cloudAPIs = [
     { name: 'syndicate-client-verify', sdk: 'Syndicate.Client.verify' },
     { name: 'syndicate-content-types', sdk: 'Syndicate.Content.types' },
     { name: 'syndicate-content-list', sdk: 'Syndicate.Content.list' },
+    {
+        name: 'syndicate-content-media-directories',
+        sdk: 'Syndicate.Content.mediaDirectories',
+    },
+    { name: 'syndicate-content-media', sdk: 'Syndicate.Content.media' },
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);

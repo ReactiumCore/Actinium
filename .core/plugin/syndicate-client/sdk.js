@@ -156,6 +156,142 @@ SyndicateClient.syncTypes = async () => {
     return remoteTypes.map(({ objectId, ...type }) => type);
 };
 
+SyndicateClient.syncMediaDirectories = async () => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    let page = 1;
+    let response = await SyndicateClient.runRemote(
+        'syndicate-content-media-directories',
+        { limit: 10, page: page++ },
+    );
+
+    let results = Object.values(op.get(response, 'data.result.results', {}));
+    while (results.length) {
+        for (const {
+            user,
+            createdAt,
+            updatedAt,
+            ACL,
+            objectId,
+            ...result
+        } of results) {
+            const query = new Parse.Query('MediaDirectory');
+            query.equalTo('directory', result.directory);
+            let directory = await query.first(masterOptions);
+            if (!directory) {
+                directory = new Parse.Object('MediaDirectory');
+                directory.set('directory', result.directory);
+                directory.set('capabilities', result.capabilities);
+
+                await Actinium.Hook.run(
+                    'syndicate-media-directory-before-save',
+                    directory,
+                );
+
+                LOG(
+                    chalk.cyan(
+                        `Creating synced media directory ${result.directory}`,
+                    ),
+                );
+
+                await directory.save(null, masterOptions);
+
+                await Actinium.Hook.run(
+                    'syndicate-media-directory-saved',
+                    directory,
+                );
+            }
+        }
+
+        // next page
+        response = await SyndicateClient.runRemote(
+            'syndicate-content-media-directories',
+            { limit: 10, page: page++ },
+        );
+        results = Object.values(op.get(response, 'data.result.results', {}));
+    }
+};
+
+SyndicateClient.syncMedia = async () => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    const { host: apiURL } = await Actinium.SyndicateClient.settings();
+
+    let page = 1;
+    let response = await SyndicateClient.runRemote('syndicate-content-media', {
+        limit: 10,
+        page: page++,
+    });
+
+    let results = Object.values(op.get(response, 'data.result.results', {}));
+    while (results.length) {
+        for (const {
+            file,
+            user,
+            thumbnail,
+            createdAt,
+            updatedAt,
+            objectId,
+            meta,
+            redirect = {},
+            ...result
+        } of results) {
+            op.set(meta, 'syndicate.createdAt', createdAt);
+            op.set(meta, 'syndicate.updatedAt', updatedAt);
+            op.set(meta, 'syndicate.objectId', objectId);
+            op.set(meta, 'syndicate.user', user);
+            op.set(result, 'meta', meta);
+
+            const query = new Parse.Query('Media');
+            query.equalTo('url', result.url);
+            query.equalTo('filename', result.filename);
+
+            let media = await query.first(masterOptions);
+            if (!media) {
+                media = new Parse.Object('Media');
+            }
+
+            for (const [key, value] of Object.entries(result))
+                media.set(key, value);
+            media.set('meta', meta);
+
+            // absolute urls
+            if (/^https?:/.test(result.url))
+                op.set(redirect, 'url', result.url);
+            // api urls should be redirected to syndication host
+            else {
+                let {
+                    protocol,
+                    hostname,
+                    port,
+                    pathname,
+                } = require('url').parse(apiURL);
+                port = ['80', '443'].includes(port) ? '' : `:${port}`;
+                const baseURL = `${protocol}//${hostname}${port}`;
+                // media urls
+                if (/^\/media/.test(result.url))
+                    op.set(redirect, 'url', `${baseURL}${result.url}`);
+                // file api urls
+                else op.set(redirect, 'url', `${apiURL}${result.url}`);
+            }
+            media.set('redirect', redirect);
+
+            await Actinium.Hook.run('syndicate-media-before-save', media);
+
+            LOG(chalk.cyan(`Syncing media file ${result.url}`));
+
+            await media.save(null, masterOptions);
+
+            await Actinium.Hook.run('syndicate-media-saved', media);
+        }
+
+        // next page
+        response = await SyndicateClient.runRemote('syndicate-content-media', {
+            limit: 10,
+            page: page++,
+        });
+        results = Object.values(op.get(response, 'data.result.results', {}));
+    }
+};
+
 SyndicateClient.syncContent = async remoteTypes => {
     const masterOptions = Actinium.Utils.MasterOptions();
     for (const type of remoteTypes) {
@@ -164,8 +300,8 @@ SyndicateClient.syncContent = async remoteTypes => {
             'syndicate-content-list',
             { type, limit: 10, page: page++ },
         );
-        while (op.get(response, 'data.result.results', []).length) {
-            const results = op.get(response, 'data.result.results', []);
+        let results = op.get(response, 'data.result.results', []);
+        while (results.length) {
             for (const content of results) {
                 const {
                     objectId,
@@ -295,16 +431,20 @@ SyndicateClient.syncContent = async remoteTypes => {
                     );
                 }
             }
-            // console.log({machineName: type.machineName, page, results});
+
+            // next page
             response = await SyndicateClient.runRemote(
                 'syndicate-content-list',
                 { type, limit: 10, page: page++ },
             );
+            results = op.get(response, 'data.result.results', []);
         }
     }
 };
 
 SyndicateClient.sync = async () => {
+    await SyndicateClient.syncMediaDirectories();
+    await SyndicateClient.syncMedia();
     const remoteTypes = await SyndicateClient.syncTypes();
     await SyndicateClient.syncContent(remoteTypes);
 };
