@@ -486,7 +486,7 @@ Media.files = async ({
     const items = Object.values(Actinium.Cache.get('Media.files', {})).filter(
         item => {
             if (
-                op.get(item, 'user') &&
+                op.get(item, 'user.objectId') &&
                 user.id !== item.user.objectId &&
                 !CloudHasCapabilities({ user }, item.capabilities)
             ) {
