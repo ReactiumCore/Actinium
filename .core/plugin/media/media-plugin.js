@@ -125,7 +125,7 @@ Actinium.Hook.register('media-save', async req => {
     const file = req.object.get('file');
 
     // Set Type
-    if (!type) {
+    if (file && !type) {
         type = Actinium.Media.fileType(file.name());
         req.object.set('type', type);
     }
@@ -623,8 +623,10 @@ Actinium.Cloud.afterDelete(COLLECTION.MEDIA, req => {
 Actinium.Cloud.afterFind(COLLECTION.MEDIA, async req => {
     req.objects.forEach(obj => {
         const file = obj.get('file');
-        const type = Actinium.Media.fileType(file.name());
-        obj.set('type', type);
+        if (file) {
+            const type = Actinium.Media.fileType(file.name());
+            obj.set('type', type);
+        }
     });
 
     await Actinium.Hook.run('media-find', req);
