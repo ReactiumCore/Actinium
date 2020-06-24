@@ -2,6 +2,7 @@ const op = require('object-path');
 const SyndicateClient = {};
 const axios = require('axios');
 const chalk = require('chalk');
+const _ = require('underscore');
 
 SyndicateClient.settings = async () => {
     const SyndicateClient = await Actinium.Setting.get('SyndicateClient');
@@ -292,6 +293,21 @@ SyndicateClient.syncMedia = async () => {
     }
 };
 
+const simplifyURLS = (urls = {}, type = {}) =>
+    _.indexBy(
+        Object.values(urls).map(url => {
+            op.del(url, 'meta.contentId');
+            op.set(url, 'meta.type', op.get(type, 'machineName'));
+            op.set(url, 'meta.collection', op.get(type, 'collection'));
+            op.del(url, 'objectId');
+            op.del(url, 'createdAt');
+            op.del(url, 'updatedAt');
+
+            return url;
+        }),
+        'route',
+    );
+
 SyndicateClient.syncContent = async remoteTypes => {
     const masterOptions = Actinium.Utils.MasterOptions();
     for (const type of remoteTypes) {
@@ -313,6 +329,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                     publish,
                     createdAt,
                     updatedAt,
+                    urls = {},
                     ...syncContent
                 } = content;
 
@@ -323,6 +340,11 @@ SyndicateClient.syncContent = async remoteTypes => {
                 op.set(syncContent, 'meta.syndicate.user', user);
                 op.set(syncContent, 'meta.syndicate.createdAt', createdAt);
                 op.set(syncContent, 'meta.syndicate.updatedAt', updatedAt);
+                op.set(
+                    syncContent,
+                    'meta.syndicate.urls',
+                    simplifyURLS(urls, type),
+                );
 
                 // check to see if each result already exists
                 const existing = await Actinium.Content.retrieve(
@@ -351,7 +373,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                         op.get(syncContent, 'meta.syndicate.history.revision');
 
                     // content updated
-                    if (from !== to) {
+                    if (true || from !== to) {
                         LOG(
                             chalk.cyan(
                                 `Updating syndicated ${typeLabel} content`,
@@ -363,6 +385,10 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 'syndicate-content-before-save',
                                 type,
                                 syncContent,
+                                existing,
+                                Boolean(
+                                    op.get(existing, 'meta.syndicate.manual'),
+                                ),
                             );
                             const local = await Actinium.Content.update(
                                 {
@@ -376,12 +402,20 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 'syndicate-content-saved',
                                 type,
                                 local,
+                                existing,
+                                Boolean(
+                                    op.get(existing, 'meta.syndicate.manual'),
+                                ),
                             );
                         } else {
                             await Actinium.Hook.run(
                                 'syndicate-content-before-save',
                                 type,
                                 syncContent,
+                                existing,
+                                Boolean(
+                                    op.get(existing, 'meta.syndicate.manual'),
+                                ),
                             );
                             const local = await Actinium.Content.update(
                                 { type, ...syncContent },
@@ -395,6 +429,10 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 'syndicate-content-saved',
                                 type,
                                 local,
+                                existing,
+                                Boolean(
+                                    op.get(existing, 'meta.syndicate.manual'),
+                                ),
                             );
                         }
                     }

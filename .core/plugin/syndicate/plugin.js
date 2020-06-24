@@ -111,6 +111,19 @@ Actinium.Hook.register('warning', () => {
     }
 });
 
+Actinium.Hook.register('syndicate-content-list', async ({ results = [] }) => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    for (const content of results) {
+        const { objectId: contentId } = content;
+        const { results: urls = {} } = await Actinium.URL.list(
+            { contentId },
+            masterOptions,
+        );
+
+        op.set(content, 'urls', urls);
+    }
+});
+
 const cloudAPIs = [
     { name: 'syndicate-client-create', sdk: 'Syndicate.Client.create' },
     { name: 'syndicate-client-retrieve', sdk: 'Syndicate.Client.retrieve' },

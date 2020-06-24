@@ -396,7 +396,7 @@
                                                                     case 4:
                                                                         (n =
                                                                             e.sent),
-                                                                            t &&
+                                                                            t() &&
                                                                                 j(
                                                                                     {
                                                                                         loading: !1,
