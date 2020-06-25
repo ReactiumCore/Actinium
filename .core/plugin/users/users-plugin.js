@@ -282,7 +282,10 @@ Actinium.Hook.register('warning', async () => {
     return Actinium.User.init();
 });
 
-Actinium.Hook.register('content-saved', contentList);
+Actinium.Hook.register(
+    'content-activity',
+    async (activityType, ...activityParams) => contentList(...activityParams),
+);
 
 Actinium.Hook.register('after-media-save', mediaList);
 

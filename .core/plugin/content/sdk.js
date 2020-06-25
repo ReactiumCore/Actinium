@@ -11,16 +11,6 @@ const uuidv5 = require('uuid/v5');
 const getACL = require(`${ACTINIUM_DIR}/lib/utils/acl`);
 const ENUMS = require('./enums');
 
-const _SavedHook = async (contentObj, typeObj) => {
-    await Actinium.Hook.run('content-saved', contentObj, typeObj, false);
-};
-
-Actinium.Hook.register('content-slug-changed', _SavedHook);
-Actinium.Hook.register('content-trashed', _SavedHook);
-Actinium.Hook.register('content-published', _SavedHook);
-Actinium.Hook.register('content-status-changed', _SavedHook);
-Actinium.Hook.register('content-unpublished', _SavedHook);
-
 const Content = { ENUMS };
 
 Content.Log = {};
@@ -3003,5 +2993,19 @@ Actinium.Harness.test(
         }
     },
 );
+
+Content.registerActivity = activityType => {
+    Actinium.Hook.register(activityType, async (contentObj, typeObj, isNew) => {
+        let newFlag = typeof isNew === 'boolean' ? isNew : false;
+
+        await Actinium.Hook.run(
+            'content-activity',
+            activityType,
+            contentObj,
+            typeObj,
+            newFlag,
+        );
+    });
+};
 
 module.exports = Content;
