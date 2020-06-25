@@ -137,13 +137,13 @@ class ParseObject extends Parse.Object {
         const req = { object: this, options: destroyOptions, context };
 
         for (let hook of hooksToRun.before) {
-            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+            await Actinium.Hook.run(hook, req);
         }
 
         const result = await controller.destroy(this, destroyOptions);
 
         for (let hook of hooksToRun.after) {
-            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+            await Actinium.Hook.run(hook, req);
         }
 
         return result;

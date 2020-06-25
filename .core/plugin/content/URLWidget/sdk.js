@@ -136,14 +136,16 @@ SDK.delete = async ({ urls, ...params }, options) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return [];
     if (!urls || !Array.isArray(urls) || urls.length < 1) return [];
 
-    urls = urls
-        .filter(url => op.has(url, 'objectId') || op.has(url, 'id'))
-        .map(url =>
-            new Actinium.Object('Route').set(
-                'objectId',
-                op.get(url, 'objectId', op.get(url, 'id')),
-            ),
-        );
+    const routes = urls.map(url => {
+        if (url.id) return url.get('route');
+        else return op.get(url, 'route');
+    });
+
+    // find urls
+    urls = await new Actinium.Query('Route')
+        .containedIn('route', routes)
+        .limit(1000)
+        .find(options);
 
     /**
      * @api {Hook} url-before-delete url-before-delete
