@@ -2,7 +2,9 @@ const CoreManager = Parse.CoreManager;
 const unsavedChildren = require('./unsavedChildren');
 
 class ParseObject extends Parse.Object {
-    async save(arg1, arg2, arg3) {
+    async save(arg1, arg2, arg3, context) {
+        context = context || {};
+
         let attrs;
         let options;
         if (typeof arg1 === 'object' || typeof arg1 === 'undefined') {
@@ -66,15 +68,25 @@ class ParseObject extends Parse.Object {
         }
         const controller = CoreManager.getObjectController();
 
-        const req = { object: this, options: saveOptions };
-        await Actinium.Hook.run('beforeSave', req, arg1, arg2, arg3);
-        await Actinium.Hook.run(
-            `beforeSave_${this.className}`,
-            req,
-            arg1,
-            arg2,
-            arg3,
-        );
+        const hooksToRun = {
+            before: ['beforeSave', `beforeSave_${this.className}`],
+            after: ['afterSave', `afterSave_${this.className}`],
+        };
+
+        if (
+            String(this.className)
+                .toLowerCase()
+                .startsWith('content_')
+        ) {
+            hooksToRun.before.push('beforeSave_content');
+            hooksToRun.after.push('afterSave_content');
+        }
+
+        const req = { object: this, options: saveOptions, context };
+
+        for (let hook of hooksToRun.before) {
+            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+        }
 
         const unsaved =
             options.cascadeSave !== false ? unsavedChildren(this) : null;
@@ -83,14 +95,56 @@ class ParseObject extends Parse.Object {
 
         const result = await controller.save(this, saveOptions);
 
-        await Actinium.Hook.run('afterSave', req, arg1, arg2, arg3);
-        await Actinium.Hook.run(
-            `afterSave_${this.className}`,
-            req,
-            arg1,
-            arg2,
-            arg3,
-        );
+        for (let hook of hooksToRun.after) {
+            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+        }
+
+        return result;
+    }
+
+    async destroy(options, context) {
+        options = options || {};
+        context = context || {};
+
+        const destroyOptions = {};
+        if (options.hasOwnProperty('useMasterKey')) {
+            destroyOptions.useMasterKey = options.useMasterKey;
+        }
+        if (options.hasOwnProperty('sessionToken')) {
+            destroyOptions.sessionToken = options.sessionToken;
+        }
+        if (!this.id) {
+            //return Promise.resolve();
+            throw new Error();
+        }
+
+        const controller = CoreManager.getObjectController();
+
+        const hooksToRun = {
+            before: ['beforeDelete', `beforeDelete_${this.className}`],
+            after: ['afterDelete', `afterDelete_${this.className}`],
+        };
+
+        if (
+            String(this.className)
+                .toLowerCase()
+                .startsWith('content_')
+        ) {
+            hooksToRun.before.push('beforeDelete_content');
+            hooksToRun.after.push('afterDelete_content');
+        }
+
+        const req = { object: this, options: destroyOptions, context };
+
+        for (let hook of hooksToRun.before) {
+            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+        }
+
+        const result = await controller.destroy(this, destroyOptions);
+
+        for (let hook of hooksToRun.after) {
+            await Actinium.Hook.run(hook, req, arg1, arg2, arg3);
+        }
 
         return result;
     }
