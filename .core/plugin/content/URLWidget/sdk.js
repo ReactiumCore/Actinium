@@ -318,7 +318,7 @@ SDK.retrieve = async (params, options) => {
         contentId,
         objectId,
         order = 'descending',
-        obrderBy = 'route',
+        orderBy = 'route',
         route,
     } = params;
 

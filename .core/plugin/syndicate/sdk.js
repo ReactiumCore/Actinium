@@ -316,7 +316,9 @@ Content.list = async req => {
     if (!token) throw new Error('Permission denied.');
 
     const masterOptions = Actinium.Utils.MasterOptions();
-    return Actinium.Content.list(req.params, masterOptions);
+    const result = await Actinium.Content.list(req.params, masterOptions);
+    await Actinium.Hook.run('syndicate-content-list', result);
+    return result;
 };
 
 /**
