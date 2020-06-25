@@ -21,7 +21,7 @@ Actinium.Hook.register('content-published', _SavedHook);
 Actinium.Hook.register('content-status-changed', _SavedHook);
 Actinium.Hook.register('content-unpublished', _SavedHook);
 
-const Content = {};
+const Content = { ENUMS };
 
 Content.Log = {};
 
@@ -55,7 +55,7 @@ Content.Log.add = async (params, options) => {
 
     if (!(changeType in ENUMS.CHANGES)) throw 'Invalid change type.';
 
-    const change = new Parse.Object('Changelog');
+    const change = new Actinium.Object('Changelog');
 
     change.set('contentId', contentId);
     change.set('collection', collection);
@@ -174,7 +174,7 @@ Content.getSchema = async contentTypeObj => {
     const options = { useMasterKey: true };
     await Content.initFieldSchemaTypes();
 
-    let type = new Parse.Object('Type');
+    let type = new Actinium.Object('Type');
     type.id = typeId;
     type = await type.fetch(options);
 
@@ -424,9 +424,9 @@ Actinium.Hook.register(
 
         const valueToParseObj = value => {
             if (typeof value === 'object') {
-                if (value instanceof Parse.Object) return value;
+                if (value instanceof Actinium.Object) return value;
                 else if (value.objectId) {
-                    const obj = new Parse.Object(targetClass);
+                    const obj = new Actinium.Object(targetClass);
                     obj.id = value.objectId;
                     return obj;
                 }
@@ -564,7 +564,7 @@ Content.labelBranch = async (params, options) => {
     if (!branchLabel) throw 'branchLabel required';
     op.set(branches, [branch, 'label'], branchLabel);
 
-    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    const content = new Actinium.Object(op.get(typeObj, 'collection'));
     content.id = contentObj.objectId;
     content.set('branches', branches);
     await content.save(null, options);
@@ -647,20 +647,20 @@ Content.deleteBranch = async (params, options) => {
         .get(branches, [branch, 'history'], [])
         .filter(rev => !otherRevs.includes(rev));
 
-    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    const content = new Actinium.Object(op.get(typeObj, 'collection'));
     content.id = contentObj.objectId;
     op.del(branches, [branch]);
     content.set('branches', branches);
     await content.save(null, options);
 
     const revisions = revs.map(objectId => {
-        const rev = new Parse.Object('Recycle');
+        const rev = new Actinium.Object('Recycle');
         rev.id = objectId;
         rev.set('type', 'trash');
         return rev;
     });
 
-    const trashedRevs = await Parse.Object.saveAll(revisions, masterOptions);
+    const trashedRevs = await Actinium.Object.saveAll(revisions, masterOptions);
 
     const userId = op.get(
         params,
@@ -738,7 +738,7 @@ Content.cloneBranch = async (params, options) => {
         options,
     );
 
-    const content = new Parse.Object(op.get(typeObj, 'collection'));
+    const content = new Actinium.Object(op.get(typeObj, 'collection'));
     content.id = contentObj.objectId;
     content.set('branches', branches);
     await content.save(null, options);
@@ -827,9 +827,9 @@ Content.revisions = async (params, options) => {
     const branch = op.get(contentObj, 'history.branch');
     const history = op.get(contentObj, ['branches', branch, 'history'], []);
 
-    const revisions = await Parse.Object.fetchAll(
+    const revisions = await Actinium.Object.fetchAll(
         history.map(id => {
-            const rev = new Parse.Object('Recycle');
+            const rev = new Actinium.Object('Recycle');
             rev.id = id;
             return rev;
         }),
@@ -904,9 +904,9 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
 
     const revisionIds = history.slice(...range);
 
-    const revisions = await Parse.Object.fetchAll(
+    const revisions = await Actinium.Object.fetchAll(
         revisionIds.map(id => {
-            const rev = new Parse.Object('Recycle');
+            const rev = new Actinium.Object('Recycle');
             rev.id = id;
             return rev;
         }),
@@ -1104,13 +1104,13 @@ Content.create = async (params, options) => {
 
     // retrieve type
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
-    const type = new Parse.Object('Type');
+    const type = new Actinium.Object('Type');
     type.id = typeObj.objectId;
 
     // construct content
     const collection = op.get(typeObj, 'collection');
     if (!collection) throw new Error('Invalid type. No collection defined.');
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     const namespace = op.get(typeObj, 'uuid');
 
     const title = op.get(params, 'title');
@@ -1263,7 +1263,7 @@ Content.changeSlug = async (params, options) => {
 
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
-    const content = new Parse.Object(typeObj.collection);
+    const content = new Actinium.Object(typeObj.collection);
     content.id = contentObj.objectId;
     const { slug: originalSlug, uuid: originalUUID } = contentObj;
 
@@ -1277,7 +1277,7 @@ Content.changeSlug = async (params, options) => {
     });
     if (slugs.includes(slug)) throw new Error(`Slug ${slug} already taken`);
 
-    const type = new Parse.Object('Type');
+    const type = new Actinium.Object('Type');
     type.id = typeObj.objectId;
     await type.fetch(masterOptions);
     type.set(slugs.concat([slug]));
@@ -1457,7 +1457,7 @@ Content.setCurrent = async (params, options) => {
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
-    const content = new Parse.Object(typeObj.collection);
+    const content = new Actinium.Object(typeObj.collection);
     content.id = contentObj.objectId;
 
     const sanitized = await Actinium.Content.sanitize({
@@ -1541,7 +1541,7 @@ Content.setPermissions = async (params, options) => {
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
     const collection = op.get(typeObj, 'collection');
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     content.id = contentObj.objectId;
     const permissions = op.get(params, 'permissions', []);
 
@@ -1668,7 +1668,7 @@ Content.update = async (params, options) => {
 
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
-    const content = new Parse.Object(typeObj.collection);
+    const content = new Actinium.Object(typeObj.collection);
 
     const title = op.get(params, 'title');
     if (title && op.get(contentObj, 'title') !== title) {
@@ -1865,10 +1865,10 @@ Content.delete = async (params, options) => {
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
     const collection = op.get(typeObj, 'collection');
 
-    const content = new Parse.Object(typeObj.collection);
+    const content = new Actinium.Object(typeObj.collection);
     content.id = contentObj.objectId;
 
-    const type = new Parse.Object('Type');
+    const type = new Actinium.Object('Type');
     type.id = typeObj.objectId;
     await type.fetch(masterOptions);
 
@@ -1886,12 +1886,12 @@ Content.delete = async (params, options) => {
         .uniq()
         .value()
         .map(objectId => {
-            const rev = new Parse.Object('Recycle');
+            const rev = new Actinium.Object('Recycle');
             rev.id = objectId;
             rev.set('type', 'trash');
             return rev;
         });
-    await Parse.Object.saveAll(revisions, masterOptions);
+    await Actinium.Object.saveAll(revisions, masterOptions);
 
     const userId = op.get(
         params,
@@ -1972,7 +1972,7 @@ Content.restore = async (params, options) => {
     const contentObj = serialize(restored);
 
     // update type to restore the slug
-    const type = new Parse.Object('Type');
+    const type = new Actinium.Object('Type');
     type.id = typeObj.objectId;
     await type.fetch(masterOptions);
     type.addUnique('slugs', op.get(contentObj, 'slug'));
@@ -1985,7 +1985,7 @@ Content.restore = async (params, options) => {
         .uniq()
         .value()
         .map(objectId => {
-            const rev = new Parse.Object('Recycle');
+            const rev = new Actinium.Object('Recycle');
             rev.id = objectId;
             rev.set('type', 'revision');
             rev.set('object.objectId', contentObj.objectId);
@@ -2019,7 +2019,7 @@ Content.restore = async (params, options) => {
         masterOptions,
     );
 
-    await Parse.Object.saveAll(revisions, masterOptions);
+    await Actinium.Object.saveAll(revisions, masterOptions);
 
     await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
 
@@ -2071,7 +2071,7 @@ Content.publish = async (params, options) => {
     if (!contentObj) throw 'Unable to find content';
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
     const collection = op.get(typeObj, 'collection');
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     content.id = contentObj.objectId;
     content.set('status', ENUMS.STATUS.PUBLISHED);
     op.set(contentObj, 'status', ENUMS.STATUS.PUBLISHED);
@@ -2169,10 +2169,18 @@ Content.setStatus = async (params, options) => {
         throw 'Use Content.unpublish() or content-unpublish cloud functions to unpublish content.';
 
     const collection = op.get(typeObj, 'collection');
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     content.id = contentObj.objectId;
     content.set('status', status);
     op.set(contentObj, 'status', status);
+
+    await Actinium.Hook.run(
+        'before-content-status-changed',
+        content,
+        typeObj,
+        status,
+        currentStatus,
+    );
 
     await content.save(null, options);
 
@@ -2259,7 +2267,7 @@ Content.unpublish = async (params, options) => {
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
 
     const collection = op.get(typeObj, 'collection');
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     content.id = contentObj.objectId;
     content.set('status', ENUMS.STATUS.DRAFT);
     op.set(contentObj, 'status', ENUMS.STATUS.DRAFT);
@@ -2373,7 +2381,7 @@ Content.schedule = async (params, options) => {
     publish[pubId] = { sunrise: sunriseISO, sunset: sunsetISO, history };
     if (userId) publish[pubId].userId = userId;
 
-    const content = new Parse.Object(collection);
+    const content = new Actinium.Object(collection);
     content.id = contentObj.objectId;
     content.set('publish', publish);
     await content.save(null, options);
@@ -2439,7 +2447,7 @@ Content.unschedule = async (params, options) => {
 
     op.del(publish, jobId);
 
-    const content = new Parse.Object(typeObj.collection);
+    const content = new Actinium.Object(typeObj.collection);
     content.id = contentObj.objectId;
     content.set('publish', publish);
     await content.save(null, options);
@@ -2556,7 +2564,7 @@ Content.publishScheduled = async () => {
 
             const remainingInstructions = Object.keys(publish);
             if (updated || remainingInstructions.length < 1) {
-                const obj = new Parse.Object(collection);
+                const obj = new Actinium.Object(collection);
                 obj.id = item.id;
 
                 // instructions remain
@@ -2613,7 +2621,7 @@ Content.typeMaintenance = async () => {
 
             const typeLabel = op.get(type, 'meta.label', op.get(type, 'type'));
             LOG(` - Cleanup ${typeLabel} slugs`);
-            const typeObj = new Parse.Object('Type');
+            const typeObj = new Actinium.Object('Type');
             typeObj.id = type.objectId;
             typeObj.set('slugs', currentSlugs);
             typeObj.save(null, options);
@@ -2682,7 +2690,7 @@ Actinium.Harness.test(
                 { machineName: 'test_content' },
                 options,
             );
-            const typeObj = new Parse.Object('Type');
+            const typeObj = new Actinium.Object('Type');
             typeObj.id = type.objectId;
             typeObj.fetch(options);
             typeObj.set('slugs', []);
@@ -2957,7 +2965,7 @@ Actinium.Harness.test(
             // destroy all items in test_content collection
             const contentQuery = new Parse.Query(collection);
             let items = await contentQuery.find(options);
-            await Parse.Object.destroyAll(items, options);
+            await Actinium.Object.destroyAll(items, options);
 
             // destroy/archive Type
             await Actinium.Type.delete(
@@ -2976,20 +2984,20 @@ Actinium.Harness.test(
             let recycleQuery = new Parse.Query('Recycle');
             recycleQuery.equalTo('collection', collection);
             items = await recycleQuery.find(options);
-            await Parse.Object.destroyAll(items, options);
+            await Actinium.Object.destroyAll(items, options);
 
             // delete archived Type
             recycleQuery = new Parse.Query('Recycle');
             recycleQuery.equalTo('collection', 'Type');
             recycleQuery.equalTo('object.objectId', objectId);
             items = await recycleQuery.find(options);
-            await Parse.Object.destroyAll(items, options);
+            await Actinium.Object.destroyAll(items, options);
 
             // destroy changelog
             const clQuery = new Parse.Query('Changelog');
             clQuery.equalTo('collection', collection);
             const logs = await clQuery.find(options);
-            await Parse.Object.destroyAll(logs, options);
+            await Actinium.Object.destroyAll(logs, options);
         } catch (error) {
             console.log('teardown error', error);
         }

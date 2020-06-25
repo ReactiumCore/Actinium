@@ -12,6 +12,7 @@ Actinium.ready = false;
 Actinium.started = false;
 Actinium.server = null;
 Actinium.version = op.get(config, 'version', '3.1.1');
+Actinium.Object = require('./lib/ParseObject');
 Actinium.User = require('./plugin/users/sdk');
 Actinium.Harness = require('./lib/harness');
 Actinium.Enums = require('./lib/enums');
