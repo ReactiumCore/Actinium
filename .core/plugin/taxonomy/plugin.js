@@ -99,8 +99,12 @@ Actinium.Hook.register('content-retrieve', async (content, params, options) => {
 // content-saved hook
 Actinium.Hook.register(
     'content-saved',
-    async (content, type, isNew, params, options) => {
+    async (content, typeObj, isNew, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        content = !content.id
+            ? await Actinium.Content.retrieve(content, options)
+            : content;
 
         const tax = _.flatten(
             Taxonomy.Content.fields(content, options).map(field =>
@@ -114,12 +118,12 @@ Actinium.Hook.register(
 
         // prettier-ignore
         const [addTAX, delTAX] = await Promise.all([
-            add.map(({ slug, type }) => Taxonomy.Content.attach({ content, slug, type }), options),
-            del.map(({ slug, type }) => Taxonomy.Content.detach({ content, slug, type }), options)
+            add.map(({ field, slug, type }) => Taxonomy.Content.attach({ content, field, slug, type }), options),
+            del.map(({ field, slug, type }) => Taxonomy.Content.detach({ content, field, slug, type }), options)
         ]);
 
         const newTax = await Taxonomy.Content.retrieve(
-            { content, type },
+            { content, type: typeObj },
             options,
         );
 
@@ -137,11 +141,9 @@ Actinium.Hook.register('beforeSave_content', async ({ object, options }) => {
         .where({ fieldType: 'Taxonomy' })
         .pluck('fieldName')
         .value()
-        .map(field => String(field).toLowerCase())
         .forEach(field => {
-            const val = object.get(field);
+            const val = object.get(String(field).toLowerCase());
             if (!Array.isArray(val)) return;
-
             object.unset(field);
         });
 });

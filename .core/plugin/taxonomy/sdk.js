@@ -149,11 +149,11 @@ Taxonomy.Type.list = (params, options) =>
 
 Taxonomy.Content.attach = async (params, options) => {
     options = options || { useMasterKey: true };
-    let { content, slug, type, update = true } = params;
+    let { content, field, slug, type, update = true } = params;
 
     let contentObj = content;
 
-    if (!op.has(content, 'toJSON')) {
+    if (!content.id) {
         contentObj = await Actinium.Content.retrieve(content, options);
 
         if (!contentObj) return new Error('Content not found');
@@ -174,7 +174,7 @@ Taxonomy.Content.attach = async (params, options) => {
 
     if (!tax) return new Error(`${type} ${taxonomy} not found`);
 
-    contentObj.relation(type).add(tax);
+    contentObj.relation(field).add(tax);
 
     return update === true ? contentObj.save(null, options) : contentObj;
 };
@@ -213,23 +213,12 @@ Taxonomy.Content.detach = async (params, options) => {
 };
 
 Taxonomy.Content.fields = content => {
-    return (
-        _.compact(
-            Object.entries(content).map(([field, value]) => {
-                if (op.has(value, 'className')) {
-                    return op.get(value, 'className') === 'Taxonomy'
-                        ? field
-                        : null;
-                }
-
-                if (Array.isArray(value)) {
-                    return _.findWhere(value, { isTaxonomy: true })
-                        ? field
-                        : null;
-                }
-            }),
-        ) || []
-    );
+    content = content.id ? content.toJSON() : content;
+    return _.chain(Object.values(content.type.fields))
+        .where({ fieldType: 'Taxonomy' })
+        .pluck('fieldName')
+        .value()
+        .map(field => String(field).toLowerCase());
 };
 
 Taxonomy.Content.retrieve = async (params, options) => {
