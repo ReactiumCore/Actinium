@@ -89,7 +89,7 @@ Actinium.Hook.register('running', async () => {
 
 Actinium.Hook.register(
     'syndicate-content-before-save',
-    async (type, content, existing, requireManualUpdate = false) => {
+    async (content, type, existing, requireManualUpdate = false) => {
         const masterOptions = Actinium.Utils.MasterOptions();
 
         // ignore urls changes if content has been marked for manual update only

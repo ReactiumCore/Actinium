@@ -383,8 +383,8 @@ SyndicateClient.syncContent = async remoteTypes => {
                         if (op.get(existing, 'meta.syndicate.manual')) {
                             await Actinium.Hook.run(
                                 'syndicate-content-before-save',
-                                type,
                                 syncContent,
+                                type,
                                 existing,
                                 Boolean(
                                     op.get(existing, 'meta.syndicate.manual'),
@@ -400,8 +400,8 @@ SyndicateClient.syncContent = async remoteTypes => {
                             );
                             await Actinium.Hook.run(
                                 'syndicate-content-saved',
-                                type,
                                 local,
+                                type,
                                 existing,
                                 Boolean(
                                     op.get(existing, 'meta.syndicate.manual'),
@@ -410,8 +410,8 @@ SyndicateClient.syncContent = async remoteTypes => {
                         } else {
                             await Actinium.Hook.run(
                                 'syndicate-content-before-save',
-                                type,
                                 syncContent,
+                                type,
                                 existing,
                                 Boolean(
                                     op.get(existing, 'meta.syndicate.manual'),
@@ -427,8 +427,8 @@ SyndicateClient.syncContent = async remoteTypes => {
                             );
                             await Actinium.Hook.run(
                                 'syndicate-content-saved',
-                                type,
                                 local,
+                                type,
                                 existing,
                                 Boolean(
                                     op.get(existing, 'meta.syndicate.manual'),
@@ -446,8 +446,10 @@ SyndicateClient.syncContent = async remoteTypes => {
                     );
                     await Actinium.Hook.run(
                         'syndicate-content-before-save',
-                        type,
                         syncContent,
+                        type,
+                        false,
+                        false,
                     );
                     const local = await Actinium.Content.create(
                         { type, ...syncContent },
@@ -464,8 +466,10 @@ SyndicateClient.syncContent = async remoteTypes => {
                     await Actinium.Content.publish(local, masterOptions);
                     await Actinium.Hook.run(
                         'syndicate-content-saved',
-                        type,
                         local,
+                        type,
+                        false,
+                        false,
                     );
                 }
             }
