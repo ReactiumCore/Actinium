@@ -190,6 +190,7 @@ SDK.list = async (params, options) => {
         page = -1,
         route,
         collection,
+        type,
     } = params;
 
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
@@ -216,6 +217,14 @@ SDK.list = async (params, options) => {
             qry.equalTo('meta.contentId', contentId);
         } else {
             if (route) qry.equalTo('route', route);
+        }
+
+        if (collection) {
+            qry.equalTo('meta.collection', collection);
+        }
+
+        if (type) {
+            qry.equalTo('meta.type', type);
         }
     }
 

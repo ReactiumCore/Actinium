@@ -51,20 +51,18 @@ Actinium.Hook.register(
 );
 
 // content-deleted hook
-Actinium.Hook.register(
-    'content-deleted',
-    async (contentObj, typeObj, trash, params, options) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        const contentId = op.get(contentObj, 'objectId');
-        const collection = op.get(typeObj, 'collection');
+Actinium.Hook.register('afterDelete_content', async ({ object, options }) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
-        const { results } = await SDK.list({ collection, contentId });
+    const contentId = object.id;
+    const collection = object.className;
 
-        const urls = Object.values(results);
+    const { results } = await SDK.list({ collection, contentId });
 
-        SDK.delete({ urls }, { useMasterKey: true });
-    },
-);
+    const urls = Object.values(results);
+
+    SDK.delete({ urls }, options);
+});
 
 // content-trashed hook
 Actinium.Hook.register(
