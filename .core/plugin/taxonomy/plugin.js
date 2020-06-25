@@ -129,6 +129,23 @@ Actinium.Hook.register(
     },
 );
 
+// beforeSave_content
+Actinium.Hook.register('beforeSave_content', async ({ object, options }) => {
+    const collection = object.className;
+    const type = await Actinium.Type.retrieve({ collection }, options);
+    const taxFields = _.chain(Object.values(type.fields))
+        .where({ fieldType: 'Taxonomy' })
+        .pluck('fieldName')
+        .value()
+        .map(field => String(field).toLowerCase())
+        .forEach(field => {
+            const val = object.get(field);
+            if (!Array.isArray(val)) return;
+
+            object.unset(field);
+        });
+});
+
 // taxonomy-query hook
 Actinium.Hook.register(
     'taxonomy-query',

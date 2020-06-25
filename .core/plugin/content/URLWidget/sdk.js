@@ -376,11 +376,11 @@ SDK.retrieve = async (params, options) => {
 };
 
 SDK.trash = async (params, options) => {
-    const { contentId, urls } = params;
+    let { contentId, urls } = params;
 
     if (!urls && contentId) {
         const { results = {} } = await SDK.list({ contentId });
-        urls = Object.values(urls);
+        urls = Object.values(results);
     }
 
     if (!urls) return [];
