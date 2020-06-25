@@ -163,6 +163,14 @@ Actinium.Hook.register(
     },
 );
 
+// Used for User activity log
+Actinium.Content.registerActivity('content-saved');
+Actinium.Content.registerActivity('content-slug-changed');
+Actinium.Content.registerActivity('content-trashed');
+Actinium.Content.registerActivity('content-published');
+Actinium.Content.registerActivity('content-status-changed');
+Actinium.Content.registerActivity('content-unpublished');
+
 /**
  * @api {Asynchronous} content-create content-create
  * @apiDescription Create new content of a defined Type. In addition to the required parameters of
