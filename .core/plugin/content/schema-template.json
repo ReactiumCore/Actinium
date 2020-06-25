@@ -58,6 +58,15 @@
         },
         "MenuBuilder": {
             "type": "Object"
+        },
+        "Select": {
+            "type": "String"
+        },
+        "Array": {
+            "type": "Array"
+        },
+        "Object": {
+            "type": "Object"
         }
     }
 }

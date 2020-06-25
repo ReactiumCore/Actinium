@@ -38,12 +38,12 @@ SDK.attach = async (params, options) => {
     options = options || { useMasterKey: true };
 
     // Fetch content object
-    content =
-        !content && contentId && collection
-            ? await new Actinium.Object(collection)
-                  .set('objectId', contentId)
-                  .fetch(options)
-            : content;
+    // prettier-ignore
+    content = !content && contentId && collection
+        ? await new Actinium.Query(collection)
+            .equalTo('objectId', contentId)
+            .first(options)
+        : content;
 
     if (!content) return [];
 
@@ -59,10 +59,12 @@ SDK.attach = async (params, options) => {
         .limit(count)
         .find(options);
 
+    type = op.get(content.get('type') || {}, 'machineName');
+
     // Update content.meta object
     routes = routes.map(route => {
         const meta = route.get('meta');
-        op.set(meta, 'contentId', content.id);
+        op.set(meta, 'contentId', contentId);
         op.set(meta, 'collection', collection);
         op.set(meta, 'type', type);
         op.del(meta, 'blueprint');
@@ -70,7 +72,7 @@ SDK.attach = async (params, options) => {
         return route;
     });
 
-    const attched =
+    const attached =
         routes.length > 0 ? await Actinium.Object.saveAll(routes, options) : [];
 
     /**
@@ -108,7 +110,7 @@ SDK.create = async ({ content = {}, urls, user, ...params }, options) => {
 
     // 3.0 - Add routes to relation
 
-    if (op.has(content, 'id') && urls.length > 0) {
+    if (urls.length > 0) {
         const rel = content.relation('urls');
         addURLS.forEach(route => {
             rel.add(route);
