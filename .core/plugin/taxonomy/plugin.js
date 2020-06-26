@@ -134,19 +134,25 @@ Actinium.Hook.register(
 );
 
 // beforeSave_content
-Actinium.Hook.register('beforeSave_content', async ({ object, options }) => {
-    const collection = object.className;
-    const type = await Actinium.Type.retrieve({ collection }, options);
-    const taxFields = _.chain(Object.values(type.fields))
-        .where({ fieldType: 'Taxonomy' })
-        .pluck('fieldName')
-        .value()
-        .forEach(field => {
-            const val = object.get(String(field).toLowerCase());
-            if (!Array.isArray(val)) return;
-            object.unset(field);
-        });
-});
+Actinium.Hook.register(
+    'beforeSave_content',
+    async ({ object, options }) => {
+        const collection = object.className;
+        const type = await Actinium.Type.retrieve({ collection }, options);
+
+        _.chain(Object.values(type.fields))
+            .where({ fieldType: 'Taxonomy' })
+            .pluck('fieldName')
+            .value()
+            .forEach(field => {
+                field = String(field).toLowerCase();
+                const val = object.get(field);
+                if (!Array.isArray(val)) return;
+                object.unset(field);
+            });
+    },
+    100000000,
+);
 
 // taxonomy-query hook
 Actinium.Hook.register(
