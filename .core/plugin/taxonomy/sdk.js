@@ -1,5 +1,4 @@
 const _ = require('underscore');
-const PLUGIN = require('./info');
 const op = require('object-path');
 
 const saveTaxonomy = async (params, options) => {
@@ -149,7 +148,26 @@ Taxonomy.Type.list = (params, options) =>
 
 Taxonomy.Content.attach = async (params, options) => {
     options = options || { useMasterKey: true };
-    let { content, field, slug, type, update = true } = params;
+    let {
+        content,
+        contentId,
+        contentType,
+        field,
+        slug,
+        type,
+        update = true,
+    } = params;
+
+    if (!content && contentId && contentType) {
+        try {
+            content = await Actinium.Content.retrieve(
+                { type: contentType, objectId: contentId },
+                options,
+            );
+        } catch (err) {
+            return new Error('Content not found');
+        }
+    }
 
     let contentObj = content;
 
@@ -159,12 +177,12 @@ Taxonomy.Content.attach = async (params, options) => {
         if (!contentObj) return new Error('Content not found');
 
         contentObj = await new Actinium.Query(contentObj.type.collection)
-            .equalTo(contentObj.objectId)
+            .equalTo('objectId', contentObj.objectId)
             .first(options);
     }
 
     if (!op.has(contentObj, 'id')) {
-        return new Error('Cannot attach taxonomy to an unsaved object');
+        return new Error('Cannot attach taxonomy of an unsaved object');
     }
 
     const tax = await Taxonomy.retrieve(
@@ -172,7 +190,7 @@ Taxonomy.Content.attach = async (params, options) => {
         options,
     );
 
-    if (!tax) return new Error(`${type} ${taxonomy} not found`);
+    if (!tax) return new Error(`${type} ${field} ${slug} not found`);
 
     contentObj.relation(field).add(tax);
 
@@ -181,39 +199,58 @@ Taxonomy.Content.attach = async (params, options) => {
 
 Taxonomy.Content.detach = async (params, options) => {
     options = options || { useMasterKey: true };
+    let {
+        content,
+        contentId,
+        contentType,
+        field,
+        slug,
+        type,
+        update = true,
+    } = params;
 
-    let { content, slug, type, update = true } = params;
+    if (!content && contentId && contentType) {
+        try {
+            content = await Actinium.Content.retrieve(
+                { type: contentType, objectId: contentId },
+                options,
+            );
+        } catch (err) {
+            return new Error('Content not found');
+        }
+    }
 
-    let collection, contentObj;
+    let contentObj = content;
 
-    if (!op.has(content, 'toJSON')) {
-        collection = op.get(contentObj, 'type.collection');
+    if (!content.id) {
         contentObj = await Actinium.Content.retrieve(content, options);
 
         if (!contentObj) return new Error('Content not found');
 
         contentObj = await new Actinium.Query(contentObj.type.collection)
-            .equalTo(contentObj.objectId)
+            .equalTo('objectId', contentObj.objectId)
             .first(options);
-    } else {
-        contentObj = await content.fetch(options);
-        collection = op.get(contentObj.toPointer(), 'className');
     }
 
-    let tax = await Taxonomy.retrieve(
+    if (!op.has(contentObj, 'id')) {
+        return new Error('Cannot detach taxonomy of an unsaved object');
+    }
+
+    const tax = await Taxonomy.retrieve(
         { type, slug, outputType: 'OBJECT' },
         options,
     );
 
-    if (!tax) return new Error(`${type} ${slug} not found`);
+    if (!tax) return new Error(`${type} ${field} ${slug} not found`);
 
-    contentObj.relation(type).remove(tax);
+    contentObj.relation(field).remove(tax);
 
-    return update === true ? await contentObj.save(null, options) : contentObj;
+    return update === true ? contentObj.save(null, options) : contentObj;
 };
 
 Taxonomy.Content.fields = content => {
-    content = content.id ? content.toJSON() : content;
+    content = op.get(content, 'id') ? content.toJSON() : content;
+
     return _.chain(Object.values(content.type.fields))
         .where({ fieldType: 'Taxonomy' })
         .pluck('fieldName')
@@ -224,14 +261,41 @@ Taxonomy.Content.fields = content => {
 Taxonomy.Content.retrieve = async (params, options) => {
     options = options || { useMasterKey: true };
 
-    let { content, type } = params;
+    let { collection, content, contentId, type } = params;
 
-    const contentId = op.get(content, 'objectId');
-    const collection = op.get(type, 'collection');
+    if (content && !contentId) {
+        contentId = op.get(content, 'objectId', op.get(content, 'id'));
+    }
 
-    const fields = Taxonomy.Content.fields(content, options) || [];
+    if (type && !collection) {
+        collection = op.get(type, 'collection');
+    }
 
-    if (fields.length < 1) return {};
+    if (!content && contentId && type) {
+        try {
+            content = await Actinium.Content.retrieve(
+                { type, objectId: contentId },
+                options,
+            );
+        } catch (err) {
+            return {};
+        }
+    }
+
+    if (!content) {
+        return {};
+    }
+
+    let fields;
+    try {
+        fields = Taxonomy.Content.fields(content, options) || [];
+    } catch (err) {
+        fields = [];
+    }
+
+    if (fields.length < 1) {
+        return {};
+    }
 
     const taxonomies = {};
     const obj = new Actinium.Object(collection).set('objectId', contentId);
