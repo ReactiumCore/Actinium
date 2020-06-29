@@ -138,7 +138,7 @@ Actinium.Hook.register('type-saved', async contentType => {
 
 Actinium.Hook.register(
     'content-field-sanitize',
-    async (field, config, fieldIndex, fieldData) => {
+    async (field, config, fieldData) => {
         if (
             typeof field.fieldValue === 'undefined' ||
             field.fieldValue === null
@@ -161,6 +161,58 @@ Actinium.Hook.register(
                     field.fieldValue = Number(field.fieldValue);
         }
     },
+);
+
+/**
+ * Default sanitization for Pointers and Relations
+ */
+Actinium.Hook.register(
+    'content-field-sanitize',
+    async (field, config, fieldData, content, fieldSchema) => {
+        // handle missing field schema
+        if (!fieldSchema) op.del(fieldData, [field.fieldSlug]);
+        const type = op.get(fieldSchema, 'type');
+        const targetClass = op.get(fieldSchema, 'targetClass');
+
+        const valueToParseObj = targetClass => value => {
+            if (typeof value === 'object') {
+                if (
+                    (value instanceof Actinium.Object ||
+                        value instanceof Parse.Object) &&
+                    value.className === targetClass
+                )
+                    return value;
+                else if (value.objectId) {
+                    const obj = new Actinium.Object(targetClass);
+                    obj.id = value.objectId;
+                    console.log({ obj, targetClass });
+                    return obj;
+                }
+            }
+            return false;
+        };
+
+        if (type === 'Relation') {
+            const fieldValue = new Parse.Relation(targetClass);
+            const objects = _.compact(
+                _.chain([field.fieldValue])
+                    .flatten()
+                    .compact()
+                    .value()
+                    .map(valueToParseObj(targetClass)),
+            );
+            if (objects.length > 0) {
+                console.log({ objects });
+                field.fieldValue = fieldValue;
+                objects.forEach(obj => field.fieldValue.add(obj));
+            } else op.del(fieldData, [field.fieldSlug]);
+        } else if (type === 'Pointer') {
+            const obj = valueToParseObj(targetClass)(field.fieldValue);
+            if (obj) field.fieldValue = obj;
+            else op.del(fieldData, [field.fieldSlug]);
+        }
+    },
+    Actinium.Enums.priority.lowest,
 );
 
 // Used for User activity log

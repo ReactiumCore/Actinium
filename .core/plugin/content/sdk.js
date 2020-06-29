@@ -347,23 +347,25 @@ Content.sanitize = async content => {
     const { existingSchema, permittedFields } = await Content.getSchema(type);
     const fieldConfigs = permittedFields;
 
-    const fieldData = Object.entries(content)
-        .map(([fieldName, fieldValue]) => ({
-            fieldSlug: slugify(fieldName),
-            fieldValue,
-        }))
+    const fieldData = _.indexBy(
+        Object.entries(content)
+            .map(([fieldName, fieldValue]) => ({
+                fieldSlug: slugify(fieldName),
+                fieldValue,
+            }))
 
-        // only custom fields in schema
-        .filter(({ fieldSlug }) => {
-            return (
-                fieldSlug in permittedFields &&
-                fieldSlug in op.get(existingSchema, 'fields', {})
-            );
-        });
+            // only custom fields in schema
+            .filter(({ fieldSlug }) => {
+                return (
+                    fieldSlug in permittedFields &&
+                    fieldSlug in op.get(existingSchema, 'fields', {})
+                );
+            }),
+        'fieldSlug',
+    );
 
-    for (const fieldIndex in fieldData) {
-        const field = fieldData[fieldIndex];
-        const config = fieldConfigs[field.fieldSlug];
+    for (const [fieldSlug, field] of Object.entries(fieldData)) {
+        const config = fieldConfigs[fieldSlug];
 
         /**
          * @api {Hook} content-field-sanitize content-field-sanitize
@@ -374,9 +376,11 @@ Content.sanitize = async content => {
          have a defined schema. See `content-schema-field-types`.
          * @apiParam {Object} field `{fieldSlug, fieldValue}` the key-pair for this field
          * @apiParam {Object} config the configuration of this field (including `fieldType`) stored in the type
-         * @apiParam {Number} index the index in array of all FieldData
-         * @apiParam {Array} fieldData array of all permitted field data.
+         * @apiParam {Object} fieldData object of all permitted field data, indexed by fieldSlug.
          * @apiParam {Object} content object passed to `Content.sanitize()`
+         * @apiParam {Object} fieldSchema The schema of the field in DB
+         * @apiParam {Object} fullSchema The full schema of all fields in DB
+         * @apiParam {Object} permittedFields Field types that are registered for schema.
          * @apiName content-field-sanitize
          * @apiGroup Hooks
          */
@@ -384,7 +388,6 @@ Content.sanitize = async content => {
             'content-field-sanitize',
             field,
             config,
-            fieldIndex,
             fieldData,
             content,
             op.get(existingSchema, ['fields', field.fieldSlug]), // field schema
@@ -394,52 +397,14 @@ Content.sanitize = async content => {
     }
 
     if (op.has(content, 'meta') && typeof content.meta === 'object') {
-        fieldData.push({
+        fieldData['meta'] = {
             fieldSlug: 'meta',
             fieldValue: content.meta,
-        });
+        };
     }
 
-    return fieldData;
+    return Object.values(fieldData);
 };
-
-/**
- * Default sanitization for Pointers and Relations
- */
-Actinium.Hook.register(
-    'content-field-sanitize',
-    async (field, config, fieldIndex, fieldData, content, fieldSchema) => {
-        // handle missing field schema
-        if (!fieldSchema) op.del(fieldData, [fieldIndex]);
-
-        const valueToParseObj = value => {
-            if (typeof value === 'object') {
-                if (value instanceof Actinium.Object) return value;
-                else if (value.objectId) {
-                    const obj = new Actinium.Object(targetClass);
-                    obj.id = value.objectId;
-                    return obj;
-                }
-            }
-            return false;
-        };
-
-        const type = op.get(fieldSchema, 'type');
-        const targetClass = op.get(fieldSchema, 'targetClass');
-        if (type === 'Relation') {
-            const fieldValue = new Parse.Relation(targetClass);
-            const objects = _.compact([field.fieldValue].map(valueToParseObj));
-            if (objects.length) {
-                field.fieldValue = fieldValue;
-                objects.forEach(obj => field.fieldValue.add(obj));
-            } else op.del(fieldData, [fieldIndex]);
-        } else if (type === 'Pointer') {
-            const obj = valueToParseObj(field.fieldValue);
-            if (obj) field.fieldValue = obj;
-        }
-    },
-    Actinium.Enums.priority.lowest,
-);
 
 /**
  * @api {Asynchronous} Content.createBranch(content,type,branch,options) Content.createBranch()
@@ -1147,7 +1112,8 @@ Content.create = async (params, options) => {
         type: typeObj,
     });
     for (const { fieldSlug, fieldValue } of sanitized) {
-        if (fieldSlug && fieldValue) content.set(fieldSlug, fieldValue);
+        if (fieldSlug && typeof fieldValue !== 'undefined')
+            content.set(fieldSlug, fieldValue);
     }
 
     // Create new revision branch
@@ -1270,6 +1236,7 @@ Content.changeSlug = async (params, options) => {
     const type = new Actinium.Object('Type');
     type.id = typeObj.objectId;
     await type.fetch(masterOptions);
+
     type.set(slugs.concat([slug]));
 
     content.set('slug', slug);
@@ -1456,7 +1423,8 @@ Content.setCurrent = async (params, options) => {
     });
 
     for (const { fieldSlug, fieldValue } of sanitized) {
-        if (fieldSlug && fieldValue) content.set(fieldSlug, fieldValue);
+        if (fieldSlug && typeof fieldValue !== 'undefined')
+            content.set(fieldSlug, fieldValue);
     }
 
     content.set('history', contentObj.history);

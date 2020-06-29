@@ -18,7 +18,6 @@ Actinium.Cloud.define('MY_PLUGIN', 'some-function', async req => {
  */
 const serialize = data => {
     if (!data || typeof data.toJSON === 'undefined') return data;
-
     const obj = data.toJSON();
     Object.entries(obj).forEach(([key, value]) => {
         if (value && typeof value.toJSON !== 'undefined') {
