@@ -2,7 +2,7 @@ const _ = require('underscore');
 const op = require('object-path');
 
 const saveTaxonomy = async (params, options) => {
-    if (op.has(params, 'type')) {
+    if (op.get(params, 'type')) {
         if (typeof params.type === 'string') {
             const type = await new Actinium.Query('Type_taxonomy')
                 .equalTo('slug', params.type)

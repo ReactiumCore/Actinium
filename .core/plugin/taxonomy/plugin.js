@@ -77,6 +77,7 @@ Actinium.Hook.register('warning', () => {
 Actinium.Hook.register(
     'start',
     async () => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
         await Taxonomy.install();
     },
     -1000,
@@ -84,6 +85,7 @@ Actinium.Hook.register(
 
 // content-schema-field-types hook
 Actinium.Hook.register('content-schema-field-types', async fieldTypes => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     fieldTypes['Taxonomy'] = { type: 'Relation', targetClass: 'Taxonomy' };
 });
 
@@ -137,6 +139,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'beforeSave_content',
     async ({ object, options }) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         const collection = object.className;
         const type = await Actinium.Type.retrieve({ collection }, options);
 
@@ -158,6 +162,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-query',
     async (qry, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         qry.include('type');
 
         if (op.get(params, 'name')) {
@@ -192,6 +198,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-query',
     async (qry, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         if (op.get(params, 'name')) {
             qry.containedIn('name', _.flatten([params.name]));
         }
@@ -206,6 +214,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-list',
     async (resp, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         if (op.get(params, 'verbose') !== true) return;
         let { results = {} } = resp;
 
@@ -230,6 +240,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-retrieve-query',
     async (qry, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         if (op.get(params, 'name')) {
             qry.containedIn('name', _.flatten([params.name]));
         }
@@ -244,6 +256,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-retrieve-query',
     async (qry, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         qry.include('type');
         if (op.get(params, 'name')) qry.equalTo('name', params.name);
         if (op.get(params, 'slug')) qry.equalTo('slug', params.slug);
@@ -267,6 +281,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-save',
     async req => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         // validate required fields
         if (!req.object.get('name')) {
             req.context.errors.push('name is a required parameter');
@@ -281,10 +297,21 @@ Actinium.Hook.register(
     -1000,
 );
 
+Actinium.Hook.register('taxonomy-after-save', async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    const type = await req.object.get('type').fetch({ useMasterKey: true });
+    const rel = type.relation('taxonomies');
+
+    rel.add(req.object);
+    type.save(null, { useMasterKey: true });
+});
+
 // taxonomy-type-save hook
 Actinium.Hook.register(
     'taxonomy-type-save',
     async req => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         // validate required fields
         if (!req.object.get('name')) {
             req.context.errors.push('name is a required parameter');
@@ -311,6 +338,7 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-after-delete',
     req => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
         Taxonomy.delete({ type: req.object }, { useMasterKey: true });
     },
     -1000,
@@ -320,6 +348,8 @@ Actinium.Hook.register(
 Actinium.Hook.register(
     'taxonomy-type-retrieved',
     async (resp, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
         if (!resp) return;
 
         const type = op.get(resp, 'objectId', op.get(resp, 'id'));
