@@ -1409,7 +1409,6 @@ Content.retrieve = async (params, options) => {
                     .relation(fieldSlug)
                     .query()
                     .find(options);
-                console.log({ fieldSlug, objs });
                 op.set(relationData, fieldSlug, objs.map(serialize));
             }
         }
