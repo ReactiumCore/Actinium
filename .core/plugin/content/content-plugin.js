@@ -185,7 +185,6 @@ Actinium.Hook.register(
                 else if (value.objectId) {
                     const obj = new Actinium.Object(targetClass);
                     obj.id = value.objectId;
-                    console.log({ obj, targetClass });
                     return obj;
                 }
             }
@@ -193,7 +192,8 @@ Actinium.Hook.register(
         };
 
         if (type === 'Relation') {
-            const fieldValue = new Parse.Relation(targetClass);
+            const obj = new Actinium.Object(op.get(content, 'type.collection'));
+            const fieldValue = obj.relation(field.fieldSlug);
             const objects = _.compact(
                 _.chain([field.fieldValue])
                     .flatten()
@@ -202,7 +202,6 @@ Actinium.Hook.register(
                     .map(valueToParseObj(targetClass)),
             );
             if (objects.length > 0) {
-                console.log({ objects });
                 field.fieldValue = fieldValue;
                 objects.forEach(obj => field.fieldValue.add(obj));
             } else op.del(fieldData, [field.fieldSlug]);
@@ -306,6 +305,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-list', async req => {
  * @apiParam {String} [slug] The unique slug for the content.
  * @apiParam {String} [objectId] The objectId for the content.
  * @apiParam {String} [uuid] The uuid for the content.
+ * @apiParam {Boolean} [attach=false] boolean flag to attach Pointers and Relations.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type

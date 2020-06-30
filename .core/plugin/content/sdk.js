@@ -1338,6 +1338,7 @@ Content.changeSlug = async (params, options) => {
  * @apiParam (params) {String} [slug] The unique slug for the content.
  * @apiParam (params) {String} [objectId] The objectId for the content.
  * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (params) {Boolean} [attach=false] boolean flag to attach Pointers and Relations.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -1351,6 +1352,7 @@ Content.retrieve = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
     // retrieve type
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+    const { schema } = await Actinium.Content.getSchema(typeObj);
 
     // construct content
     const collection = op.get(typeObj, 'collection');
@@ -1369,19 +1371,67 @@ Content.retrieve = async (params, options) => {
     if (uuid) query.equalTo('uuid', uuid);
     if (slug) query.equalTo('slug', slug);
 
+    const relationData = {};
+    const pointers = Object.entries(schema).filter(
+        ([, fs]) => op.get(fs, 'type') === 'Pointer',
+    );
+    const relations = Object.entries(schema).filter(
+        ([, fs]) => op.get(fs, 'type') === 'Relation',
+    );
+    // Attach Pointers
+    if (op.get(params, 'attach', false) === true) {
+        for (const [fieldSlug, fieldSchema] of pointers) {
+            query.include(fieldSlug);
+        }
+    }
+
     const content = await query.first(options);
+
+    if (op.get(params, 'attach', false) === true) {
+        for (const [fieldSlug, fieldSchema] of pointers) {
+            content &&
+                content.get(fieldSlug) &&
+                op.set(
+                    relationData,
+                    fieldSlug,
+                    Actinium.Utils.serialize(content.get(fieldSlug)),
+                );
+        }
+    }
 
     if (content) {
         const contentObj = serialize(content);
 
-        // get the schema
-        const { schema } = await Actinium.Content.getSchema(typeObj);
+        // Attach Relations
+        if (op.get(params, 'attach', false) === true) {
+            for (const [fieldSlug, fieldSchema] of relations) {
+                const objs = await content
+                    .relation(fieldSlug)
+                    .query()
+                    .find(options);
+                console.log({ fieldSlug, objs });
+                op.set(relationData, fieldSlug, objs.map(serialize));
+            }
+        }
+
         contentObj['schema'] = schema;
 
-        // if content is published, and publshed is requested, return the current content
-        if (op.get(params, 'current', false)) {
+        // if content is published, and published version is requested, return the current content
+        if (op.get(params, 'current', false) === true) {
             contentObj['type'] = typeObj;
-            return contentObj;
+            const output = {
+                ...contentObj,
+                ...relationData,
+            };
+
+            await Actinium.Hook.run(
+                'content-retrieve',
+                output,
+                params,
+                options,
+                op.get(params, 'current', false) === true,
+            );
+            return output;
         }
 
         // build the current revision
@@ -1397,18 +1447,30 @@ Content.retrieve = async (params, options) => {
 
         version['type'] = typeObj;
 
+        const output = {
+            ...version,
+            ...relationData,
+        };
+
         /**
          * @api {Hook} content-retrieve content-retrieve
          * @apiDescription Called after a content object is retrieved via Content.retrieve() function.
          * @apiParam {Object} contentObject Serialized Actinium Content Object
          * @apiParam {Object} params The request.params object
          * @apiParam {Object} options The request options object
+         * @apiParam {Boolean} isCurrent Will be true if this response represents the current full version of the content, or a revision.
          * @apiName content-retrieve
          * @apiGroup Hooks
          */
-        await Actinium.Hook.run('content-retrieve', version, params, options);
+        await Actinium.Hook.run(
+            'content-retrieve',
+            output,
+            params,
+            options,
+            op.get(params, 'current', false) === true,
+        );
 
-        return version;
+        return output;
     }
 };
 

@@ -255,7 +255,7 @@ Taxonomy.Content.fields = content => {
         .where({ fieldType: 'Taxonomy' })
         .pluck('fieldName')
         .value()
-        .map(field => String(field).toLowerCase());
+        .map(Actinium.Utils.slugify);
 };
 
 Taxonomy.Content.retrieve = async (params, options) => {
