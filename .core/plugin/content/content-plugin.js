@@ -222,6 +222,7 @@ Actinium.Content.registerActivity('content-trashed');
 Actinium.Content.registerActivity('content-published');
 Actinium.Content.registerActivity('content-status-changed');
 Actinium.Content.registerActivity('content-unpublished');
+Actinium.Content.registerActivity('content-restored');
 
 /**
  * @api {Asynchronous} content-create content-create

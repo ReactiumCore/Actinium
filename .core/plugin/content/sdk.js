@@ -236,17 +236,7 @@ Content.getSchema = async contentTypeObj => {
             field.fieldSlug = slugify(field.fieldName);
             return field;
         });
-
         const permittedFields = _.indexBy(allFields, 'fieldSlug');
-        for (const { fieldType, fieldName, fieldSlug } of allFields) {
-            // Parse fieldType is known to Actinium (plugins implement 'content-schema-field-types' hook)
-            if (fieldType in schemaTemplate.fieldTypes) {
-                // content does not already populate this field
-                if (!sample || !(fieldSlug in sampleObj)) {
-                    schema[fieldSlug] = schemaTemplate.fieldTypes[fieldType];
-                }
-            }
-        }
 
         // Remove fields that have been removed from schema
         // destructive operation
@@ -267,6 +257,59 @@ Content.getSchema = async contentTypeObj => {
                 }
             }
         } catch (error) {}
+
+        for (const { fieldType, fieldName, fieldSlug } of allFields) {
+            // skip if already defined above (for deletion)
+            if (fieldSlug in schema) continue;
+
+            // Parse fieldType is known to Actinium (plugins implement 'content-schema-field-types' hook)
+            if (fieldType in schemaTemplate.fieldTypes) {
+                const allExistingFieldSchemas = (existingSchema || {}).fields;
+                const existingFieldSchema = op.get(
+                    Object.assign({}, allExistingFieldSchemas || {}),
+                    [fieldSlug],
+                    {},
+                );
+
+                const {
+                    type: existingType,
+                    targetClass: existingTargetClass,
+                } = existingFieldSchema;
+                const {
+                    type: proposedType,
+                    targetClass: proposedTargetClass,
+                } = schemaTemplate.fieldTypes[fieldType];
+
+                // allow field schema set/update if any of these are true
+                const fieldCheck = {
+                    // 1. no content yet saved to this content type (create/update)
+                    noContent: !sample,
+
+                    // 2. this column doesn't appear to exist yet
+                    noDataInField: !(fieldSlug in sampleObj),
+
+                    // 3. the field schema is unchanged
+                    fieldSchemaUnchanged:
+                        existingType === proposedType &&
+                        existingTargetClass === proposedTargetClass,
+                };
+
+                if (
+                    fieldCheck.noContent ||
+                    fieldCheck.noDataInField ||
+                    fieldCheck.fieldSchemaUnchanged
+                ) {
+                    schema[fieldSlug] = schemaTemplate.fieldTypes[fieldType];
+                } else {
+                    LOG(
+                        chalk.cyan('Warning:'),
+                        `Cannot change field type schema on existing field ${fieldSlug} for content type ${machineName}.`,
+                    );
+                    if (existingFieldSchema)
+                        schema[fieldSlug] = existingFieldSchema;
+                }
+            }
+        }
 
         /**
          * @api {Hook} content-schema-permissions content-schema-permissions
@@ -1979,8 +2022,6 @@ Content.restore = async (params, options) => {
 
     await Actinium.Object.saveAll(revisions, masterOptions);
 
-    await Actinium.Hook.run('content-saved', contentObj, typeObj, true);
-
     /**
      * @api {Hook} content-restored content-restored
      * @apiGroup Hooks
@@ -2884,6 +2925,7 @@ Actinium.Harness.test(
         const trashedQuery = new Parse.Query('Recycle');
         trashedQuery.equalTo('collection', collection);
         trashedQuery.equalTo('object.objectId', objectId);
+
         const trashed = await trashedQuery.find(Actinium.Utils.MasterOptions());
 
         assert.equal(trashed.length, 2, 'Main item and 1 revisions.');
