@@ -1824,6 +1824,7 @@ Content.update = async (params, options) => {
             contentObj.schema,
             typeObj,
         );
+
         contentRevision = {
             ...contentRevision,
             ...diff,
@@ -1966,8 +1967,8 @@ Content.masterCopyProps = async (contentObject, schema, typeObj) => {
 
     const props = {};
     for (const [prop, included] of Object.entries(masterCopyFields)) {
-        if (included === true && op.has(contentObject, prop)) {
-            op.set(props, prop, op.get(contentObject, prop));
+        if (included === true && op.has(content, prop)) {
+            op.set(props, prop, op.get(content, prop));
         }
     }
 
