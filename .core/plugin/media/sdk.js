@@ -23,7 +23,7 @@ const {
     UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
-const Media = { ENUMS };
+const Media = { ENUMS, Content: {} };
 
 const getDirectories = async options => {
     const cached = Actinium.Cache.get('media-directories-fetch');
@@ -287,14 +287,20 @@ Media.directorySave = async ({
     permissions = [],
     objectId,
     options,
+    reload,
+    user,
 }) => {
     if (directory) {
         directory = String(slugify(directory)).toLowerCase();
     }
 
-    capabilities = capabilities || ['Media.create'];
+    capabilities =
+        capabilities ||
+        (await Actinium.Setting.get('media.capabilities.create', [
+            'Media.create',
+        ]));
 
-    const user = await UserFromSession(op.get(options, 'sessionToken'));
+    user = user || (await UserFromSession(op.get(options, 'sessionToken')));
 
     const useMasterKey = true;
     const qry = new Parse.Query(ENUMS.COLLECTION.DIRECTORY);
@@ -356,7 +362,9 @@ Media.directorySave = async ({
 
     await updateMediaDirectories(prevDirectory, directory);
 
-    await Media.load();
+    if (reload !== false) {
+        await Media.load();
+    }
 
     return obj.toJSON();
 };
@@ -900,6 +908,181 @@ Media.upload = async (data, meta, user, options) => {
     } catch (err) {}
 
     return fileObj.toJSON();
+};
+
+Media.Content.fields = content => {
+    content = op.get(content, 'id') ? content.toJSON() : content;
+
+    return _.chain(Object.values(content.type.fields))
+        .where({ fieldType: 'Media' })
+        .pluck('fieldName')
+        .value()
+        .map(Actinium.Utils.slugify);
+};
+
+Media.Content.retrieve = async (params, options) => {
+    options = options || { useMasterKey: true };
+
+    let { collection, content, contentId, type } = params;
+
+    if (content && !contentId) {
+        contentId = op.get(content, 'objectId', op.get(content, 'id'));
+    }
+
+    if (type && !collection) {
+        collection = op.get(type, 'collection');
+    }
+
+    if (!content && contentId && type) {
+        try {
+            content = await Actinium.Content.retrieve(
+                { type, objectId: contentId },
+                options,
+            );
+        } catch (err) {
+            return {};
+        }
+    }
+
+    if (!content) {
+        return {};
+    }
+
+    let fields;
+    try {
+        fields = Media.Content.fields(content, options) || [];
+    } catch (err) {
+        fields = [];
+    }
+
+    if (fields.length < 1) {
+        return {};
+    }
+
+    const files = {};
+    const obj = new Actinium.Object(collection).set('objectId', contentId);
+
+    for (const field of fields) {
+        const rel = obj.relation(field);
+        const count = await rel.query().count({ useMasterKey: true });
+
+        let tax =
+            count > 0
+                ? await rel
+                      .query()
+                      .skip(0)
+                      .limit(count)
+                      .include('type')
+                      .find(options)
+                : [];
+
+        tax = tax.map(item => ({
+            ...item.toJSON(),
+            field,
+            isMedia: true,
+            type: item.get('type').toJSON(),
+        }));
+        op.set(files, field, tax);
+    }
+
+    return files;
+};
+
+Media.createFromURL = async (params, options) => {
+    let { directory = 'uploads', outputType = 'JSON', url, user } = params;
+
+    let resp = {};
+
+    // Error if !url value
+    if (!url) {
+        op.set(resp, 'error', { message: 'url is a required parameter' });
+        return resp;
+    }
+
+    // See if the url exists
+    try {
+        await Actinium.Cloud.httpRequest({ url });
+    } catch (error) {
+        op.set(resp, 'error', {
+            message: `${url} not found`,
+            code: error.status,
+        });
+        return resp;
+    }
+
+    // Get capabilities array
+    const capabilities = await Actinium.Setting.get(
+        'media.capabilities.retrieve',
+        ['Media.retrieve'],
+    );
+
+    // Format directory
+    directory = String(slugify(directory)).toLowerCase();
+
+    // Object properties
+    const ext = url.split('.').pop();
+    const filename = String(url.split('/').pop()).toLowerCase();
+    const localURL = `/media/${directory}/${filename}`;
+    const type = Media.fileType(url);
+
+    const data = {
+        capabilities,
+        directory,
+        ext,
+        filename,
+        redirect: { url },
+        type,
+        url: localURL,
+        user,
+        uuid: uuid(),
+    };
+
+    // Create thumbnail
+    if (type === 'IMAGE') {
+        const thumbnail = await Actinium.Media.crop({
+            url,
+            options: { width: 200, height: 200 },
+        });
+
+        op.set(data, 'thumbnail', thumbnail);
+    }
+
+    // Create the Actinium Object
+    let file;
+
+    try {
+        file = await new Actinium.Object(ENUMS.COLLECTION.MEDIA).save(
+            data,
+            options,
+        );
+    } catch (error) {
+        op.set(resp, 'error', error);
+        return resp;
+    }
+
+    // Format the file output
+    file = String(outputType).toUpperCase() === 'JSON' ? file.toJSON() : file;
+    op.set(resp, 'result', file);
+
+    // Create the directory
+    if (directory !== 'uploads') {
+        try {
+            await Media.directorySave({
+                directory,
+                capabilities,
+                options,
+                user,
+                reload: false,
+            });
+        } catch (error) {
+            op.set(resp, 'error', error);
+        }
+    }
+
+    // Update the media cache
+    await Media.load();
+
+    return resp;
 };
 
 module.exports = Media;
