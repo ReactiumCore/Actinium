@@ -379,19 +379,20 @@ Actinium.Hook.register('content-schema-indexes', async (indexes, machineName) =>
  * @api {Asynchronous} Content.sanitize(content) Content.sanitize()
  * @apiDescription Based on content provided, will return array of sanitized content fields
  based on the field types in the content type. (Array of `{fieldSlug, fieldValue}`)
- * @apiParam {Object} content content data to sanitize
- * @apiParam (content) {Object} type The Type object of the content.
+ * @apiParam {Object} params params data to sanitize
+ * @apiParam {ActiniumObject} object the Actinium.Object to be saved
+ * @apiParam (params) {Object} type The Type object of the content.
  * @apiName Content.sanitize
  * @apiGroup Actinium
  */
-Content.sanitize = async content => {
-    const { type } = content;
+Content.sanitize = async (params, object) => {
+    const { type } = params;
 
     const { existingSchema, permittedFields } = await Content.getSchema(type);
     const fieldConfigs = permittedFields;
 
     const fieldData = _.indexBy(
-        Object.entries(content)
+        Object.entries(params)
             .map(([fieldName, fieldValue]) => ({
                 fieldSlug: slugify(fieldName),
                 fieldValue,
@@ -408,7 +409,7 @@ Content.sanitize = async content => {
     );
 
     for (const [fieldSlug, field] of Object.entries(fieldData)) {
-        const config = fieldConfigs[fieldSlug];
+        const fieldConfig = fieldConfigs[fieldSlug];
 
         /**
          * @api {Hook} content-field-sanitize content-field-sanitize
@@ -417,33 +418,32 @@ Content.sanitize = async content => {
          will be set on content object. Useful for normalizing data before it is
          stored in Parse column. Note this will only be called for fields that
          have a defined schema. See `content-schema-field-types`.
-         * @apiParam {Object} field `{fieldSlug, fieldValue}` the key-pair for this field
-         * @apiParam {Object} config the configuration of this field (including `fieldType`) stored in the type
-         * @apiParam {Object} fieldData object of all permitted field data, indexed by fieldSlug.
-         * @apiParam {Object} content object passed to `Content.sanitize()`
-         * @apiParam {Object} fieldSchema The schema of the field in DB
-         * @apiParam {Object} fullSchema The full schema of all fields in DB
-         * @apiParam {Object} permittedFields Field types that are registered for schema.
+         * @apiParam {Object} params the params object passed to the hook
+         * @apiParam (params) {Object} field `{fieldSlug, fieldValue}` the key-pair for this field
+         * @apiParam (params) {Object} fieldConfig the configuration of this field (including `fieldType`) stored in the type
+         * @apiParam (params) {Object} fieldData object of all permitted field data, indexed by fieldSlug.
+         * @apiParam (params) {Object} params object passed to `Content.sanitize()`
+         * @apiParam (params) {Object} fieldSchema The schema of the field in DB
+         * @apiParam (params) {Object} fullSchema The full schema of all fields in DB
+         * @apiParam (params) {Object} permittedFields Field types that are registered for schema.
+         * @apiParam (params) {ActiniumObject} object the Actinium.Object to be saved
          * @apiName content-field-sanitize
          * @apiGroup Hooks
          */
-        await Actinium.Hook.run(
-            'content-field-sanitize',
+        await Actinium.Hook.run('content-field-sanitize', {
             field,
-            config,
+            fieldConfig,
             fieldData,
-            content,
-            op.get(existingSchema, ['fields', field.fieldSlug]), // field schema
-            existingSchema, // full schema
+            params,
+            fieldSchema: op.get(existingSchema, ['fields', field.fieldSlug]),
+            fullSchema: existingSchema, // full schema
             permittedFields,
-        );
+            object,
+        });
     }
 
-    if (op.has(content, 'meta') && typeof content.meta === 'object') {
-        fieldData['meta'] = {
-            fieldSlug: 'meta',
-            fieldValue: content.meta,
-        };
+    if (op.has(params, 'meta') && typeof params.meta === 'object') {
+        object.set('meta', params.meta);
     }
 
     return Object.values(fieldData);
@@ -763,13 +763,10 @@ Content.cloneBranch = async (params, options) => {
  * @apiGroup Actinium
  */
 Content.diff = async (contentObj, changes) => {
-    const sanitized = await Actinium.Content.sanitize({
-        ...changes,
-        type: contentObj.type,
-    });
     const diff = {};
 
-    for (const { fieldSlug, fieldValue } of sanitized) {
+    for (const { fieldSlug, fieldValue } of changes) {
+        // console.log({fieldSlug, fieldValue});
         if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
             op.set(diff, fieldSlug, fieldValue);
         }
@@ -1150,10 +1147,14 @@ Content.create = async (params, options) => {
     }
     content.setACL(groupACL);
 
-    const sanitized = await Actinium.Content.sanitize({
-        ...params,
-        type: typeObj,
-    });
+    const sanitized = await Actinium.Content.sanitize(
+        {
+            ...params,
+            type: typeObj,
+        },
+        content,
+    );
+
     for (const { fieldSlug, fieldValue } of sanitized) {
         if (fieldSlug && typeof fieldValue !== 'undefined')
             content.set(fieldSlug, fieldValue);
@@ -1446,8 +1447,14 @@ Content.retrieve = async (params, options) => {
 
         version['type'] = typeObj;
 
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            contentObj,
+            schema,
+            typeObj,
+        );
         const output = {
             ...version,
+            ...masterCopyProps,
             ...relationData,
         };
 
@@ -1521,10 +1528,13 @@ Content.setCurrent = async (params, options) => {
     const content = new Actinium.Object(typeObj.collection);
     content.id = contentObj.objectId;
 
-    const sanitized = await Actinium.Content.sanitize({
-        ...contentObj,
-        type: typeObj,
-    });
+    const sanitized = await Actinium.Content.sanitize(
+        {
+            ...contentObj,
+            type: typeObj,
+        },
+        content,
+    );
 
     for (const { fieldSlug, fieldValue } of sanitized) {
         if (fieldSlug && typeof fieldValue !== 'undefined')
@@ -1729,7 +1739,6 @@ Content.update = async (params, options) => {
     const revisions = op.get(currentBranches, [branchId, 'history']);
 
     const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
-
     const content = new Actinium.Object(typeObj.collection);
 
     const title = op.get(params, 'title');
@@ -1740,20 +1749,8 @@ Content.update = async (params, options) => {
     content.set('type', {
         machineName: typeObj.machineName,
         uuid: typeObj.uuid,
+        namespace: typeObj.namespace,
     });
-
-    await Actinium.Hook.run(
-        'content-before-save',
-        content,
-        typeObj,
-        false,
-        params,
-        options,
-    );
-
-    // verify that save is allowed, but do not apply new values
-    // those will go in revision
-    const saved = await content.save(null, options);
 
     let contentRevision = {
         ...contentObj,
@@ -1773,69 +1770,110 @@ Content.update = async (params, options) => {
         op.set(contentRevision, 'history', history);
     }
 
-    let diff = await Actinium.Content.diff(contentRevision, params);
-
-    // No substantive change
-    if (!diff && !op.get(params, 'forceUpdate')) return contentRevision;
-
-    // Create new revision branch
-    const newRevision = {
-        collection: typeObj.collection,
-        object: {
-            ...diff,
-            ACL: contentObj.ACL,
-        },
-    };
-
-    if (params.user) op.set(newRevision, 'user', params.user);
-    const revision = await Actinium.Recycle.revision(
-        newRevision,
-        masterOptions,
-    );
-
-    currentBranches = op.get(contentRevision, 'branches');
-    currentBranches[branchId].history.push(revision.id);
-
-    content.set('branches', currentBranches);
-    await content.save(null, masterOptions);
-
-    const revHistory = {
-        branch: branchId,
-        revision: currentBranches[branchId].history.length - 1,
-    };
-
-    contentRevision = {
-        ...contentRevision,
-        ...diff,
-        history: revHistory,
-    };
-
-    const userId = op.get(
-        params,
-        'user.objectId',
-        op.get(params, 'user.id', op.get(params, 'userId')),
-    );
-
-    await Actinium.Content.Log.add(
+    const sanitized = await Actinium.Content.sanitize(
         {
-            contentId: contentRevision.objectId,
-            collection: typeObj.collection,
-            userId,
-            changeType: ENUMS.CHANGES.REVISED,
-            meta: {
-                uuid: op.get(contentObj, 'uuid'),
-                slug: op.get(contentObj, 'slug'),
-                type: op.get(typeObj, 'type'),
-                branch: op.get(
-                    currentBranches,
-                    op.get(revHistory, 'branch'),
-                    {},
-                ),
-                history: revHistory,
-            },
+            ...params,
+            type: contentObj.type,
         },
-        masterOptions,
+        content,
     );
+
+    const diff = await Actinium.Content.diff(contentRevision, sanitized);
+
+    await Actinium.Hook.run(
+        'content-before-save',
+        content,
+        typeObj,
+        false,
+        params,
+        options,
+    );
+
+    const contentUpdateBeforeSave = content.toJSON();
+
+    // Changes going into revision
+    if (diff !== false) {
+        // Create new revision branch
+        const newRevision = {
+            collection: typeObj.collection,
+            object: {
+                ...diff,
+                ACL: contentObj.ACL,
+            },
+        };
+
+        if (params.user) op.set(newRevision, 'user', params.user);
+        const revision = await Actinium.Recycle.revision(
+            newRevision,
+            masterOptions,
+        );
+
+        currentBranches = op.get(contentRevision, 'branches');
+        currentBranches[branchId].history.push(revision.id);
+
+        content.set('branches', currentBranches);
+        const savedBase = await content.save(null, options);
+
+        const revHistory = {
+            branch: branchId,
+            revision: currentBranches[branchId].history.length - 1,
+        };
+
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            savedBase,
+            contentObj.schema,
+            typeObj,
+        );
+
+        contentRevision = {
+            ...contentRevision,
+            ...diff,
+            history: revHistory,
+            ...masterCopyProps,
+        };
+
+        const userId = op.get(
+            params,
+            'user.objectId',
+            op.get(params, 'user.id', op.get(params, 'userId')),
+        );
+
+        await Actinium.Content.Log.add(
+            {
+                contentId: contentRevision.objectId,
+                collection: typeObj.collection,
+                userId,
+                changeType: ENUMS.CHANGES.REVISED,
+                meta: {
+                    uuid: op.get(contentObj, 'uuid'),
+                    slug: op.get(contentObj, 'slug'),
+                    type: op.get(typeObj, 'type'),
+                    branch: op.get(
+                        currentBranches,
+                        op.get(revHistory, 'branch'),
+                        {},
+                    ),
+                    history: revHistory,
+                },
+            },
+            masterOptions,
+        );
+
+        // no revision changes, but content object was updated
+    } else if (Object.values(contentUpdateBeforeSave).length > 0) {
+        // most saves go in revision
+        const savedBase = await content.save(null, options);
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            savedBase,
+            contentObj.schema,
+            typeObj,
+        );
+
+        contentRevision = {
+            ...contentRevision,
+            ...masterCopyProps,
+        };
+    }
 
     // hook documented with api doc at bottom of Content.create()
     await Actinium.Hook.run(
@@ -1846,6 +1884,7 @@ Content.update = async (params, options) => {
         params,
         options,
     );
+
     return contentRevision;
 };
 
@@ -1892,6 +1931,48 @@ Content.trash = async (params, options) => {
         options,
     );
     return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.masterCopyProps(content, schema, type) Content.masterCopyProps()
+ * @apiDescription Return subset of all properties from master copy of content that *must* come from the master copy (not revisions). This helps with certainty about
+ which properties are comeing from the collection, and which may be coming from revisions.
+ * @apiParam {Object} content Actinium.Object or serialized object from recently fetched content.
+ * @apiParams {Object} schema Content type current field schemas.
+ * @apiParams {Object} type Type object of evaluated content.
+ * @apiName Content.masterCopyProps
+ * @apiGroup Actinium
+ */
+Content.masterCopyProps = async (contentObject, schema, typeObj) => {
+    const content = serialize(contentObject);
+    const masterCopyFields = {
+        objectId: true,
+        slug: true,
+        uuid: true,
+        title: true,
+        branches: true,
+        publish: true,
+        status: true,
+        meta: true,
+        ACL: true,
+        user: true,
+    };
+
+    await Actinium.Hook.run(
+        'content-master-copy-fields',
+        masterCopyFields,
+        schema,
+        typeObj,
+    );
+
+    const props = {};
+    for (const [prop, included] of Object.entries(masterCopyFields)) {
+        if (included === true && op.has(content, prop)) {
+            op.set(props, prop, op.get(content, prop));
+        }
+    }
+
+    return props;
 };
 
 /**

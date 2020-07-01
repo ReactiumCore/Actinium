@@ -348,7 +348,7 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                 // check to see if each result already exists
                 const existing = await Actinium.Content.retrieve(
-                    { type, slug: syncContent.slug },
+                    { type, slug: syncContent.slug, current: true },
                     masterOptions,
                 );
 
@@ -365,6 +365,13 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                 // if it does exist, check to see if it shouldn't be automatically updated
                 if (existing) {
+                    op.set(
+                        syncContent,
+                        'meta.syndicate.manual',
+                        op.get(existing, 'meta.syndicate.manual', false) ===
+                            true,
+                    );
+
                     const from =
                         op.get(existing, 'meta.syndicate.history.branch') +
                         op.get(existing, 'meta.syndicate.history.revision');
@@ -390,6 +397,18 @@ SyndicateClient.syncContent = async remoteTypes => {
                                     op.get(existing, 'meta.syndicate.manual'),
                                 ),
                             );
+
+                            if (!op.get(existing, 'branches.syndicate')) {
+                                await Actinium.Content.cloneBranch(
+                                    {
+                                        ...existing,
+                                        branchLabel: 'Syndicate',
+                                        newBranchId: 'syndicate',
+                                    },
+                                    masterOptions,
+                                );
+                            }
+
                             const local = await Actinium.Content.update(
                                 {
                                     type,
@@ -417,14 +436,40 @@ SyndicateClient.syncContent = async remoteTypes => {
                                     op.get(existing, 'meta.syndicate.manual'),
                                 ),
                             );
+
+                            if (!op.get(existing, 'branches.syndicate')) {
+                                await Actinium.Content.cloneBranch(
+                                    {
+                                        ...existing,
+                                        branchLabel: 'Syndicate',
+                                        newBranchId: 'syndicate',
+                                    },
+                                    masterOptions,
+                                );
+                            }
+
+                            // If sync is on, update the local copy
                             const local = await Actinium.Content.update(
                                 { type, ...syncContent },
                                 masterOptions,
                             );
+
+                            // Keep syndication branch up to date with synced changes
+                            await Actinium.Content.update(
+                                {
+                                    type,
+                                    ...local,
+                                    history: { branch: 'syndicate' },
+                                },
+                                masterOptions,
+                            );
+
+                            // publish synced version
                             await Actinium.Content.publish(
                                 local,
                                 masterOptions,
                             );
+
                             await Actinium.Hook.run(
                                 'syndicate-content-saved',
                                 local,
@@ -484,11 +529,118 @@ SyndicateClient.syncContent = async remoteTypes => {
     }
 };
 
+SyndicateClient.syncTaxonomyTypes = async () => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    let page = 1;
+    let response = await SyndicateClient.runRemote(
+        'syndicate-content-taxonomy-types',
+        { limit: 10, page: page++ },
+    );
+
+    let results = Object.values(op.get(response, 'data.result.results', {}));
+    let types = {};
+    while (results.length) {
+        for (const {
+            user,
+            createdAt,
+            updatedAt,
+            ACL,
+            objectId,
+            ...result
+        } of results) {
+            const { name, slug, description } = result;
+            LOG(chalk.cyan(`Syncing taxonomy type ${name} (${slug})`));
+            const { objectId: existingId } =
+                (await Actinium.Taxonomy.Type.exists({ slug })) || {};
+            const taxType = { name, slug, description };
+            if (existingId) op.set(taxType, 'objectId', existingId);
+
+            await Actinium.Hook.run(
+                'syndicate-content-taxonomy-types-before-save',
+                taxType,
+            );
+
+            await Actinium.Taxonomy.Type.update(taxType);
+            types[slug] = taxType;
+        }
+
+        // next page
+        response = await SyndicateClient.runRemote(
+            'syndicate-content-taxonomy-types',
+            { limit: 10, page: page++ },
+        );
+        results = Object.values(op.get(response, 'data.result.results', {}));
+    }
+
+    return types;
+};
+
+SyndicateClient.syncTaxonomies = async taxTypes => {
+    const masterOptions = Actinium.Utils.MasterOptions();
+    let page = 1;
+    let response = await SyndicateClient.runRemote(
+        'syndicate-content-taxonomies',
+        { limit: 10, page: page++ },
+    );
+
+    let results = Object.values(op.get(response, 'data.result.results', {}));
+    while (results.length) {
+        for (const {
+            user,
+            createdAt,
+            updatedAt,
+            ACL,
+            objectId,
+            ...result
+        } of results) {
+            const { name, slug, description, type = {} } = result;
+            const { slug: typeSlug } = type;
+
+            LOG(chalk.cyan(`Syncing taxonomy ${slug} of type ${typeSlug}.`));
+
+            const { objectId: existingId } =
+                (await Actinium.Taxonomy.exists({ slug, type: typeSlug })) ||
+                {};
+            const { objectId: taxTypeId } = op.get(taxTypes, [typeSlug], {});
+            const T = new Actinium.Object('Type_taxonomy');
+            T.id = taxTypeId;
+
+            const tax = { name, slug, description, type: T };
+            if (existingId) op.set(tax, 'objectId', existingId);
+
+            await Actinium.Hook.run(
+                'syndicate-content-taxonomy-before-save',
+                tax,
+            );
+
+            await Actinium.Taxonomy.update(tax);
+        }
+
+        // next page
+        response = await SyndicateClient.runRemote(
+            'syndicate-content-taxonomies',
+            { limit: 10, page: page++ },
+        );
+        results = Object.values(op.get(response, 'data.result.results', {}));
+    }
+};
+
 SyndicateClient.sync = async () => {
+    await Actinium.Hook.run('syndicate-client-sync-begin');
+    const taxTypes = await SyndicateClient.syncTaxonomyTypes();
+    await SyndicateClient.syncTaxonomies(taxTypes);
+
+    await Actinium.Hook.run('syndicate-client-sync-after-taxonomies');
     await SyndicateClient.syncMediaDirectories();
     await SyndicateClient.syncMedia();
+
+    await Actinium.Hook.run('syndicate-client-sync-after-media');
     const remoteTypes = await SyndicateClient.syncTypes();
+
+    await Actinium.Hook.run('syndicate-client-sync-after-types', remoteTypes);
     await SyndicateClient.syncContent(remoteTypes);
+
+    await Actinium.Hook.run('syndicate-client-sync-end');
 };
 
 module.exports = SyndicateClient;

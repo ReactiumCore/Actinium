@@ -138,14 +138,14 @@ Actinium.Hook.register('type-saved', async contentType => {
 
 Actinium.Hook.register(
     'content-field-sanitize',
-    async (field, config, fieldData) => {
+    async ({ field, fieldConfig, fieldData }) => {
         if (
             typeof field.fieldValue === 'undefined' ||
             field.fieldValue === null
         )
             return;
 
-        switch (config.fieldType) {
+        switch (fieldConfig.fieldType) {
             case 'Text':
                 if (typeof field.fieldValue !== 'string') field.fieldValue = '';
                 break;
@@ -168,7 +168,7 @@ Actinium.Hook.register(
  */
 Actinium.Hook.register(
     'content-field-sanitize',
-    async (field, config, fieldData, content, fieldSchema) => {
+    async ({ field, fieldData, params, fieldSchema, object }) => {
         // handle missing field schema
         if (!fieldSchema) op.del(fieldData, [field.fieldSlug]);
         const type = op.get(fieldSchema, 'type');
@@ -185,33 +185,53 @@ Actinium.Hook.register(
                 else if (value.objectId) {
                     const obj = new Actinium.Object(targetClass);
                     obj.id = value.objectId;
-                    return obj;
+
+                    return {
+                        delete: op.get(value, 'delete', false) === true,
+                        obj,
+                    };
                 }
             }
             return false;
         };
 
         if (type === 'Relation') {
-            const obj = new Actinium.Object(op.get(content, 'type.collection'));
-            const fieldValue = obj.relation(field.fieldSlug);
+            const relation = object.relation(field.fieldSlug);
             const objects = _.compact(
                 _.chain([field.fieldValue])
                     .flatten()
                     .compact()
                     .value()
                     .map(valueToParseObj(targetClass)),
-            );
-            if (objects.length > 0) {
-                field.fieldValue = fieldValue;
-                objects.forEach(obj => field.fieldValue.add(obj));
-            } else op.del(fieldData, [field.fieldSlug]);
+            ).forEach(target => {
+                if (target !== false) {
+                    const { delete: deleteIt, obj } = target;
+                    if (deleteIt === true) {
+                        relation.remove(obj);
+                    } else {
+                        relation.add(obj);
+                    }
+                }
+            });
+            op.del(fieldData, [field.fieldSlug]);
         } else if (type === 'Pointer') {
-            const obj = valueToParseObj(targetClass)(field.fieldValue);
-            if (obj) field.fieldValue = obj;
-            else op.del(fieldData, [field.fieldSlug]);
+            const target = valueToParseObj(targetClass)(field.fieldValue);
+            const { obj } = target;
+            if (target !== false) object.set(field.fieldSlug, obj);
+            op.del(fieldData, [field.fieldSlug]);
         }
     },
     Actinium.Enums.priority.lowest,
+);
+
+Actinium.Hook.register(
+    'content-master-copy-fields',
+    async (masterCopyFields, schema, typeObj) => {
+        for (const [prop, config] of Object.entries(schema)) {
+            if (['Pointer', 'Relation'].includes(config.type))
+                op.set(masterCopyFields, prop, true);
+        }
+    },
 );
 
 // Used for User activity log
