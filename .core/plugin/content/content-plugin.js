@@ -224,6 +224,16 @@ Actinium.Hook.register(
     Actinium.Enums.priority.lowest,
 );
 
+Actinium.Hook.register(
+    'content-master-copy-fields',
+    async (masterCopyFields, schema, typeObj) => {
+        for (const [prop, config] of Object.entries(schema)) {
+            if (['Pointer', 'Relation'].includes(config.type))
+                op.set(masterCopyFields, prop, true);
+        }
+    },
+);
+
 // Used for User activity log
 Actinium.Content.registerActivity('content-saved');
 Actinium.Content.registerActivity('content-slug-changed');

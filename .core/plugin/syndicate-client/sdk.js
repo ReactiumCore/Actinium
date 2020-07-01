@@ -365,6 +365,13 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                 // if it does exist, check to see if it shouldn't be automatically updated
                 if (existing) {
+                    op.set(
+                        syncContent,
+                        'meta.syndicate.manual',
+                        op.get(existing, 'meta.syndicate.manual', false) ===
+                            true,
+                    );
+
                     const from =
                         op.get(existing, 'meta.syndicate.history.branch') +
                         op.get(existing, 'meta.syndicate.history.revision');

@@ -762,17 +762,10 @@ Content.cloneBranch = async (params, options) => {
  * @apiName Content.diff
  * @apiGroup Actinium
  */
-Content.diff = async (contentObj, changes, object) => {
-    const sanitized = await Actinium.Content.sanitize(
-        {
-            ...changes,
-            type: contentObj.type,
-        },
-        object,
-    );
+Content.diff = async (contentObj, changes) => {
     const diff = {};
 
-    for (const { fieldSlug, fieldValue } of sanitized) {
+    for (const { fieldSlug, fieldValue } of changes) {
         // console.log({fieldSlug, fieldValue});
         if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
             op.set(diff, fieldSlug, fieldValue);
@@ -1454,8 +1447,14 @@ Content.retrieve = async (params, options) => {
 
         version['type'] = typeObj;
 
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            contentObj,
+            schema,
+            typeObj,
+        );
         const output = {
             ...version,
+            ...masterCopyProps,
             ...relationData,
         };
 
@@ -1771,7 +1770,15 @@ Content.update = async (params, options) => {
         op.set(contentRevision, 'history', history);
     }
 
-    const diff = await Actinium.Content.diff(contentRevision, params, content);
+    const sanitized = await Actinium.Content.sanitize(
+        {
+            ...params,
+            type: contentObj.type,
+        },
+        content,
+    );
+
+    const diff = await Actinium.Content.diff(contentRevision, sanitized);
 
     await Actinium.Hook.run(
         'content-before-save',
@@ -1782,7 +1789,7 @@ Content.update = async (params, options) => {
         options,
     );
 
-    const { objectId, ...contentUpdateBeforeSave } = content.toJSON();
+    const contentUpdateBeforeSave = content.toJSON();
 
     // Changes going into revision
     if (diff !== false) {
@@ -1805,25 +1812,23 @@ Content.update = async (params, options) => {
         currentBranches[branchId].history.push(revision.id);
 
         content.set('branches', currentBranches);
-        const savedBase = await content.save(null, masterOptions);
+        const savedBase = await content.save(null, options);
 
         const revHistory = {
             branch: branchId,
             revision: currentBranches[branchId].history.length - 1,
         };
 
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            savedBase,
+            contentObj.schema,
+            typeObj,
+        );
         contentRevision = {
             ...contentRevision,
             ...diff,
             history: revHistory,
-            ...Object.entries(serialize(savedBase)).reduce(
-                (base, [key, value]) => {
-                    if (key in contentUpdateBeforeSave)
-                        op.set(base, key, value);
-                    return base;
-                },
-                {},
-            ),
+            ...masterCopyProps,
         };
 
         const userId = op.get(
@@ -1857,17 +1862,15 @@ Content.update = async (params, options) => {
     } else if (Object.values(contentUpdateBeforeSave).length > 0) {
         // most saves go in revision
         const savedBase = await content.save(null, options);
+        const masterCopyProps = await Actinium.Content.masterCopyProps(
+            savedBase,
+            contentObj.schema,
+            typeObj,
+        );
 
         contentRevision = {
             ...contentRevision,
-            ...Object.entries(serialize(savedBase)).reduce(
-                (base, [key, value]) => {
-                    if (key in contentUpdateBeforeSave)
-                        op.set(base, key, value);
-                    return base;
-                },
-                {},
-            ),
+            ...masterCopyProps,
         };
     }
 
@@ -1927,6 +1930,48 @@ Content.trash = async (params, options) => {
         options,
     );
     return contentObj;
+};
+
+/**
+ * @api {Asynchronous} Content.masterCopyProps(content, schema, type) Content.masterCopyProps()
+ * @apiDescription Return subset of all properties from master copy of content that *must* come from the master copy (not revisions). This helps with certainty about
+ which properties are comeing from the collection, and which may be coming from revisions.
+ * @apiParam {Object} content Actinium.Object or serialized object from recently fetched content.
+ * @apiParams {Object} schema Content type current field schemas.
+ * @apiParams {Object} type Type object of evaluated content.
+ * @apiName Content.masterCopyProps
+ * @apiGroup Actinium
+ */
+Content.masterCopyProps = async (contentObject, schema, typeObj) => {
+    const content = serialize(contentObject);
+    const masterCopyFields = {
+        objectId: true,
+        slug: true,
+        uuid: true,
+        title: true,
+        branches: true,
+        publish: true,
+        status: true,
+        meta: true,
+        ACL: true,
+        user: true,
+    };
+
+    await Actinium.Hook.run(
+        'content-master-copy-fields',
+        masterCopyFields,
+        schema,
+        typeObj,
+    );
+
+    const props = {};
+    for (const [prop, included] of Object.entries(masterCopyFields)) {
+        if (included === true && op.has(contentObject, prop)) {
+            op.set(props, prop, op.get(contentObject, prop));
+        }
+    }
+
+    return props;
 };
 
 /**
