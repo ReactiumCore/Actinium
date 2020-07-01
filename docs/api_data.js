@@ -2072,6 +2072,14 @@ define({ "api": [
             "optional": true,
             "field": "uuid",
             "description": "<p>The uuid for the content.</p>"
+          },
+          {
+            "group": "params",
+            "type": "Boolean",
+            "optional": true,
+            "field": "attach",
+            "defaultValue": "false",
+            "description": "<p>boolean flag to attach Pointers and Relations.</p>"
           }
         ],
         "type": [
@@ -2243,13 +2251,20 @@ define({ "api": [
             "group": "Parameter",
             "type": "Object",
             "optional": false,
-            "field": "content",
-            "description": "<p>content data to sanitize</p>"
+            "field": "params",
+            "description": "<p>params data to sanitize</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "ActiniumObject",
+            "optional": false,
+            "field": "object",
+            "description": "<p>the Actinium.Object to be saved</p>"
           }
         ],
-        "content": [
+        "params": [
           {
-            "group": "content",
+            "group": "params",
             "type": "Object",
             "optional": false,
             "field": "type",
@@ -6963,6 +6978,39 @@ define({ "api": [
   },
   {
     "type": "Asynchronous",
+    "url": "Syndicate.Content.taxonomies(req,options)",
+    "title": "Syndicate.Content.taxonomies()",
+    "name": "Syndicate_Content_taxonomies",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Get syndicated list of taxonomies</p>"
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Content.taxonomiesAttached(req,options)",
+    "title": "Syndicate.Content.taxonomiesAttached()",
+    "name": "Syndicate_Content_taxonomiesAttached",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Get attached taxononmies for an item of syndicated content.</p>"
+  },
+  {
+    "type": "Asynchronous",
+    "url": "Syndicate.Content.taxonomyTypes(req,options)",
+    "title": "Syndicate.Content.taxonomyTypes()",
+    "name": "Syndicate_Content_taxonomyTypes",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate/sdk.js",
+    "groupTitle": "Actinium",
+    "description": "<p>Get syndicated list of taxonomy types</p>"
+  },
+  {
+    "type": "Asynchronous",
     "url": "Syndicate.Content.types(req,options)",
     "title": "Syndicate.Content.types()",
     "name": "Syndicate_Content_types",
@@ -9784,6 +9832,14 @@ define({ "api": [
             "optional": true,
             "field": "uuid",
             "description": "<p>The uuid for the content.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "attach",
+            "defaultValue": "false",
+            "description": "<p>boolean flag to attach Pointers and Relations.</p>"
           }
         ],
         "type": [
@@ -12253,50 +12309,66 @@ define({ "api": [
             "group": "Parameter",
             "type": "Object",
             "optional": false,
+            "field": "params",
+            "description": "<p>the params object passed to the hook</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "Object",
+            "optional": false,
             "field": "field",
             "description": "<p><code>{fieldSlug, fieldValue}</code> the key-pair for this field</p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
-            "field": "config",
+            "field": "fieldConfig",
             "description": "<p>the configuration of this field (including <code>fieldType</code>) stored in the type</p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
             "field": "fieldData",
             "description": "<p>object of all permitted field data, indexed by fieldSlug.</p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
-            "field": "content",
+            "field": "params",
             "description": "<p>object passed to <code>Content.sanitize()</code></p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
             "field": "fieldSchema",
             "description": "<p>The schema of the field in DB</p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
             "field": "fullSchema",
             "description": "<p>The full schema of all fields in DB</p>"
           },
           {
-            "group": "Parameter",
+            "group": "params",
             "type": "Object",
             "optional": false,
             "field": "permittedFields",
             "description": "<p>Field types that are registered for schema.</p>"
+          },
+          {
+            "group": "params",
+            "type": "ActiniumObject",
+            "optional": false,
+            "field": "object",
+            "description": "<p>the Actinium.Object to be saved</p>"
           }
         ]
       }
@@ -12525,6 +12597,13 @@ define({ "api": [
             "optional": false,
             "field": "options",
             "description": "<p>The request options object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Boolean",
+            "optional": false,
+            "field": "isCurrent",
+            "description": "<p>Will be true if this response represents the current full version of the content, or a revision.</p>"
           }
         ]
       }

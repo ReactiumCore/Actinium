@@ -150,6 +150,41 @@ Actinium.Hook.register(
     },
 );
 
+Actinium.Hook.register(
+    'syndicate-content-before-save',
+    async (content, type, existing, requireManualUpdate = false) => {
+        if (
+            !requireManualUpdate &&
+            Object.values(type.fields).find(
+                ({ fieldType }) => fieldType === 'Taxonomy',
+            )
+        ) {
+            const { machineName, collection } = type;
+            const contentId = op.set(content, 'meta.syndicate.objectId');
+            const response = await Actinium.SyndicateClient.runRemote(
+                'syndicate-content-taxonomies-attached',
+                { type: { machineName, collection }, contentId },
+            );
+
+            const result = op.get(response, 'data.result', {});
+            for (const [fieldSlug, remoteTerms] of Object.entries(result)) {
+                const terms = [];
+                for (const { slug, type } of remoteTerms) {
+                    const {
+                        objectId: termId,
+                    } = await Actinium.Taxonomy.exists({
+                        slug,
+                        type: type.slug,
+                    });
+                    terms.push({ objectId: termId });
+                }
+
+                if (terms.length > 0) op.set(content, fieldSlug, terms);
+            }
+        }
+    },
+);
+
 const cloudAPIs = [
     { name: 'syndicate-satellite-test', sdk: 'SyndicateClient.test' },
 ].forEach(({ name, sdk }) =>

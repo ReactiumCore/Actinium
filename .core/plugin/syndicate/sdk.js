@@ -369,6 +369,81 @@ Content.media = async req => {
     );
 };
 
+/**
+ * @apiDefine Syndicate_Content_taxonomy_types
+ * @apiDescription Get syndicated list of taxonomy types
+ */
+/**
+ * @apiUse Syndicate_Content_taxonomy_types
+ * @api {Asynchronous} Syndicate.Content.taxonomyTypes(req,options) Syndicate.Content.taxonomyTypes()
+ * @apiName Syndicate.Content.taxonomyTypes
+ * @apiGroup Actinium
+ */
+Content.taxonomyTypes = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    const result = await Actinium.Taxonomy.Type.list(req.params, masterOptions);
+    await Actinium.Hook.run('syndicate-content-taxonomy-types', result);
+    return result;
+};
+
+/**
+ * @apiDefine Syndicate_Content_taxonomies
+ * @apiDescription Get syndicated list of taxonomies
+ */
+/**
+ * @apiUse Syndicate_Content_taxonomies
+ * @api {Asynchronous} Syndicate.Content.taxonomies(req,options) Syndicate.Content.taxonomies()
+ * @apiName Syndicate.Content.taxonomies
+ * @apiGroup Actinium
+ */
+Content.taxonomies = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    const result = await Actinium.Taxonomy.list(req.params, masterOptions);
+    await Actinium.Hook.run('syndicate-content-taxonomies', result);
+    return result;
+};
+
+/**
+ * @apiDefine Syndicate_Content_taxonomies_attached
+ * @apiDescription Get attached taxononmies for an item of syndicated content.
+ */
+/**
+ * @apiUse Syndicate_Content_taxonomies_attached
+ * @api {Asynchronous} Syndicate.Content.taxonomiesAttached(req,options) Syndicate.Content.taxonomiesAttached()
+ * @apiName Syndicate.Content.taxonomiesAttached
+ * @apiGroup Actinium
+ */
+// Both machineName and collection are required for this lookup
+// {
+//   "type": {
+//     "machineName": "nav",
+//     "collection": "Content_nav"
+//   },
+//   "contentId": "0aOqeToFgx"
+// }
+Content.taxonomiesAttached = async req => {
+    const token = await Client.verify(req);
+    if (!token) throw new Error('Permission denied.');
+    const { type, contentId } = req.params;
+    if (!type || !type.machineName || !type.collection)
+        throw new Error('type required with machineName and collection');
+    if (!contentId) throw new Error('contentId required');
+
+    const masterOptions = Actinium.Utils.MasterOptions();
+    const result = await Actinium.Taxonomy.Content.retrieve(
+        req.params,
+        masterOptions,
+    );
+    await Actinium.Hook.run('syndicate-content-taxonomies-attached', result);
+    return result;
+};
+
 const Syndicate = {
     Client,
     Content,

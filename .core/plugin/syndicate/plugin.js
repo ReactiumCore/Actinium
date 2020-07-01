@@ -138,6 +138,18 @@ const cloudAPIs = [
         sdk: 'Syndicate.Content.mediaDirectories',
     },
     { name: 'syndicate-content-media', sdk: 'Syndicate.Content.media' },
+    {
+        name: 'syndicate-content-taxonomy-types',
+        sdk: 'Syndicate.Content.taxonomyTypes',
+    },
+    {
+        name: 'syndicate-content-taxonomies',
+        sdk: 'Syndicate.Content.taxonomies',
+    },
+    {
+        name: 'syndicate-content-taxonomies-attached',
+        sdk: 'Syndicate.Content.taxonomiesAttached',
+    },
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
