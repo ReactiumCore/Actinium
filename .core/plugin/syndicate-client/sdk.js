@@ -348,7 +348,7 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                 // check to see if each result already exists
                 const existing = await Actinium.Content.retrieve(
-                    { type, slug: syncContent.slug },
+                    { type, slug: syncContent.slug, current: true },
                     masterOptions,
                 );
 
@@ -397,6 +397,18 @@ SyndicateClient.syncContent = async remoteTypes => {
                                     op.get(existing, 'meta.syndicate.manual'),
                                 ),
                             );
+
+                            if (!op.get(existing, 'branches.syndicate')) {
+                                await Actinium.Content.cloneBranch(
+                                    {
+                                        ...existing,
+                                        branchLabel: 'Syndicate',
+                                        newBranchId: 'syndicate',
+                                    },
+                                    masterOptions,
+                                );
+                            }
+
                             const local = await Actinium.Content.update(
                                 {
                                     type,
@@ -424,14 +436,40 @@ SyndicateClient.syncContent = async remoteTypes => {
                                     op.get(existing, 'meta.syndicate.manual'),
                                 ),
                             );
+
+                            if (!op.get(existing, 'branches.syndicate')) {
+                                await Actinium.Content.cloneBranch(
+                                    {
+                                        ...existing,
+                                        branchLabel: 'Syndicate',
+                                        newBranchId: 'syndicate',
+                                    },
+                                    masterOptions,
+                                );
+                            }
+
+                            // If sync is on, update the local copy
                             const local = await Actinium.Content.update(
                                 { type, ...syncContent },
                                 masterOptions,
                             );
+
+                            // Keep syndication branch up to date with synced changes
+                            await Actinium.Content.update(
+                                {
+                                    type,
+                                    ...local,
+                                    history: { branch: 'syndicate' },
+                                },
+                                masterOptions,
+                            );
+
+                            // publish synced version
                             await Actinium.Content.publish(
                                 local,
                                 masterOptions,
                             );
+
                             await Actinium.Hook.run(
                                 'syndicate-content-saved',
                                 local,
