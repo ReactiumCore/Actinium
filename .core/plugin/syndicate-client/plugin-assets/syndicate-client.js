@@ -453,35 +453,39 @@
                             },
                             i.a.createElement(u, null),
                         );
-                    var _ = {
+                    var x = {
                         success: Object(r.__)('Connection test successful.'),
                         failure: Object(r.__)('Connection test failed.'),
                     };
                     return i.a.createElement(
-                        s,
-                        {
-                            dismissable: !0,
-                            color: v.valid
-                                ? s.ENUMS.COLOR.SUCCESS
-                                : s.ENUMS.COLOR.DANGER,
-                            icon: i.a.createElement(l, {
-                                name: v.valid
-                                    ? 'Feather.Check'
-                                    : 'Feather.AlertOctagon',
-                            }),
-                        },
-                        v.valid ? _.success : _.failure,
+                        'div',
+                        { className: 'p-xs-20' },
                         i.a.createElement(
-                            d,
+                            s,
                             {
-                                className: 'ml-xs-16',
-                                size: 'xs',
-                                appearance: 'pill',
-                                onClick: function() {
-                                    O({ forceUpdated: new Date() });
-                                },
+                                dismissable: !0,
+                                color: v.valid
+                                    ? s.ENUMS.COLOR.SUCCESS
+                                    : s.ENUMS.COLOR.DANGER,
+                                icon: i.a.createElement(l, {
+                                    name: v.valid
+                                        ? 'Feather.Check'
+                                        : 'Feather.AlertOctagon',
+                                }),
                             },
-                            Object(r.__)('Refresh'),
+                            v.valid ? x.success : x.failure,
+                            i.a.createElement(
+                                d,
+                                {
+                                    className: 'ml-xs-16',
+                                    size: 'xs',
+                                    appearance: 'pill',
+                                    onClick: function() {
+                                        O({ forceUpdated: new Date() });
+                                    },
+                                },
+                                Object(r.__)('Refresh'),
+                            ),
                         ),
                     );
                 },
@@ -498,7 +502,7 @@
             function O(e) {
                 return (
                     (function(e) {
-                        if (Array.isArray(e)) return E(e);
+                        if (Array.isArray(e)) return _(e);
                     })(e) ||
                     (function(e) {
                         if (
@@ -507,7 +511,7 @@
                         )
                             return Array.from(e);
                     })(e) ||
-                    x(e) ||
+                    E(e) ||
                     (function() {
                         throw new TypeError(
                             'Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
@@ -568,7 +572,7 @@
                     e
                 );
             }
-            function _(e, t) {
+            function x(e, t) {
                 return (
                     (function(e) {
                         if (Array.isArray(e)) return e;
@@ -601,7 +605,7 @@
                         }
                         return n;
                     })(e, t) ||
-                    x(e, t) ||
+                    E(e, t) ||
                     (function() {
                         throw new TypeError(
                             'Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
@@ -609,9 +613,9 @@
                     })()
                 );
             }
-            function x(e, t) {
+            function E(e, t) {
                 if (e) {
-                    if ('string' == typeof e) return E(e, t);
+                    if ('string' == typeof e) return _(e, t);
                     var n = Object.prototype.toString.call(e).slice(8, -1);
                     return (
                         'Object' === n &&
@@ -621,12 +625,12 @@
                             ? Array.from(n)
                             : 'Arguments' === n ||
                               /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
-                            ? E(e, t)
+                            ? _(e, t)
                             : void 0
                     );
                 }
             }
-            function E(e, t) {
+            function _(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
@@ -639,7 +643,7 @@
                             c = Object(r.useHookComponent)('ReactiumUI'),
                             u = c.Icon,
                             s = c.Button,
-                            l = _(
+                            l = x(
                                 Object(a.useState)({
                                     loading: !0,
                                     valid: !1,
@@ -649,7 +653,7 @@
                             ),
                             d = l[0],
                             p = l[1],
-                            y = _(
+                            y = x(
                                 Object(a.useState)({
                                     syncStatus: 'idle',
                                     syncContext: I,
@@ -709,7 +713,7 @@
                                 }),
                             h = v.appId,
                             j = v.host,
-                            x = v.token;
+                            E = v.token;
                         Object(r.useAsyncEffect)(
                             (function() {
                                 var e = S(
@@ -721,7 +725,7 @@
                                             for (;;)
                                                 switch ((e.prev = e.next)) {
                                                     case 0:
-                                                        if (!x) {
+                                                        if (!E) {
                                                             e.next = 6;
                                                             break;
                                                         }
@@ -751,11 +755,9 @@
                                     return e.apply(this, arguments);
                                 };
                             })(),
-                            [h, j, x, d.forceUpdated],
+                            [h, j, E, d.forceUpdated],
                         );
-                        Object(r.__)('Connection test successful.'),
-                            Object(r.__)('Connection test failed.');
-                        var E = {
+                        var _ = {
                                 idle: Object(r.__)('Sync Content'),
                                 start: Object(r.__)('Syncing...'),
                                 begin: Object(r.__)('Syncing Taxonomies...'),
@@ -915,12 +917,12 @@
                                 return e.apply(this, arguments);
                             };
                         })();
-                        if (!(h && j && x)) return null;
+                        if (!(h && j && E)) return null;
                         d.loading || d.valid;
                         var T = f.a.get(k, 'label', ''),
-                            D = _(f.a.get(k, 'count', [0, 0]), 2),
-                            N = D[0],
-                            R = D[1];
+                            N = x(f.a.get(k, 'count', [0, 0]), 2),
+                            D = N[0],
+                            R = N[1];
                         return i.a.createElement(
                             'div',
                             { className: 'm-xs-20' },
@@ -950,14 +952,14 @@
                                     ),
                                 ' ',
                                 f.a
-                                    .get(E, [P], E.start)
+                                    .get(_, [P], _.start)
                                     .replace(
                                         '%context',
                                         ''
                                             .concat(T, ' ')
                                             .concat(
                                                 R > 0 &&
-                                                    ''.concat(N, '/').concat(R),
+                                                    ''.concat(D, '/').concat(R),
                                             ),
                                     ),
                             ),
@@ -983,7 +985,7 @@
                 },
                 A = n(4),
                 T = n.n(A);
-            function D(e, t, n, r, o, a, i) {
+            function N(e, t, n, r, o, a, i) {
                 try {
                     var c = e[a](i),
                         u = c.value;
@@ -992,7 +994,7 @@
                 }
                 c.done ? t(u) : Promise.resolve(u).then(r, o);
             }
-            function N(e, t) {
+            function D(e, t) {
                 var n = Object.keys(e);
                 if (Object.getOwnPropertySymbols) {
                     var r = Object.getOwnPropertySymbols(e);
@@ -1011,7 +1013,7 @@
                 for (var t = 1; t < arguments.length; t++) {
                     var n = null != arguments[t] ? arguments[t] : {};
                     t % 2
-                        ? N(Object(n), !0).forEach(function(t) {
+                        ? D(Object(n), !0).forEach(function(t) {
                               q(e, t, n[t]);
                           })
                         : Object.getOwnPropertyDescriptors
@@ -1019,7 +1021,7 @@
                               e,
                               Object.getOwnPropertyDescriptors(n),
                           )
-                        : N(Object(n)).forEach(function(t) {
+                        : D(Object(n)).forEach(function(t) {
                               Object.defineProperty(
                                   e,
                                   t,
@@ -1148,11 +1150,11 @@
                         [],
                     ),
                     w = f.a.get(b, 'branches.syndicate.history', []),
-                    _ =
+                    x =
                         f.a.get(C, 0) !== f.a.get(w, 0) ||
                         C.length !== w.length ||
                         T.a.difference(w, C).length > 0,
-                    x = (function() {
+                    E = (function() {
                         var e,
                             n =
                                 ((e = regeneratorRuntime.mark(function e() {
@@ -1212,10 +1214,10 @@
                                     return new Promise(function(r, o) {
                                         var a = e.apply(t, n);
                                         function i(e) {
-                                            D(a, r, o, i, c, 'next', e);
+                                            N(a, r, o, i, c, 'next', e);
                                         }
                                         function c(e) {
-                                            D(a, r, o, i, c, 'throw', e);
+                                            N(a, r, o, i, c, 'throw', e);
                                         }
                                         i(void 0);
                                     });
@@ -1267,13 +1269,13 @@
                             ),
                         ),
                         !0 === O &&
-                            _ &&
+                            x &&
                             i.a.createElement(
                                 d,
                                 {
                                     size: 'sm',
                                     appearance: 'pill',
-                                    onClick: x,
+                                    onClick: E,
                                     type: 'button',
                                 },
                                 i.a.createElement(y, {
