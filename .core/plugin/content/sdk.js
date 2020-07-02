@@ -1956,6 +1956,8 @@ Content.masterCopyProps = async (contentObject, schema, typeObj) => {
         meta: true,
         ACL: true,
         user: true,
+        createdAt: true,
+        updatedAt: true,
     };
 
     await Actinium.Hook.run(

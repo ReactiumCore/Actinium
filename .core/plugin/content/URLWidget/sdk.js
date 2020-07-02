@@ -160,7 +160,12 @@ SDK.delete = async ({ urls, ...params }, options) => {
 
     // 3.1 - Delete from Route collection
     const deleted =
-        urls.length > 0 ? await Actinium.Object.destroyAll(urls, options) : [];
+        urls.length > 0
+            ? await Actinium.Object.destroyAll(
+                  urls,
+                  Actinium.Utils.MasterOptions(),
+              )
+            : [];
 
     /**
      * @api {Hook} url-deleted url-deleted
