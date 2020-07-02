@@ -10,7 +10,7 @@ const PLUGIN = {
     order: 100,
     version: {
         actinium: '>=3.2.6',
-        plugin: '0.0.3',
+        plugin: '0.0.4',
     },
     bundle: [],
     meta: {
