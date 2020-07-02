@@ -99,10 +99,19 @@ const updateMediaDirectories = async (prev, current) => {
 };
 
 const getBucketName = async (directory, filename) => {
-    let bucketname = _.compact(
-        String(`${directory}/${filename}`).split('/'),
-    ).join('/');
-    await Actinium.Hook.run('media-file-name', bucketname);
+    let bucketname = String(
+        _.compact(
+            _.compact([directory, filename])
+                .join('/')
+                .split('/'),
+        ).join('/'),
+    );
+    bucketname = bucketname.startsWith('/')
+        ? buckentname.substr(1)
+        : bucketname;
+
+    await Actinium.Hook.run('media-bucket-name', bucketname);
+
     return bucketname;
 };
 
@@ -115,7 +124,11 @@ Media.cleanup = async (objects, deep = false) => {
             const meta = item.get('meta') || {};
             const thumbnail = item.get('thumbnail');
 
-            const filenames = [file.name()];
+            const filenames = [];
+
+            if (file) {
+                filenames.push(file.name());
+            }
 
             if (thumbnail) {
                 filenames.push(thumbnail.name());

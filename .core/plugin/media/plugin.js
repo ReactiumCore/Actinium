@@ -164,38 +164,38 @@ Actinium.Hook.register('content-schema-field-types', fieldTypes => {
 });
 
 // beforeSave_content
-Actinium.Hook.register(
-    'beforeSave_content',
-    async ({ object, options }) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-
-        const collection = object.className;
-        const type = await Actinium.Type.retrieve({ collection }, options);
-
-        _.chain(Object.values(type.fields))
-            .where({ fieldType: 'Media' })
-            .pluck('fieldName')
-            .value()
-            .forEach(field => {
-                field = String(field).toLowerCase();
-                const val = object.get(field);
-                if (!Array.isArray(val)) return;
-                object.unset(field);
-            });
-    },
-    100000000,
-);
+// Actinium.Hook.register(
+//     'beforeSave_content',
+//     async ({ object, options }) => {
+//         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+//
+//         const collection = object.className;
+//         const type = await Actinium.Type.retrieve({ collection }, options);
+//
+//         _.chain(Object.values(type.fields))
+//             .where({ fieldType: 'Media' })
+//             .pluck('fieldName')
+//             .value()
+//             .forEach(field => {
+//                 field = String(field).toLowerCase();
+//                 const val = object.get(field);
+//                 if (!Array.isArray(val)) return;
+//                 object.unset(field);
+//             });
+//     },
+//     100000000,
+// );
 
 // content-retrieve hook
-Actinium.Hook.register('content-retrieve', async (content, params, options) => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-
-    const { type } = content;
-    const files = await Media.Content.retrieve({ content, type }, options);
-    Object.entries(files).forEach(([key, value]) =>
-        op.set(content, key, value),
-    );
-});
+// Actinium.Hook.register('content-retrieve', async (content, params, options) => {
+//     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+//
+//     const { type } = content;
+//     const files = await Media.Content.retrieve({ content, type }, options);
+//     Object.entries(files).forEach(([key, value]) =>
+//         op.set(content, key, value),
+//     );
+// });
 
 // Register Cloud functions
 
