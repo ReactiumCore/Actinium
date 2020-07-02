@@ -317,6 +317,12 @@ SyndicateClient.syncContent = async remoteTypes => {
             { type, limit: 10, page: page++ },
         );
         let results = op.get(response, 'data.result.results', []);
+        let theCount = [0, op.get(response, 'data.result.count')];
+        Actinium.Cache.set('syndicate.context', {
+            label: op.get(type, 'machineName'),
+            count: theCount,
+        });
+
         while (results.length) {
             for (const content of results) {
                 const {
@@ -332,6 +338,12 @@ SyndicateClient.syncContent = async remoteTypes => {
                     urls = {},
                     ...syncContent
                 } = content;
+                theCount[0]++;
+                Actinium.Cache.set('syndicate.context', {
+                    label: op.get(type, 'machineName'),
+                    count: theCount,
+                });
+
                 op.set(syncContent, 'meta.syndicate.objectId', objectId);
                 op.set(syncContent, 'meta.syndicate.sourceType', sourceType);
                 op.set(syncContent, 'meta.syndicate.branches', branches);

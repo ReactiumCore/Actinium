@@ -11781,6 +11781,22 @@
     "groupTitle": "Cloud"
   },
   {
+    "type": "Cloud",
+    "url": "syndicate-satellite-sync-reset",
+    "title": "syndicate-satellite-sync-reset",
+    "description": "<p>Reset sync status to idle, allowing a manual sync.</p>",
+    "permission": [
+      {
+        "name": "Syndicate.ManualSync"
+      }
+    ],
+    "group": "Cloud",
+    "name": "syndicate_satellite_sync_reset",
+    "version": "0.0.0",
+    "filename": ".core/plugin/syndicate-client/plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
     "type": "Asynchronous",
     "url": "type-create",
     "title": "type-create",
