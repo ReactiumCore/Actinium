@@ -364,12 +364,11 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                 // if it does exist, check to see if it shouldn't be automatically updated
                 if (existing) {
-                    op.set(
-                        syncContent,
-                        'meta.syndicate.manual',
+                    const manual =
                         op.get(existing, 'meta.syndicate.manual', false) ===
-                            true,
-                    );
+                        true;
+
+                    op.set(syncContent, 'meta.syndicate.manual', manual);
 
                     const from =
                         op.get(existing, 'meta.syndicate.history.branch') +
@@ -379,22 +378,21 @@ SyndicateClient.syncContent = async remoteTypes => {
                         op.get(syncContent, 'meta.syndicate.history.revision');
 
                     // content updated
-                    if (true || from !== to) {
+                    if (updatedAt !== existing.updatedAt || from !== to) {
                         LOG(
                             chalk.cyan(
                                 `Updating syndicated ${typeLabel} content`,
                                 contentLabel,
                             ),
                         );
-                        if (op.get(existing, 'meta.syndicate.manual')) {
+
+                        if (manual === true) {
                             await Actinium.Hook.run(
                                 'syndicate-content-before-save',
                                 syncContent,
                                 type,
                                 existing,
-                                Boolean(
-                                    op.get(existing, 'meta.syndicate.manual'),
-                                ),
+                                manual === true,
                             );
 
                             if (!op.get(existing, 'branches.syndicate')) {
@@ -421,9 +419,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 local,
                                 type,
                                 existing,
-                                Boolean(
-                                    op.get(existing, 'meta.syndicate.manual'),
-                                ),
+                                manual === true,
                             );
                         } else {
                             await Actinium.Hook.run(
@@ -431,9 +427,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 syncContent,
                                 type,
                                 existing,
-                                Boolean(
-                                    op.get(existing, 'meta.syndicate.manual'),
-                                ),
+                                manual === true,
                             );
 
                             if (!op.get(existing, 'branches.syndicate')) {
@@ -474,9 +468,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                                 local,
                                 type,
                                 existing,
-                                Boolean(
-                                    op.get(existing, 'meta.syndicate.manual'),
-                                ),
+                                manual === true,
                             );
                         }
                     }
