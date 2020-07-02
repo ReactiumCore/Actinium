@@ -332,7 +332,6 @@ SyndicateClient.syncContent = async remoteTypes => {
                     urls = {},
                     ...syncContent
                 } = content;
-
                 op.set(syncContent, 'meta.syndicate.objectId', objectId);
                 op.set(syncContent, 'meta.syndicate.sourceType', sourceType);
                 op.set(syncContent, 'meta.syndicate.branches', branches);

@@ -10,7 +10,7 @@ const PLUGIN = {
     order: 100,
     version: {
         actinium: '>=3.2.6',
-        plugin: '0.0.2',
+        plugin: '0.0.3',
     },
     bundle: [],
     meta: {
@@ -170,12 +170,12 @@ Actinium.Hook.register(
             for (const [fieldSlug, remoteTerms] of Object.entries(result)) {
                 const terms = [];
                 for (const { slug, type } of remoteTerms) {
-                    const {
-                        objectId: termId,
-                    } = await Actinium.Taxonomy.exists({
-                        slug,
-                        type: type.slug,
-                    });
+                    const { objectId: termId } = await Actinium.Taxonomy.exists(
+                        {
+                            slug,
+                            type: type.slug,
+                        },
+                    );
                     terms.push({ objectId: termId });
                 }
 
