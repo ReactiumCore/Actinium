@@ -88,7 +88,7 @@ const updateMediaDirectories = async (prev, current) => {
             return item;
         });
 
-        await Parse.Object.saveAll(results, options);
+        await Actinium.Object.saveAll(results, options);
 
         // Get next batch of records
         skip += limit;
@@ -96,6 +96,14 @@ const updateMediaDirectories = async (prev, current) => {
 
         results = results.length === limit ? await qry.find(options) : [];
     }
+};
+
+const getBucketName = async (directory, filename) => {
+    let bucketname = _.compact(
+        String(`${directory}/${filename}`).split('/'),
+    ).join('/');
+    await Actinium.Hook.run('media-file-name', bucketname);
+    return bucketname;
 };
 
 Media.cleanup = async (objects, deep = false) => {
@@ -350,7 +358,7 @@ Media.directorySave = async ({
 
     const obj = existing
         ? existing
-        : new Parse.Object(ENUMS.COLLECTION.DIRECTORY);
+        : new Actinium.Object(ENUMS.COLLECTION.DIRECTORY);
 
     obj.setACL(acl)
         .set('directory', directory)
@@ -439,7 +447,7 @@ Media.fileDelete = async (params, user, master) => {
     const objs = await qry.find(options);
 
     if (objs.length > 0) {
-        return Parse.Object.destroyAll(objs, { useMasterKey: true });
+        return Actinium.Object.destroyAll(objs, { useMasterKey: true });
     }
 };
 
@@ -717,7 +725,6 @@ Media.crop = async ({
     url,
     options = { width: 400, height: 400 },
 }) => {
-    prefix = prefix || 'thumbnail';
     url = typeof url === 'string' ? url : url.url();
     url = String(url).replace('undefined/', `${ENV.PARSE_MOUNT}/`);
 
@@ -725,9 +732,7 @@ Media.crop = async ({
     op.set(options, 'height', Number(op.get(options, 'height')));
 
     ext = ext || url.split('.').pop();
-    const filename = String(
-        `${slugify(prefix)}-${uuid()}.${ext}`,
-    ).toLowerCase();
+    const filename = String(`${uuid()}.${ext}`).toLowerCase();
 
     const isDataURL = String(url).startsWith('data');
 
@@ -752,8 +757,8 @@ Media.crop = async ({
         if (!buffer) return;
 
         const fileData = [...buffer.entries()].map(([index, byte]) => byte);
-
-        return new Actinium.File(filename, fileData).save();
+        const bucketname = await getBucketName('thumbnail', filename);
+        return new Actinium.File(bucketname, fileData).save();
     } catch (err) {
         /* EMPTY ON PURPOSE */
     }
@@ -784,7 +789,7 @@ const updatedMediaObj = await Media.update({
 Media.update = async (params, options) => {
     const { filedata, objectId, ...data } = params;
     const mediaObj = !objectId
-        ? new Parse.Object(ENUMS.COLLECTION.MEDIA)
+        ? new Actinium.Object(ENUMS.COLLECTION.MEDIA)
         : await new Parse.Query(ENUMS.COLLECTION.MEDIA)
               .equalTo('objectId', objectId)
               .first(options);
@@ -807,8 +812,8 @@ Media.update = async (params, options) => {
         const url = ['/media', directory, filename].join('/');
         const ext = filename.split('.').pop();
         const fname = `${uuid()}.${ext}`;
-
-        const file = await new Actinium.File(fname, filedata).save();
+        const bucketname = await getBucketName(directory, fname);
+        const file = await new Actinium.File(bucketname, filedata).save();
 
         mediaObj.set('file', file);
         mediaObj.set('ext', ext);
@@ -827,7 +832,7 @@ Media.update = async (params, options) => {
  * @apiName Media.upload
  * @apiDescription Function that creates a file and adds it to the Media Library.
 
-Returns: `Parse.Object('Media')`
+Returns: `Actinium.Object('Media')`
  * @apiParam {Mixed} data The contents of the file. This can be any valid `Actinium.File` file data value.
  * @apiParam {Object} meta The meta object for the file upload.
  * @apiParam {String} .directory The directory where the file will be saved. Required.
@@ -864,6 +869,7 @@ const file = await Actinium.Media.upload(data, meta, user, options);
  */
 Media.upload = async (data, meta, user, options) => {
     let { capabilities, directory, filename } = meta;
+    directory = directory || 'uploads';
     directory = String(directory).toLowerCase();
     filename = String(filename).toLowerCase();
     filename = slugify(filename);
@@ -872,7 +878,8 @@ Media.upload = async (data, meta, user, options) => {
 
     const ext = filename.split('.').pop();
     const fname = `${uuid()}.${ext}`;
-    const file = await new Actinium.File(fname, data).save();
+    const bucketname = await getBucketName(directory, fname);
+    const file = await new Actinium.File(bucketname, data).save();
     const url = ['/media', directory, filename].join('/');
 
     const obj = {
@@ -900,7 +907,10 @@ Media.upload = async (data, meta, user, options) => {
 
     op.set(obj, 'context.upload', true);
 
-    fileObj = await new Parse.Object(ENUMS.COLLECTION.MEDIA).save(obj, options);
+    fileObj = await new Actinium.Object(ENUMS.COLLECTION.MEDIA).save(
+        obj,
+        options,
+    );
 
     // Create the directory
     try {
@@ -1044,7 +1054,9 @@ Media.createFromURL = async (params, options) => {
             options: { width: 200, height: 200 },
         });
 
-        op.set(data, 'thumbnail', thumbnail);
+        if (thumbnail) {
+            op.set(data, 'thumbnail', thumbnail);
+        }
     }
 
     // Create the Actinium Object
