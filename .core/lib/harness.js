@@ -66,7 +66,13 @@ Actinium.Harness.test('My Test', async assert => {
                 }
 
                 context[desc] = await cb(assert);
-                BOOT(' - ' + description + ': ' + chalk.green('OK'));
+                BOOT(
+                    ' ',
+                    chalk.cyan('Test'),
+                    chalk.cyan('→'),
+                    chalk.magenta(description),
+                    chalk.green.bold('[OK]'),
+                );
 
                 if (typeof teardown === 'function') {
                     await teardown();
@@ -75,14 +81,17 @@ Actinium.Harness.test('My Test', async assert => {
                 if (typeof teardown === 'function') {
                     await teardown();
                 }
-                throw { description, error };
+                BOOT(
+                    ' ',
+                    chalk.cyan('Test'),
+                    chalk.cyan('→'),
+                    chalk.magenta(description),
+                    chalk.red.bold('[FAIL]'),
+                );
+                DEBUG(error);
             }
         });
     },
 };
-
-Harness.test('An Example Test', async assert => {
-    assert(true, 'asserted false');
-});
 
 module.exports = Harness;

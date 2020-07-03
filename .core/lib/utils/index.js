@@ -6,6 +6,7 @@ const hookedSave = require('./hookedSave');
 const hookedQuery = require('./hookedQuery');
 const { CloudACL, AclTargets } = require('./acl');
 const hookedRetrieve = require('./hookedRetrieve');
+const { getCallerFile } = require('./stack');
 
 const {
     CloudRunOptions,
@@ -34,4 +35,5 @@ module.exports = {
     hookedQuery,
     hookedRetrieve,
     Registry,
+    getCallerFile,
 };

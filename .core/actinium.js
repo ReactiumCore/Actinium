@@ -88,7 +88,6 @@ Actinium.start = options =>
 
             Actinium.Pulse.info();
 
-            BOOT('');
             BOOT(chalk.cyan('Starting...'));
 
             Actinium.server = !Actinium.server
