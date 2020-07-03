@@ -122,6 +122,14 @@ Plugable.register = (plugin, active = false) => {
     ) {
         op.set(meta, 'builtIn', true);
         if (!op.get(meta, 'group')) op.set(meta, 'group', 'core');
+
+        // core plugin are always valid for this version of actinium
+        op.set(version, 'actinium', `>=${ACTINIUM_CONFIG.version}`);
+
+        // core plugins that have no version information follow actinium core versioning
+        const pluginVersion = op.get(version, 'plugin');
+        if (!pluginVersion || !semver.valid(pluginVersion))
+            op.set(version, 'plugin', ACTINIUM_CONFIG.version);
     }
 
     op.set(plugin, 'meta', meta);
