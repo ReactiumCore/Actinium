@@ -38,12 +38,12 @@ Actinium.Hook.register('warning', async () => {
 
     const namespace = getNamespace();
     if (namespace === UNINSTALLED_NAMESPACE) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'It appears you have not set the ID_NAMESPACE to a unique random uuid/v4. The default will be used and your content ids will not be unique!',
         );
-        LOG(
+        WARN(
             chalk.cyan(`  PLUGINS['${PLUGIN.ID}'].meta.namespace → `),
             namespace,
         );

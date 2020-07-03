@@ -8,17 +8,17 @@ Actinium.Hook.register(
 
         const filePath = path.normalize(`${SRC_DIR}/env.dev.json`);
 
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'The default',
             chalk.magenta('env.dev.json'),
             'file has been created at:',
         );
-        LOG(' ', chalk.cyan(filePath));
-        LOG('');
-        LOG(' ', chalk.cyan.bold('Update the database connection string:'));
-        LOG(
+        WARN(' ', chalk.cyan(filePath));
+        WARN('');
+        WARN(' ', chalk.cyan.bold('Update the database connection string:'));
+        WARN(
             ' ',
             chalk.cyan.bold('$'),
             chalk.magenta.bold('arcli'),

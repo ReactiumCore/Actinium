@@ -95,16 +95,16 @@ Actinium.Hook.register('warning', () => {
     );
 
     if (ACCESS_SECRET === DEFAULT_ACCESS_SECRET) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             `ENV.ACCESS_SECRET set to default value ${DEFAULT_ACCESS_SECRET}`,
         );
     }
 
     if (REFRESH_SECRET === DEFAULT_REFRESH_SECRET) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             `ENV.REFRESH_SECRET set to default value ${DEFAULT_REFRESH_SECRET}`,
         );

@@ -17,10 +17,10 @@ Actinium.Plugin.register(PLUGIN, true);
 const indexContent = async () => {
     const options = Actinium.Utils.MasterOptions();
     const { types } = await Actinium.Type.list({}, options);
-    LOG(' ');
-    LOG(chalk.cyan.bold('Indexing Content:'));
+    INFO(' ');
+    INFO(chalk.cyan.bold('Indexing Content:'));
     for (const type of types) {
-        LOG(' -', type.collection);
+        INFO(' -', type.collection);
         await Actinium.Search.index({ type }, options);
     }
 };

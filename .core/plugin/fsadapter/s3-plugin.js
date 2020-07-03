@@ -25,7 +25,7 @@ const PLUGIN = {
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    LOG('  Files Adapter set to S3Adapter.');
+    BOOT('  Files Adapter set to S3Adapter.');
 
     const settings = await Actinium.Setting.get('S3Adapter', {
         directAccess: config.directAccess,

@@ -301,7 +301,7 @@ Content.getSchema = async contentTypeObj => {
                 ) {
                     schema[fieldSlug] = schemaTemplate.fieldTypes[fieldType];
                 } else {
-                    LOG(
+                    WARN(
                         chalk.cyan('Warning:'),
                         `Cannot change field type schema on existing field ${fieldSlug} for content type ${machineName}.`,
                     );
@@ -2639,10 +2639,10 @@ Content.publishScheduled = async () => {
 
         if (items.length > 0 && logged === false) {
             if (logged === false) {
+                INFO(chalk.cyan('Content Scheduler:'));
                 logged = true;
-                LOG(chalk.cyan('Content Scheduler:'));
             }
-            LOG(`(${items.length})` + chalk.cyan(` ${collection}:`));
+            INFO(`(${items.length})` + chalk.cyan(` ${collection}:`));
         }
 
         const now = moment();
@@ -2657,7 +2657,7 @@ Content.publishScheduled = async () => {
                 // sunrise
                 if (sunrise) {
                     if (now.isAfter(moment(sunrise))) {
-                        LOG(' - ', chalk.cyan('Publishing'), item.get('slug'));
+                        INFO(' - ', chalk.cyan('Publishing'), item.get('slug'));
 
                         await Actinium.Content.publish(
                             {
@@ -2676,7 +2676,7 @@ Content.publishScheduled = async () => {
 
                 if (sunset) {
                     if (now.isAfter(moment(sunset))) {
-                        LOG(
+                        INFO(
                             ' - ',
                             chalk.cyan('Unpublishing'),
                             item.get('slug'),
@@ -2723,8 +2723,8 @@ Content.publishScheduled = async () => {
         }
 
         if (items.length > 0) {
-            LOG(' - ', 'Done');
-            LOG('');
+            INFO(' - ', 'Done');
+            INFO('');
         }
     }
 };
@@ -2758,12 +2758,12 @@ Content.typeMaintenance = async () => {
 
         if (_.difference(slugs, currentSlugs).length > 0) {
             if (logged === false) {
-                LOG(chalk.cyan('Content Type Maintenance:'));
+                INFO(chalk.cyan('Content Type Maintenance:'));
                 logged = true;
             }
 
             const typeLabel = op.get(type, 'meta.label', op.get(type, 'type'));
-            LOG(` - Cleanup ${typeLabel} slugs`);
+            INFO(` - Cleanup ${typeLabel} slugs`);
             const typeObj = new Actinium.Object('Type');
             typeObj.id = type.objectId;
             typeObj.set('slugs', currentSlugs);
@@ -2781,7 +2781,7 @@ Content.typeMaintenance = async () => {
         await Actinium.Hook.run('type-maintenance', type);
     }
     if (logged === true) {
-        LOG('');
+        INFO('');
     }
 };
 

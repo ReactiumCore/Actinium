@@ -18,39 +18,39 @@ Actinium.Plugin.register(PLUGIN, true);
 
 Actinium.Hook.register('install', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-    LOG(`  Installed ${PLUGIN.ID}!`);
+    BOOT(`  Installed ${PLUGIN.ID}!`);
 });
 
 Actinium.Hook.register(
     'warning',
     () => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'The',
             chalk.bold('sample-plugin'),
             'is active.',
         );
-        LOG(' ', 'If you do not need it, deactivate or remove it!');
-        LOG(' ', chalk.magenta(__dirname));
+        WARN(' ', 'If you do not need it, deactivate or remove it!');
+        WARN(' ', chalk.magenta(__dirname));
     },
     -1,
 );
 
 Actinium.Hook.register('activate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-    LOG(`  Activated ${PLUGIN.ID}!`);
+    BOOT(`  Activated ${PLUGIN.ID}!`);
 });
 
 Actinium.Hook.register('deactivate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-    LOG(`  Deactivated ${PLUGIN.ID}!`);
+    BOOT(`  Deactivated ${PLUGIN.ID}!`);
 });
 
 Actinium.Hook.register('uninstall', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-    LOG(`  Uninstalled ${PLUGIN.ID}!`);
+    BOOT(`  Uninstalled ${PLUGIN.ID}!`);
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'sample-plugin', async req => {

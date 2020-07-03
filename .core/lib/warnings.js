@@ -8,18 +8,18 @@ module.exports = {
             if (
                 ENV.MASTER_KEY === 'VVipSwUXCp7p08vMDREITClNWG9oUSxBl2gDWL0Ffo'
             ) {
-                LOG('');
-                LOG(
+                WARN('');
+                WARN(
                     chalk.cyan.bold('Warning:'),
                     "Looks like you're using the default Master Key:",
                 );
-                LOG(
+                WARN(
                     ' ',
                     chalk.cyan('ENV.MASTER_KEY'),
                     chalk.cyan('→'),
                     chalk.magenta(ENV.MASTER_KEY),
                 );
-                LOG(' ', 'You should definitely change that bruh!');
+                WARN(' ', 'You should definitely change that bruh!');
             }
 
             const dashboardUser =
@@ -28,12 +28,12 @@ module.exports = {
             const user = op.get(dashboardUser, 'user');
             const pass = op.get(dashboardUser, 'pass');
             if (pass === 'admin') {
-                LOG('');
-                LOG(
+                WARN('');
+                WARN(
                     chalk.cyan.bold('Warning:'),
                     "Ehh, you haven't changed the default Parse Dashboard User:",
                 );
-                LOG(
+                WARN(
                     ' ',
                     chalk.cyan('ENV.PARSE_DASHBOARD_USERS'),
                     chalk.cyan('→'),
@@ -42,7 +42,7 @@ module.exports = {
                     `pass: '${chalk.magenta(pass)}'`,
                     chalk.cyan('}'),
                 );
-                LOG(' ', 'You should do that now, yo!');
+                WARN(' ', 'You should do that now, yo!');
             }
         }
 
@@ -55,12 +55,12 @@ module.exports = {
                         return;
                     }
 
-                    LOG('');
-                    LOG(
+                    WARN('');
+                    WARN(
                         chalk.cyan.bold('Warning:'),
                         'Duplicate Pulse definition',
                     );
-                    LOG(
+                    WARN(
                         ' ',
                         chalk.cyan('Pulse'),
                         chalk.cyan('→'),

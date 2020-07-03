@@ -18,15 +18,15 @@ Actinium.Hook.register('start', () => {
     if (Actinium.Plugin.isActive(PLUGIN.ID)) {
         Actinium.Hook.register('warning', () => {
             if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-                LOG('');
-                LOG(
+                WARN('');
+                WARN(
                     chalk.cyan.bold('Warning:'),
                     'The',
                     chalk.bold('sample-mailer'),
                     'is active.',
                 );
-                LOG(' ', 'If you do not need it, deactivate or remove it!');
-                LOG(' ', chalk.magenta(__dirname));
+                WARN(' ', 'If you do not need it, deactivate or remove it!');
+                WARN(' ', chalk.magenta(__dirname));
             }
 
             return Promise.resolve();

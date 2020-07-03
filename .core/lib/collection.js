@@ -47,7 +47,7 @@ Collection.register = (
             ].includes(capability)
         ) {
             await Actinium.Collection.load(collection);
-            LOG(
+            BOOT(
                 chalk.cyan(`Capability ${capability} edited.`),
                 chalk.magenta(`Reloading CLP for ${collection}`),
             );
@@ -82,13 +82,13 @@ Collection.load = async (collection = false) => {
     }
 
     if (loading) {
-        LOG(' ');
-        LOG(chalk.cyan('Loading collection schemas and CLPs...'));
+        BOOT(' ');
+        BOOT(chalk.cyan('Loading collection schemas and CLPs...'));
     }
 
     const actions = entries.reduce((actions, [collection, publicSetting]) => {
         if (!Collection.loaded && loading) {
-            LOG(chalk.cyan('  ', collection));
+            INFO(chalk.cyan('  ', collection));
         }
 
         actions[`${collection}Hook`] = () =>
@@ -273,11 +273,11 @@ Collection.load = async (collection = false) => {
 
         if (loading) {
             Collection.loaded = true;
-            LOG(' ');
+            INFO(' ');
         }
         return results;
     } catch (error) {
-        LOG(
+        ERROR(
             chalk.cyan('Error'),
             chalk.magenta('loading class level permissions'),
             error,

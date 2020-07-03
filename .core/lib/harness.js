@@ -8,8 +8,8 @@ const results = {};
 const Harness = {
     run: async () => {
         if (process.env.NODE_ENV === 'development' && ENV.RUN_TEST === true) {
-            LOG(' ');
-            LOG(chalk.cyan('Test Runner:'));
+            BOOT(' ');
+            BOOT(chalk.cyan('Test Runner:'));
 
             const response = await Hook.run('tests');
         }
@@ -66,7 +66,7 @@ Actinium.Harness.test('My Test', async assert => {
                 }
 
                 context[desc] = await cb(assert);
-                LOG(' - ' + description + ': ' + chalk.green('OK'));
+                BOOT(' - ' + description + ': ' + chalk.green('OK'));
 
                 if (typeof teardown === 'function') {
                     await teardown();

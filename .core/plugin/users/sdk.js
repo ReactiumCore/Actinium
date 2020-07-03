@@ -66,14 +66,14 @@ User.init = async () => {
     const adminUser = await User.save(params, options);
 
     if (adminUser) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'The default Super Admin user has been created:',
         );
-        LOG(' ', 'Username' + chalk.cyan(':'), chalk.magenta(params.username));
-        LOG(' ', 'Password' + chalk.cyan(':'), chalk.magenta(password));
-        LOG(' ', 'Be sure to change this password!');
+        WARN(' ', 'Username' + chalk.cyan(':'), chalk.magenta(params.username));
+        WARN(' ', 'Password' + chalk.cyan(':'), chalk.magenta(password));
+        WARN(' ', 'Be sure to change this password!');
     }
 
     return adminUser;
@@ -394,7 +394,7 @@ User.save = async (params, options) => {
     try {
         user = await userObj.save(params, options);
     } catch (err) {
-        LOG('User.save() -> Error', params);
+        ERROR('User.save() -> Error', params);
         throw new Error(err);
         return err;
     }
@@ -406,10 +406,10 @@ User.save = async (params, options) => {
                 'role-user-add',
                 { user: user.id, role },
                 options,
-            ).catch(console.log);
+            ).catch(ERROR);
         }
     } catch (err) {
-        console.log(err);
+        ERROR(err);
     }
 
     Actinium.Cache.del('users');

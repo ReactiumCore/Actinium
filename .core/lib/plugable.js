@@ -195,15 +195,15 @@ Plugable.load = async () => {
         'order',
     );
 
-    LOG('');
-    LOG(chalk.cyan('Loaded plugins...'));
+    BOOT('');
+    BOOT(chalk.cyan('Loaded plugins...'));
 
     const objects = [];
     for (let i = 0; i < pluginCache.length; i++) {
         const plugin = pluginCache[i];
 
         const { ID, version } = plugin;
-        LOG(chalk.cyan('  Plugin'), chalk.cyan('→'), chalk.magenta(ID));
+        BOOT(chalk.cyan('  Plugin'), chalk.cyan('→'), chalk.magenta(ID));
 
         let obj = await new Parse.Query(COLLECTION)
             .equalTo('ID', ID)

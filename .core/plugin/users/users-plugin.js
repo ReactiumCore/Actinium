@@ -136,7 +136,7 @@ const createAvatar = async req => {
         let type = op.get(avatarTypes, ext, null);
 
         if (!type) {
-            LOG('invalid avatar image type');
+            ERROR('invalid avatar image type');
             return;
         }
 

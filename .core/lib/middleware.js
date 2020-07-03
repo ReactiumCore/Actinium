@@ -38,7 +38,11 @@ mw.init = app => {
     const sorted = _.sortBy(mw.sort, 'order');
     const actions = sorted.reduce((acts, { callback = noop, id }) => {
         acts[id] = () => {
-            LOG(chalk.cyan('  Middleware'), chalk.cyan('→'), chalk.magenta(id));
+            BOOT(
+                chalk.cyan('  Middleware'),
+                chalk.cyan('→'),
+                chalk.magenta(id),
+            );
             callback(app);
         };
         return acts;
@@ -50,24 +54,24 @@ mw.init = app => {
     });
 
     if (Object.keys(mw.replacements).length > 0) {
-        LOG(
+        BOOT(
             chalk.cyan('  Middleware'),
             chalk.cyan('→'),
             chalk.magenta('Replaced'),
         );
-        LOG(' ', Object.keys(mw.replacements).join(', '));
+        BOOT(' ', Object.keys(mw.replacements).join(', '));
     }
 
     // Unregister
     _.uniq(mw.unregistered).forEach(id => op.del(actions, id));
 
     if (mw.unregistered.length > 0) {
-        LOG(
+        BOOT(
             chalk.cyan('  Middleware'),
             chalk.cyan('→'),
             chalk.magenta('Unregistered'),
         );
-        LOG(' ', mw.unregistered.join(', '));
+        BOOT(' ', mw.unregistered.join(', '));
     }
 
     mw.list = actions;

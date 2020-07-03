@@ -117,7 +117,7 @@ SyndicateClient.syncTypes = async () => {
     const remoteTypes = op.get(result, 'data.result', []);
     const { types = [] } = await Actinium.Type.list({}, masterOptions);
 
-    if (remoteTypes.length) LOG(' ');
+    if (remoteTypes.length) INFO(' ');
     for (const remoteType of remoteTypes) {
         const {
             objectId: remoteObjectId,
@@ -134,7 +134,7 @@ SyndicateClient.syncTypes = async () => {
         op.set(meta, 'remoteUpdatedAt', remoteUpdatedAt);
         op.set(type, 'meta', meta);
 
-        LOG(
+        INFO(
             chalk.cyan(
                 'Synchronizing syndicated type:',
                 op.get(type, 'meta.label', op.get(type, 'type')),
@@ -188,7 +188,7 @@ SyndicateClient.syncMediaDirectories = async () => {
                     directory,
                 );
 
-                LOG(
+                INFO(
                     chalk.cyan(
                         `Creating synced media directory ${result.directory}`,
                     ),
@@ -277,7 +277,7 @@ SyndicateClient.syncMedia = async () => {
 
             await Actinium.Hook.run('syndicate-media-before-save', media);
 
-            LOG(chalk.cyan(`Syncing media file ${result.url}`));
+            INFO(chalk.cyan(`Syncing media file ${result.url}`));
 
             await media.save(null, masterOptions);
 
@@ -391,7 +391,7 @@ SyndicateClient.syncContent = async remoteTypes => {
 
                     // content updated
                     if (updatedAt !== existing.updatedAt || from !== to) {
-                        LOG(
+                        INFO(
                             chalk.cyan(
                                 `Updating syndicated ${typeLabel} content`,
                                 contentLabel,
@@ -486,7 +486,7 @@ SyndicateClient.syncContent = async remoteTypes => {
                     }
                     // if it doesn't exist, create/publish it
                 } else {
-                    LOG(
+                    INFO(
                         chalk.cyan(
                             `Creating syndicated ${typeLabel} content`,
                             contentLabel,
@@ -552,7 +552,7 @@ SyndicateClient.syncTaxonomyTypes = async () => {
             ...result
         } of results) {
             const { name, slug, description } = result;
-            LOG(chalk.cyan(`Syncing taxonomy type ${name} (${slug})`));
+            INFO(chalk.cyan(`Syncing taxonomy type ${name} (${slug})`));
             const { objectId: existingId } =
                 (await Actinium.Taxonomy.Type.exists({ slug })) || {};
             const taxType = { name, slug, description };
@@ -599,7 +599,7 @@ SyndicateClient.syncTaxonomies = async taxTypes => {
             const { name, slug, description, type = {} } = result;
             const { slug: typeSlug } = type;
 
-            LOG(chalk.cyan(`Syncing taxonomy ${slug} of type ${typeSlug}.`));
+            INFO(chalk.cyan(`Syncing taxonomy ${slug} of type ${typeSlug}.`));
 
             const { objectId: existingId } =
                 (await Actinium.Taxonomy.exists({ slug, type: typeSlug })) ||

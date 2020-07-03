@@ -54,18 +54,18 @@ Actinium.Hook.register('warning', async () => {
     const { appId, host, token } = await Actinium.SyndicateClient.settings();
 
     if (!appId) {
-        LOG('');
-        LOG(chalk.cyan.bold('Warning:'), 'missing syndicate Application Id');
+        WARN('');
+        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate Application Id');
     }
 
     if (!host) {
-        LOG('');
-        LOG(chalk.cyan.bold('Warning:'), 'missing syndicate host');
+        WARN('');
+        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate host');
     }
 
     if (!token) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'missing syndicate client refresh token',
         );
@@ -230,7 +230,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'syndicate-satellite-sync', async req => {
     });
 
     if (syncStatus === 'idle') {
-        LOG('Manual content sync triggered.');
+        BOOT('Manual content sync triggered.');
         Actinium.Cache.get('syndicate.status', 'start');
         Actinium.SyndicateClient.sync();
         return 'start';

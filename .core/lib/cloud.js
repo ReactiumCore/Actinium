@@ -6,7 +6,7 @@ const Cloud = { ...Parse.Cloud };
 
 Cloud.info = () =>
     CLOUD_FUNCTIONS.forEach(({ name }) =>
-        LOG(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
+        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
     );
 
 Cloud.init = () => {

@@ -16,7 +16,7 @@ class FilesAdapterProxy {
     async _set(adapter, silent) {
         if (!adapter) {
             if (silent !== true) {
-                LOG('  Files Adapter set to GridFSBucketAdapter.');
+                INFO('  Files Adapter set to GridFSBucketAdapter.');
             }
             this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
             this._adapter.validateFilename = this._validateFilenameDefault;
@@ -99,12 +99,12 @@ FilesAdapter.getProxy = config => {
 
 FilesAdapter.update = async () => {
     try {
-        LOG(' ');
-        LOG(chalk.cyan('Updating Files Adapter:'));
+        INFO(' ');
+        INFO(chalk.cyan('Updating Files Adapter:'));
         const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
         await proxy._set(adapter);
     } catch (error) {
-        LOG('Error setting files-adapter.');
+        ERROR('Error setting files-adapter.');
     }
 };
 
