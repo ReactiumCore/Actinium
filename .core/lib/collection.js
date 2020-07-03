@@ -88,7 +88,11 @@ Collection.load = async (collection = false) => {
 
     const actions = entries.reduce((actions, [collection, publicSetting]) => {
         if (!Collection.loaded && loading) {
-            INFO(chalk.cyan('  ', collection));
+            BOOT(
+                chalk.cyan('  Collection'),
+                chalk.cyan('→'),
+                chalk.magenta(collection),
+            );
         }
 
         actions[`${collection}Hook`] = () =>
