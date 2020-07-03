@@ -249,7 +249,7 @@ Content.getSchema = async contentTypeObj => {
                 'updatedAt',
                 'ACL',
             ].concat(Object.keys(schemaTemplate.schema));
-            // console.log({ requiredFields, permittedFields, existing: Object.keys(existingSchema.fields)});
+
             for (const name of Object.keys(existingSchema.fields)) {
                 if (requiredFields.includes(name)) continue;
                 if (!op.has(permittedFields, [name])) {
@@ -766,7 +766,6 @@ Content.diff = async (contentObj, changes) => {
     const diff = {};
 
     for (const { fieldSlug, fieldValue } of changes) {
-        // console.log({fieldSlug, fieldValue});
         if (!equal(op.get(contentObj, fieldSlug), fieldValue)) {
             op.set(diff, fieldSlug, fieldValue);
         }
@@ -2883,7 +2882,7 @@ Actinium.Harness.test(
                 await new Promise(resolve => setTimeout(resolve, 250));
             }
         } catch (error) {
-            console.log('setup error', error);
+            ERROR('setup error', error);
         }
     },
 );
@@ -3143,7 +3142,7 @@ Actinium.Harness.test(
             const logs = await clQuery.find(options);
             await Actinium.Object.destroyAll(logs, options);
         } catch (error) {
-            console.log('teardown error', error);
+            ERROR('teardown error', error);
         }
     },
 );

@@ -34,8 +34,7 @@ Actinium.Collection = require('./lib/collection');
 Actinium.Utils = require('./lib/utils');
 
 Actinium.init = async options => {
-    console.log('');
-
+    BOOT('');
     BOOT(chalk.cyan('Version'), chalk.magenta(config.version));
     BOOT('');
     BOOT(chalk.cyan('Initializing...'));

@@ -191,12 +191,12 @@ Collection.load = async (collection = false) => {
                     addFieldPermission,
                 );
             } catch (error) {
-                console.log(
+                ERROR(
                     schema.classLevelPermissions.find,
                     typeof schema.classLevelPermissions.find,
                 );
-                console.log({ collection });
-                console.log(error);
+                ERROR({ collection });
+                ERROR(error);
             }
 
             const { className, classLevelPermissions } = schema;

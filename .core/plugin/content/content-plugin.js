@@ -122,7 +122,7 @@ Actinium.Hook.register('schema', async () => {
         try {
             await Actinium.Content.saveSchema(type);
         } catch (error) {
-            console.log(`Error updating content schema ${type.type}`, error);
+            ERROR(`Error updating content schema ${type.type}`, error);
         }
     }
 });
@@ -132,7 +132,7 @@ Actinium.Hook.register('type-saved', async contentType => {
     try {
         await Actinium.Content.saveSchema(contentType);
     } catch (error) {
-        console.log(`Error updating content schema ${type}`, error);
+        ERROR(`Error updating content schema ${type}`, error);
     }
 });
 

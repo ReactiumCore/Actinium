@@ -150,7 +150,7 @@ const createAvatar = async req => {
             avatar = { base64: avatar.split(';base64,').pop() };
             fileObj = await new Actinium.File(filename, avatar).save();
         } catch (err) {
-            console.log(err);
+            ERROR(err);
             return;
         }
 

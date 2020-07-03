@@ -104,7 +104,7 @@ SyndicateClient.runRemote = async (funcName, params = {}) => {
 
         return result;
     } catch (error) {
-        console.log({ error });
+        ERROR(error);
     }
 };
 
