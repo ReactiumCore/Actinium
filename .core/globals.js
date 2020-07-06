@@ -2,6 +2,8 @@ const path = require('path');
 const chalk = require('chalk');
 const moment = require('moment');
 const op = require('object-path');
+const Enums = require('./lib/enums');
+const ACTINIUM_CONFIG = require('./actinium-config');
 
 const stringToBoolean = val => {
     if (typeof val === 'string') {
@@ -20,6 +22,7 @@ const stringToBoolean = val => {
 const stringToObject = val => (typeof val === 'string' ? JSON.parse(val) : val);
 
 global.Actinium = {};
+global.ACTINIUM_CONFIG = ACTINIUM_CONFIG;
 global.BASE_DIR = path.normalize(path.resolve(path.join(__dirname, '..')));
 global.SRC_DIR = path.normalize(path.resolve(path.join(BASE_DIR, 'src')));
 global.APP_DIR = path.normalize(path.resolve(path.join(SRC_DIR, 'app')));
@@ -62,8 +65,20 @@ const defaults = {
     static: path.normalize(`${process.cwd()}/public`),
 };
 
+// Actinium and Parse Log Level
 ENV.LOG = stringToBoolean(op.get(ENV, 'LOG', true));
-ENV.LOG_LEVEL = stringToBoolean(op.get(ENV, 'LOG_LEVEL', 'error'));
+let LOG_LEVEL = stringToBoolean(op.get(ENV, 'LOG_LEVEL', 'BOOT'));
+// translate parse level to Actinium level
+const levelMap = Object.entries(Enums.parseLogLevels).find(
+    ([, parseLevel]) => LOG_LEVEL === parseLevel,
+);
+if (Array.isArray(levelMap)) {
+    const [level] = levelMap;
+    LOG_LEVEL = level;
+}
+ENV.LOG_LEVEL = op.has(Enums.logLevels, LOG_LEVEL) ? LOG_LEVEL : 'BOOT';
+ENV.PARSE_LOG_LEVEL = op.get(Enums, ['parseLogLevels', LOG_LEVEL], 'error');
+
 ENV.PARSE_DASHBOARD_USERS = stringToObject(
     op.get(ENV, 'PARSE_DASHBOARD_USERS', []),
 );
@@ -100,11 +115,26 @@ ENV.RUN_TEST = stringToBoolean(op.get(ENV, 'RUN_TEST', true));
 
 ENV.ACTINIUM_MOUNT = ENV.PARSE_MOUNT;
 
-global.LOG = (...args) => {
-    if (!ENV.LOG) {
-        return;
-    }
-    const time = `[${chalk.magenta(moment().format('HH:mm:ss'))}]`;
-    const name = `[${chalk.cyan(String(ENV.APP_NAME))}]`;
-    console.log(time, name, ...args);
-};
+const LOG_THRESHOLD = op.get(Enums, ['logLevels', LOG_LEVEL], 0);
+for (const [LEVEL, THRESHOLD] of Object.entries(Enums.logLevels)) {
+    global[LEVEL] = (...args) => {
+        if (!ENV.LOG || THRESHOLD > LOG_THRESHOLD) {
+            return;
+        }
+
+        const _W = THRESHOLD <= Enums.logLevels.WARN;
+        const _E = THRESHOLD <= Enums.logLevels.ERROR;
+        let color = _W ? chalk.yellow.bold : chalk.cyan;
+        color = _E ? chalk.red.bold : color;
+
+        const time = `[${chalk.magenta(moment().format('HH:mm:ss'))}]`;
+        let name = `${color(String(ENV.APP_NAME))}`;
+        name = _E ? `%${name}%` : _W ? `!${name}!` : `[${name}]`;
+
+        let logMethod = op.get(console, LEVEL, console.log);
+        logMethod = typeof logMethod === 'function' ? logMethod : console.log;
+        logMethod(time, name, ...args);
+    };
+}
+
+global.LOG = global.BOOT;

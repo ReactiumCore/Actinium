@@ -40,9 +40,9 @@ Actinium.Hook.register('start', async () => {
 
         Actinium.Hook.register('warning', () => {
             if (!api_key || !domain) {
-                LOG('');
+                WARN('');
                 !api_key &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning:'),
                         chalk.cyan(
                             'mailgun.api_key setting or ENV.MAILGUN_API_KEY',
@@ -53,7 +53,7 @@ Actinium.Hook.register('start', async () => {
                         chalk.bold('sendmail behavior.'),
                     );
                 !domain &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning:'),
                         chalk.cyan(
                             'mailgun.domain setting or ENV.MAILGUN_DOMAIN',
@@ -71,8 +71,8 @@ Actinium.Hook.register('start', async () => {
         Actinium.Hook.register(
             'mailer-transport',
             async context => {
-                LOG('');
-                LOG(chalk.magenta.bold('MAILGUN Transport'));
+                WARN('');
+                WARN(chalk.magenta.bold('MAILGUN Transport'));
 
                 if (api_key && domain) {
                     const transportOptions = {

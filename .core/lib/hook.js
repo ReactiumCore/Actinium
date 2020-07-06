@@ -52,30 +52,30 @@ Hook.run = async (name, ...params) => {
         return context;
     } catch (errors) {
         Object.entries(errors).forEach(([id, error]) => {
-            LOG(chalk.magenta(`Error in action.${name}[${id}]`));
+            ERROR(chalk.magenta(`Error in action.${name}[${id}]`));
             if (op.get(error, 'error') instanceof assert.AssertionError) {
                 const assertion = error.error;
-                console.log(chalk.cyan('Assertion: ' + assertion.message));
-                console.log(
+                DEBUG(chalk.cyan('Assertion: ' + assertion.message));
+                DEBUG(
                     chalk.cyan(
                         'operator: ' +
                             JSON.stringify(assertion.operator, null, 2),
                     ),
                 );
-                console.log(
+                DEBUG(
                     chalk.green(
                         'expected: ' +
                             JSON.stringify(assertion.expected, null, 2),
                     ),
                 );
-                console.log(
+                DEBUG(
                     chalk.red(
                         'actual: ' + JSON.stringify(assertion.actual, null, 2),
                     ),
                 );
-                console.log(' ');
+                DEBUG(' ');
             } else {
-                console.log(error);
+                ERROR(error);
             }
         });
     }

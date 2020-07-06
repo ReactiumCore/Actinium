@@ -39,7 +39,7 @@ Actinium.Hook.register('warn', async () => {
         Actinium.Plugin.isActive(PLUGIN.ID) &&
         process.env.NODE_ENV !== 'development'
     ) {
-        LOG(
+        BOOT(
             chalk.magenta(
                 'WARNING: Reset Plugin is enabled. Disable this in production!!!!!!!!!!!!!!!!!',
             ),

@@ -47,7 +47,7 @@ Collection.register = (
             ].includes(capability)
         ) {
             await Actinium.Collection.load(collection);
-            LOG(
+            BOOT(
                 chalk.cyan(`Capability ${capability} edited.`),
                 chalk.magenta(`Reloading CLP for ${collection}`),
             );
@@ -82,13 +82,17 @@ Collection.load = async (collection = false) => {
     }
 
     if (loading) {
-        LOG(' ');
-        LOG(chalk.cyan('Loading collection schemas and CLPs...'));
+        BOOT(' ');
+        BOOT(chalk.cyan('Loading collection schemas and CLPs...'));
     }
 
     const actions = entries.reduce((actions, [collection, publicSetting]) => {
         if (!Collection.loaded && loading) {
-            LOG(chalk.cyan('  ', collection));
+            BOOT(
+                chalk.cyan('  Collection'),
+                chalk.cyan('→'),
+                chalk.magenta(collection),
+            );
         }
 
         actions[`${collection}Hook`] = () =>
@@ -191,12 +195,12 @@ Collection.load = async (collection = false) => {
                     addFieldPermission,
                 );
             } catch (error) {
-                console.log(
+                ERROR(
                     schema.classLevelPermissions.find,
                     typeof schema.classLevelPermissions.find,
                 );
-                console.log({ collection });
-                console.log(error);
+                ERROR({ collection });
+                ERROR(error);
             }
 
             const { className, classLevelPermissions } = schema;
@@ -273,11 +277,11 @@ Collection.load = async (collection = false) => {
 
         if (loading) {
             Collection.loaded = true;
-            LOG(' ');
+            INFO(' ');
         }
         return results;
     } catch (error) {
-        LOG(
+        ERROR(
             chalk.cyan('Error'),
             chalk.magenta('loading class level permissions'),
             error,

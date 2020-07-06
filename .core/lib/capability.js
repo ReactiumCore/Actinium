@@ -239,8 +239,8 @@ Capability.load = async () => {
     if (Actinium.Cache.get('capabilities.loaded')) return;
 
     if (Actinium.started !== true) {
-        LOG('');
-        LOG(chalk.cyan('Loading capabilities...'));
+        BOOT('');
+        BOOT(chalk.cyan('Loading capabilities...'));
     }
 
     await Actinium.Hook.run('capability-loading');
@@ -319,8 +319,8 @@ Capability.load = async () => {
     await Actinium.Hook.run('capability-loaded');
 
     if (Actinium.started !== true) {
-        LOG(chalk.cyan('  Loaded.'));
-        LOG('');
+        BOOT(chalk.cyan('  Loaded.'));
+        BOOT('');
     }
 
     Actinium.Cache.set(

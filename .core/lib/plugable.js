@@ -3,12 +3,12 @@ const path = require('path');
 const chalk = require('chalk');
 const _ = require('underscore');
 const semver = require('semver');
+const semverValidRange = require('semver/ranges/valid');
 const op = require('object-path');
 const globby = require('globby').sync;
 const appdir = path.normalize(`${APP_DIR}`);
 const coredir = path.normalize(`${BASE_DIR}/.core`);
 const npmdir = path.normalize(`${BASE_DIR}/node_modules`);
-const config = require(`${BASE_DIR}/.core/actinium-config`);
 
 const exp = {};
 const blacklist = [];
@@ -16,23 +16,40 @@ const COLLECTION = 'Plugin';
 
 const loader = p => {
     const plugin = require(path.normalize(p));
-    const { ID, version } = plugin;
 
-    // Validate plugin ID
+    const ID = op.get(plugin, 'ID');
+    if (ID) {
+        exp[ID] = plugin;
+        return plugin;
+    }
+};
+
+const _isValid = (plugin = {}, strict = false) => {
+    const { ID } = plugin;
     if (!ID || blacklist.includes(ID)) {
-        return;
+        return false;
+    }
+
+    // Validate if the plugin exists
+    if (!plugin) {
+        return false;
     }
 
     // Validate Actinium version
-    const appVer = op.get(config, 'version');
-    const ver = op.get(version, 'actinium', appVer);
-    if (!semver.satisfies(appVer, ver)) {
-        return;
+    const actiniumVer = op.get(ACTINIUM_CONFIG, 'version');
+    const versionRange = op.get(plugin, 'version.actinium', `>=${actiniumVer}`);
+    if (versionRange && semverValidRange(versionRange)) {
+        if (!semver.satisfies(actiniumVer, versionRange)) {
+            return false;
+        }
     }
 
-    exp[ID] = plugin;
+    // Validate if the plugin is active
+    if (strict === true && Plugable.isActive(ID) !== true) {
+        return false;
+    }
 
-    return plugin;
+    return true;
 };
 
 const Plugable = {};
@@ -86,12 +103,39 @@ Plugable.capabilities = [
 Plugable.exports = key => op.get(exp, key);
 
 Plugable.register = (plugin, active = false) => {
+    const callerFileName = Actinium.Utils.getCallerFile();
     const ID = op.get(plugin, 'ID');
     plugin['active'] = active;
 
-    if (ID) {
-        Actinium.Cache.set(`plugins.${ID}`, plugin);
+    // Validate plugin ID
+    if (!ID || blacklist.includes(ID)) {
+        return;
     }
+
+    const meta = op.get(plugin, 'meta', {}) || {};
+    const version = op.get(plugin, 'version', {}) || {};
+
+    // Core plugins
+    if (
+        callerFileName &&
+        !/^[.]{2}/.test(path.relative(coredir, callerFileName))
+    ) {
+        op.set(meta, 'builtIn', true);
+        if (!op.get(meta, 'group')) op.set(meta, 'group', 'core');
+
+        // core plugin are always valid for this version of actinium
+        op.set(version, 'actinium', `>=${ACTINIUM_CONFIG.version}`);
+
+        // core plugins that have no version information follow actinium core versioning
+        const pluginVersion = op.get(version, 'plugin');
+        if (!pluginVersion || !semver.valid(pluginVersion))
+            op.set(version, 'plugin', ACTINIUM_CONFIG.version);
+    }
+
+    op.set(plugin, 'meta', meta);
+    op.set(plugin, 'version', version);
+
+    if (_isValid(plugin)) Actinium.Cache.set(`plugins.${ID}`, plugin);
 };
 
 Plugable.addMetaAsset = (
@@ -195,15 +239,25 @@ Plugable.load = async () => {
         'order',
     );
 
-    LOG('');
-    LOG(chalk.cyan('Loaded plugins...'));
+    BOOT('');
+    BOOT(chalk.cyan('Loaded plugins...'));
 
     const objects = [];
     for (let i = 0; i < pluginCache.length; i++) {
         const plugin = pluginCache[i];
 
         const { ID, version } = plugin;
-        LOG(chalk.cyan('  Plugin'), chalk.cyan('→'), chalk.magenta(ID));
+        const versionInfo =
+            op.get(plugin, 'meta.builtIn') === true
+                ? 'core'
+                : op.get(plugin, 'version.plugin');
+
+        BOOT(
+            chalk.cyan('  Plugin'),
+            chalk.cyan('→'),
+            chalk.magenta(ID),
+            chalk.bold.white(versionInfo && `(${versionInfo})`),
+        );
 
         let obj = await new Parse.Query(COLLECTION)
             .equalTo('ID', ID)
@@ -251,32 +305,8 @@ Plugable.get = ID =>
 Plugable.isActive = ID => Actinium.Cache.get(`plugins.${ID}.active`, false);
 
 Plugable.isValid = (ID, strict = false) => {
-    if (blacklist.includes(ID)) {
-        return false;
-    }
-
     const plugin = Plugable.get(ID);
-
-    // Validate if the plugin exists
-    if (!plugin) {
-        return false;
-    }
-
-    // Validate Actinium version
-    const versionRange = op.get(plugin, 'version.actinium');
-    if (versionRange) {
-        const actiniumVer = op.get(config, 'version', '>=3.0.5');
-        if (!semver.satisfies(actiniumVer, versionRange)) {
-            return false;
-        }
-    }
-
-    // Validate if the plugin is active
-    if (strict === true && Plugable.isActive(ID) !== true) {
-        return false;
-    }
-
-    return true;
+    return _isValid(plugin, strict);
 };
 
 Plugable.gate = async ({ req, ID, name, callback }) => {

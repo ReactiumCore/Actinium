@@ -31,8 +31,8 @@ const getSettings = async () => {
                 op.set(defaults, key, value);
             });
         } catch (error) {
-            LOG('');
-            LOG(
+            ERROR('');
+            ERROR(
                 chalk.magenta.bold('Warning'),
                 chalk.cyan('ENV.SMTP_MAILER_SETTINGS_FILE'),
                 'invalid or does not contain valid JSON settings (host, domain, user, pass)!',
@@ -59,27 +59,27 @@ Actinium.Hook.register('start', async () => {
         Actinium.Hook.register('warning', () => {
             const { host, port, user, pass } = settings;
             if (!(host && port && user && pass)) {
-                LOG('');
+                WARN('');
                 !host &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning'),
                         chalk.cyan('smtp.host setting or ENV.SMTP_MAILER_HOST'),
                         'is not set!',
                     );
                 !port &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning'),
                         chalk.cyan('smtp.port setting or ENV.SMTP_MAILER_PORT'),
                         'is not set!',
                     );
                 !user &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning'),
                         chalk.cyan('smtp.user setting or ENV.SMTP_MAILER_USER'),
                         'is not set!',
                     );
                 !pass &&
-                    LOG(
+                    WARN(
                         chalk.magenta.bold('Warning'),
                         chalk.cyan('smtp.pass setting or ENV.SMTP_MAILER_PASS'),
                         'is not set!',
@@ -94,8 +94,8 @@ Actinium.Hook.register('start', async () => {
             async context => {
                 const { host, port, user, pass } = settings;
 
-                LOG('');
-                LOG(chalk.magenta.bold('SMTP-MAILER Transport'));
+                WARN('');
+                WARN(chalk.magenta.bold('SMTP-MAILER Transport'));
                 if (host && port && user && pass) {
                     const transportOptions = {
                         host,

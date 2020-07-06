@@ -7,13 +7,6 @@ const PLUGIN = {
     description: 'Mailer plugin.',
     name: 'Mailer Plugin',
     order: 0,
-    version: {
-        actinium: '>=3.0.5',
-        plugin: '0.0.1',
-    },
-    meta: {
-        group: 'core',
-    },
 };
 
 Actinium.Plugin.register(PLUGIN, true);

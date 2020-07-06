@@ -34,11 +34,10 @@ Actinium.Collection = require('./lib/collection');
 Actinium.Utils = require('./lib/utils');
 
 Actinium.init = async options => {
-    console.log('');
-
-    LOG(chalk.cyan('Version'), chalk.magenta(config.version));
-    LOG('');
-    LOG(chalk.cyan('Initializing...'));
+    BOOT('');
+    BOOT(chalk.cyan('Version'), chalk.magenta(config.version));
+    BOOT('');
+    BOOT(chalk.cyan('Initializing...'));
 
     const app = Actinium.app || express();
     Actinium.app = app;
@@ -66,9 +65,9 @@ Actinium.init = async options => {
         op.get(ENV.LIVE_QUERY_SETTINGS, 'classNames', []),
     );
 
-    LOG(' ');
-    LOG(' ', chalk.cyan('Initialized!'));
-    LOG(' ');
+    BOOT(' ');
+    BOOT(' ', chalk.cyan('Initialized!'));
+    BOOT(' ');
 
     return Promise.resolve(Actinium.app);
 };
@@ -89,8 +88,7 @@ Actinium.start = options =>
 
             Actinium.Pulse.info();
 
-            LOG('');
-            LOG(chalk.cyan('Starting...'));
+            BOOT(chalk.cyan('Starting...'));
 
             Actinium.server = !Actinium.server
                 ? http.createServer(Actinium.app)
@@ -98,22 +96,22 @@ Actinium.start = options =>
 
             Actinium.server.listen(PORT, async err => {
                 if (err) {
-                    LOG(err);
+                    BOOT(err);
                     reject(err);
                 } else {
-                    LOG(
+                    BOOT(
                         chalk.cyan('  Started'),
                         'on port:',
                         chalk.magenta(PORT),
                     );
 
                     if (!ENV.NO_PARSE && ENV.LIVE_QUERY_SERVER) {
-                        LOG(' ');
-                        LOG(chalk.cyan('Starting Live Query Server...'));
+                        BOOT(' ');
+                        BOOT(chalk.cyan('Starting Live Query Server...'));
                         await ParseServer.createLiveQueryServer(
                             Actinium.server,
                         );
-                        LOG(' ', chalk.cyan('Started'), 'Live Query Server');
+                        BOOT(' ', chalk.cyan('Started'), 'Live Query Server');
                     }
 
                     Actinium.started = true;
@@ -151,31 +149,30 @@ Actinium.start = options =>
                     // Run warnings hook
                     await Actinium.Warnings.run();
 
-                    LOG('');
-                    LOG('');
-                    LOG(
+                    BOOT('');
+                    BOOT('');
+                    BOOT(
                         chalk.cyan.bold('Actinium'),
                         chalk.bold('bootstrap complete!'),
                     );
-                    LOG('');
+                    BOOT('');
 
                     await Actinium.Hook.run('running');
 
-                    LOG('');
+                    BOOT('');
                     resolve(Actinium.server);
                 }
             });
         } catch (err) {
             // Catch startup errors
-            LOG(chalk.magenta('Actinium startup error.'));
-            console.error(err);
+            ERROR(chalk.magenta('Actinium startup error.'));
+            ERROR(err);
             reject(err);
         }
     });
 
 process.on('unhandledRejection', (reason, p) => {
-    console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-    // application specific logging, throwing an error, or other logic here
+    ERROR('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
 module.exports = Actinium;

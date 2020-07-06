@@ -1,7 +1,7 @@
 class StdOutLoggerAdapter {
     constructor(options) {}
     log(level, message) {
-        LOG(message);
+        BOOT(message);
     }
 }
 

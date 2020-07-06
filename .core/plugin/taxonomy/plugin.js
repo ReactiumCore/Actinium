@@ -69,8 +69,8 @@ Actinium.Hook.register('warning', () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     if (Taxonomy.warning !== true) return;
 
-    LOG('');
-    LOG(chalk.cyan.bold('Notice:'), 'The default Taxonomy has been created');
+    WARN('');
+    WARN(chalk.cyan.bold('Notice:'), 'The default Taxonomy has been created');
 });
 
 // start hook

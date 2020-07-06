@@ -136,7 +136,7 @@ const createAvatar = async req => {
         let type = op.get(avatarTypes, ext, null);
 
         if (!type) {
-            LOG('invalid avatar image type');
+            ERROR('invalid avatar image type');
             return;
         }
 
@@ -150,7 +150,7 @@ const createAvatar = async req => {
             avatar = { base64: avatar.split(';base64,').pop() };
             fileObj = await new Actinium.File(filename, avatar).save();
         } catch (err) {
-            console.log(err);
+            ERROR(err);
             return;
         }
 

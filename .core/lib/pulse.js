@@ -57,7 +57,7 @@ pulse.define = (...args) => {
 pulse.info = () => {
     if (!ENV.NO_PULSE) {
         _.sortBy(pulse.definitions, 'order').forEach(({ id, task }) => {
-            LOG(' ', chalk.cyan('Pulse'), chalk.cyan('→'), chalk.magenta(id));
+            BOOT(' ', chalk.cyan('Pulse'), chalk.cyan('→'), chalk.magenta(id));
         });
     }
 };

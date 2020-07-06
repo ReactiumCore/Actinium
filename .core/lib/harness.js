@@ -8,8 +8,8 @@ const results = {};
 const Harness = {
     run: async () => {
         if (process.env.NODE_ENV === 'development' && ENV.RUN_TEST === true) {
-            LOG(' ');
-            LOG(chalk.cyan('Test Runner:'));
+            BOOT(' ');
+            BOOT(chalk.cyan('Test Runner:'));
 
             const response = await Hook.run('tests');
         }
@@ -66,7 +66,13 @@ Actinium.Harness.test('My Test', async assert => {
                 }
 
                 context[desc] = await cb(assert);
-                LOG(' - ' + description + ': ' + chalk.green('OK'));
+                BOOT(
+                    ' ',
+                    chalk.cyan('Test'),
+                    chalk.cyan('→'),
+                    chalk.magenta(description),
+                    chalk.green.bold('[OK]'),
+                );
 
                 if (typeof teardown === 'function') {
                     await teardown();
@@ -75,14 +81,17 @@ Actinium.Harness.test('My Test', async assert => {
                 if (typeof teardown === 'function') {
                     await teardown();
                 }
-                throw { description, error };
+                BOOT(
+                    ' ',
+                    chalk.cyan('Test'),
+                    chalk.cyan('→'),
+                    chalk.magenta(description),
+                    chalk.red.bold('[FAIL]'),
+                );
+                DEBUG(error);
             }
         });
     },
 };
-
-Harness.test('An Example Test', async assert => {
-    assert(true, 'asserted false');
-});
 
 module.exports = Harness;

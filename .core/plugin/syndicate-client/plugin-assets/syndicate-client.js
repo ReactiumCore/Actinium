@@ -117,8 +117,8 @@
             n.r(t);
             var r = n(0),
                 o = n.n(r),
-                i = n(1),
-                a = n.n(i),
+                a = n(1),
+                i = n.n(a),
                 c = {
                     title: Object(r.__)('Syndicate Client Settings'),
                     group: 'SyndicateClient',
@@ -185,26 +185,26 @@
                         ),
                     },
                 ],
-                l = function() {
+                s = function() {
                     var e = Object(r.useHookComponent)('SettingEditor'),
                         t = Object(r.useHookComponent)('CapabilityEditor');
-                    return a.a.createElement(
+                    return i.a.createElement(
                         'div',
                         { className: 'syndicate-client-settings' },
-                        a.a.createElement(e, { settings: c }),
-                        a.a.createElement(t, { capabilities: u }),
-                        a.a.createElement(r.Zone, {
+                        i.a.createElement(e, { settings: c }),
+                        i.a.createElement(t, { capabilities: u }),
+                        i.a.createElement(r.Zone, {
                             zone: 'syndicate-client-settings',
                         }),
                     );
                 },
-                s = n(2),
-                f = n.n(s),
+                l = n(2),
+                f = n.n(l),
                 d = n(3),
                 p = n.n(d);
-            function y(e, t, n, r, o, i, a) {
+            function y(e, t, n, r, o, a, i) {
                 try {
-                    var c = e[i](a),
+                    var c = e[a](i),
                         u = c.value;
                 } catch (e) {
                     return void n(e);
@@ -253,28 +253,28 @@
                         var n = [],
                             r = !0,
                             o = !1,
-                            i = void 0;
+                            a = void 0;
                         try {
                             for (
-                                var a, c = e[Symbol.iterator]();
-                                !(r = (a = c.next()).done) &&
-                                (n.push(a.value), !t || n.length !== t);
+                                var i, c = e[Symbol.iterator]();
+                                !(r = (i = c.next()).done) &&
+                                (n.push(i.value), !t || n.length !== t);
                                 r = !0
                             );
                         } catch (e) {
-                            (o = !0), (i = e);
+                            (o = !0), (a = e);
                         } finally {
                             try {
                                 r || null == c.return || c.return();
                             } finally {
-                                if (o) throw i;
+                                if (o) throw a;
                             }
                         }
                         return n;
                     })(e, t) ||
                     (function(e, t) {
                         if (!e) return;
-                        if ('string' == typeof e) return h(e, t);
+                        if ('string' == typeof e) return v(e, t);
                         var n = Object.prototype.toString.call(e).slice(8, -1);
                         'Object' === n &&
                             e.constructor &&
@@ -284,7 +284,7 @@
                             'Arguments' === n ||
                             /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
                         )
-                            return h(e, t);
+                            return v(e, t);
                     })(e, t) ||
                     (function() {
                         throw new TypeError(
@@ -293,208 +293,188 @@
                     })()
                 );
             }
-            function h(e, t) {
+            function v(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
             }
-            var v = Object(i.memo)(
-                    function(e) {
-                        var t,
-                            n = e.settingGroup,
-                            c = Object(r.useHookComponent)('ReactiumUI'),
-                            u = c.Spinner,
-                            l = c.Alert,
-                            s = c.Icon,
-                            d = c.Button,
-                            p = g(
-                                Object(i.useState)({
-                                    loading: !0,
-                                    valid: !1,
-                                    forceUpdated: new Date(),
-                                }),
-                                2,
-                            ),
-                            h = p[0],
-                            v = p[1],
-                            O = function(e) {
-                                v(
-                                    (function(e) {
-                                        for (
-                                            var t = 1;
-                                            t < arguments.length;
-                                            t++
-                                        ) {
-                                            var n =
-                                                null != arguments[t]
-                                                    ? arguments[t]
-                                                    : {};
-                                            t % 2
-                                                ? b(Object(n), !0).forEach(
-                                                      function(t) {
-                                                          m(e, t, n[t]);
-                                                      },
-                                                  )
-                                                : Object.getOwnPropertyDescriptors
-                                                ? Object.defineProperties(
+            var h = Object(a.memo)(
+                function(e) {
+                    var t,
+                        n = e.settingGroup,
+                        c = Object(r.useHookComponent)('ReactiumUI'),
+                        u = c.Spinner,
+                        s = c.Alert,
+                        l = c.Icon,
+                        d = c.Button,
+                        p = g(
+                            Object(a.useState)({
+                                loading: !0,
+                                valid: !1,
+                                forceUpdated: new Date(),
+                            }),
+                            2,
+                        ),
+                        v = p[0],
+                        h = p[1],
+                        O = function(e) {
+                            h(
+                                (function(e) {
+                                    for (var t = 1; t < arguments.length; t++) {
+                                        var n =
+                                            null != arguments[t]
+                                                ? arguments[t]
+                                                : {};
+                                        t % 2
+                                            ? b(Object(n), !0).forEach(function(
+                                                  t,
+                                              ) {
+                                                  m(e, t, n[t]);
+                                              })
+                                            : Object.getOwnPropertyDescriptors
+                                            ? Object.defineProperties(
+                                                  e,
+                                                  Object.getOwnPropertyDescriptors(
+                                                      n,
+                                                  ),
+                                              )
+                                            : b(Object(n)).forEach(function(t) {
+                                                  Object.defineProperty(
                                                       e,
-                                                      Object.getOwnPropertyDescriptors(
-                                                          n,
-                                                      ),
-                                                  )
-                                                : b(Object(n)).forEach(function(
                                                       t,
-                                                  ) {
-                                                      Object.defineProperty(
-                                                          e,
+                                                      Object.getOwnPropertyDescriptor(
+                                                          n,
                                                           t,
-                                                          Object.getOwnPropertyDescriptor(
-                                                              n,
-                                                              t,
-                                                          ),
-                                                      );
-                                                  });
-                                        }
-                                        return e;
-                                    })({}, h, {}, e),
-                                );
-                            },
-                            j =
-                                ((t = n),
-                                {
-                                    appId: f.a.get(t, 'appId'),
-                                    host: f.a.get(t, 'host'),
-                                    token: f.a.get(t, 'token'),
-                                }),
-                            S = j.appId,
-                            C = j.host,
-                            _ = j.token;
-                        if (
-                            (Object(r.useAsyncEffect)(
-                                (function() {
-                                    var e,
-                                        t =
-                                            ((e = regeneratorRuntime.mark(
-                                                function e(t) {
-                                                    var n;
-                                                    return regeneratorRuntime.wrap(
-                                                        function(e) {
-                                                            for (;;)
-                                                                switch (
-                                                                    (e.prev =
-                                                                        e.next)
-                                                                ) {
-                                                                    case 0:
-                                                                        if (
-                                                                            !_
-                                                                        ) {
-                                                                            e.next = 6;
-                                                                            break;
-                                                                        }
-                                                                        return (
+                                                      ),
+                                                  );
+                                              });
+                                    }
+                                    return e;
+                                })({}, v, {}, e),
+                            );
+                        },
+                        j =
+                            ((t = n),
+                            {
+                                appId: f.a.get(t, 'appId'),
+                                host: f.a.get(t, 'host'),
+                                token: f.a.get(t, 'token'),
+                            }),
+                        S = j.appId,
+                        C = j.host,
+                        w = j.token;
+                    if (
+                        (Object(r.useAsyncEffect)(
+                            (function() {
+                                var e,
+                                    t =
+                                        ((e = regeneratorRuntime.mark(
+                                            function e(t) {
+                                                var n;
+                                                return regeneratorRuntime.wrap(
+                                                    function(e) {
+                                                        for (;;)
+                                                            switch (
+                                                                (e.prev =
+                                                                    e.next)
+                                                            ) {
+                                                                case 0:
+                                                                    if (!w) {
+                                                                        e.next = 6;
+                                                                        break;
+                                                                    }
+                                                                    return (
+                                                                        O({
+                                                                            loading: !0,
+                                                                        }),
+                                                                        (e.next = 4),
+                                                                        o.a.Cloud.run(
+                                                                            'syndicate-satellite-test',
+                                                                        )
+                                                                    );
+                                                                case 4:
+                                                                    (n =
+                                                                        e.sent),
+                                                                        t() &&
                                                                             O({
-                                                                                loading: !0,
-                                                                            }),
-                                                                            (e.next = 4),
-                                                                            o.a.Cloud.run(
-                                                                                'syndicate-satellite-test',
-                                                                            )
-                                                                        );
-                                                                    case 4:
-                                                                        (n =
-                                                                            e.sent),
-                                                                            t() &&
-                                                                                O(
-                                                                                    {
-                                                                                        loading: !1,
-                                                                                        valid: n,
-                                                                                    },
-                                                                                );
-                                                                    case 6:
-                                                                    case 'end':
-                                                                        return e.stop();
-                                                                }
-                                                        },
+                                                                                loading: !1,
+                                                                                valid: n,
+                                                                            });
+                                                                case 6:
+                                                                case 'end':
+                                                                    return e.stop();
+                                                            }
+                                                    },
+                                                    e,
+                                                );
+                                            },
+                                        )),
+                                        function() {
+                                            var t = this,
+                                                n = arguments;
+                                            return new Promise(function(r, o) {
+                                                var a = e.apply(t, n);
+                                                function i(e) {
+                                                    y(a, r, o, i, c, 'next', e);
+                                                }
+                                                function c(e) {
+                                                    y(
+                                                        a,
+                                                        r,
+                                                        o,
+                                                        i,
+                                                        c,
+                                                        'throw',
                                                         e,
                                                     );
-                                                },
-                                            )),
-                                            function() {
-                                                var t = this,
-                                                    n = arguments;
-                                                return new Promise(function(
-                                                    r,
-                                                    o,
-                                                ) {
-                                                    var i = e.apply(t, n);
-                                                    function a(e) {
-                                                        y(
-                                                            i,
-                                                            r,
-                                                            o,
-                                                            a,
-                                                            c,
-                                                            'next',
-                                                            e,
-                                                        );
-                                                    }
-                                                    function c(e) {
-                                                        y(
-                                                            i,
-                                                            r,
-                                                            o,
-                                                            a,
-                                                            c,
-                                                            'throw',
-                                                            e,
-                                                        );
-                                                    }
-                                                    a(void 0);
-                                                });
+                                                }
+                                                i(void 0);
                                             });
-                                    return function(e) {
-                                        return t.apply(this, arguments);
-                                    };
-                                })(),
-                                [S, C, _, h.forceUpdated],
-                            ),
-                            !(S && C && _))
-                        )
-                            return null;
-                        if (h.loading)
-                            return a.a.createElement(
-                                'div',
-                                {
-                                    style: {
-                                        display: 'flex',
-                                        height: '60px',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                    },
+                                        });
+                                return function(e) {
+                                    return t.apply(this, arguments);
+                                };
+                            })(),
+                            [S, C, w, v.forceUpdated],
+                        ),
+                        !(S && C && w))
+                    )
+                        return null;
+                    if (v.loading)
+                        return i.a.createElement(
+                            'div',
+                            {
+                                style: {
+                                    display: 'flex',
+                                    height: '60px',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
                                 },
-                                a.a.createElement(u, null),
-                            );
-                        var E = {
-                            success: Object(r.__)(
-                                'Connection test successful.',
-                            ),
-                            failure: Object(r.__)('Connection test failed.'),
-                        };
-                        return a.a.createElement(
-                            l,
+                            },
+                            i.a.createElement(u, null),
+                        );
+                    var x = {
+                        success: Object(r.__)('Connection test successful.'),
+                        failure: Object(r.__)('Connection test failed.'),
+                    };
+                    return i.a.createElement(
+                        'div',
+                        { className: 'p-xs-20' },
+                        i.a.createElement(
+                            s,
                             {
                                 dismissable: !0,
-                                color: h.valid
-                                    ? l.ENUMS.COLOR.SUCCESS
-                                    : l.ENUMS.COLOR.DANGER,
-                                icon: a.a.createElement(s, {
-                                    name: h.valid
+                                color: v.valid
+                                    ? s.ENUMS.COLOR.SUCCESS
+                                    : s.ENUMS.COLOR.DANGER,
+                                icon: i.a.createElement(l, {
+                                    name: v.valid
                                         ? 'Feather.Check'
                                         : 'Feather.AlertOctagon',
                                 }),
                             },
-                            h.valid ? E.success : E.failure,
-                            a.a.createElement(
+                            v.valid ? x.success : x.failure,
+                            i.a.createElement(
                                 d,
                                 {
                                     className: 'ml-xs-16',
@@ -506,38 +486,65 @@
                                 },
                                 Object(r.__)('Refresh'),
                             ),
-                        );
-                    },
-                    function(e, t) {
-                        return (
-                            f.a.get(e, 'groupName') ===
-                                f.a.get(t, 'groupName') &&
-                            p()(
-                                f.a.get(e, 'settingGroup'),
-                                f.a.get(t, 'settingGroup'),
-                            )
-                        );
-                    },
-                ),
-                O = function(e) {
-                    var t = Object(r.useHookComponent)('MenuItem');
-                    return a.a.createElement(t, {
-                        route: '/admin/plugins/SyndicateClient',
-                        label: Object(r.__)('Syndicate Client'),
-                    });
+                        ),
+                    );
                 },
-                j = n(4),
-                S = n.n(j);
-            function C(e, t, n, r, o, i, a) {
+                function(e, t) {
+                    return (
+                        f.a.get(e, 'groupName') === f.a.get(t, 'groupName') &&
+                        p()(
+                            f.a.get(e, 'settingGroup'),
+                            f.a.get(t, 'settingGroup'),
+                        )
+                    );
+                },
+            );
+            function O(e) {
+                return (
+                    (function(e) {
+                        if (Array.isArray(e)) return _(e);
+                    })(e) ||
+                    (function(e) {
+                        if (
+                            'undefined' != typeof Symbol &&
+                            Symbol.iterator in Object(e)
+                        )
+                            return Array.from(e);
+                    })(e) ||
+                    E(e) ||
+                    (function() {
+                        throw new TypeError(
+                            'Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
+                        );
+                    })()
+                );
+            }
+            function j(e, t, n, r, o, a, i) {
                 try {
-                    var c = e[i](a),
+                    var c = e[a](i),
                         u = c.value;
                 } catch (e) {
                     return void n(e);
                 }
                 c.done ? t(u) : Promise.resolve(u).then(r, o);
             }
-            function _(e, t) {
+            function S(e) {
+                return function() {
+                    var t = this,
+                        n = arguments;
+                    return new Promise(function(r, o) {
+                        var a = e.apply(t, n);
+                        function i(e) {
+                            j(a, r, o, i, c, 'next', e);
+                        }
+                        function c(e) {
+                            j(a, r, o, i, c, 'throw', e);
+                        }
+                        i(void 0);
+                    });
+                };
+            }
+            function C(e, t) {
                 var n = Object.keys(e);
                 if (Object.getOwnPropertySymbols) {
                     var r = Object.getOwnPropertySymbols(e);
@@ -551,28 +558,6 @@
                         n.push.apply(n, r);
                 }
                 return n;
-            }
-            function E(e) {
-                for (var t = 1; t < arguments.length; t++) {
-                    var n = null != arguments[t] ? arguments[t] : {};
-                    t % 2
-                        ? _(Object(n), !0).forEach(function(t) {
-                              w(e, t, n[t]);
-                          })
-                        : Object.getOwnPropertyDescriptors
-                        ? Object.defineProperties(
-                              e,
-                              Object.getOwnPropertyDescriptors(n),
-                          )
-                        : _(Object(n)).forEach(function(t) {
-                              Object.defineProperty(
-                                  e,
-                                  t,
-                                  Object.getOwnPropertyDescriptor(n, t),
-                              );
-                          });
-                }
-                return e;
             }
             function w(e, t, n) {
                 return (
@@ -601,28 +586,500 @@
                         var n = [],
                             r = !0,
                             o = !1,
-                            i = void 0;
+                            a = void 0;
                         try {
                             for (
-                                var a, c = e[Symbol.iterator]();
-                                !(r = (a = c.next()).done) &&
-                                (n.push(a.value), !t || n.length !== t);
+                                var i, c = e[Symbol.iterator]();
+                                !(r = (i = c.next()).done) &&
+                                (n.push(i.value), !t || n.length !== t);
                                 r = !0
                             );
                         } catch (e) {
-                            (o = !0), (i = e);
+                            (o = !0), (a = e);
                         } finally {
                             try {
                                 r || null == c.return || c.return();
                             } finally {
-                                if (o) throw i;
+                                if (o) throw a;
+                            }
+                        }
+                        return n;
+                    })(e, t) ||
+                    E(e, t) ||
+                    (function() {
+                        throw new TypeError(
+                            'Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
+                        );
+                    })()
+                );
+            }
+            function E(e, t) {
+                if (e) {
+                    if ('string' == typeof e) return _(e, t);
+                    var n = Object.prototype.toString.call(e).slice(8, -1);
+                    return (
+                        'Object' === n &&
+                            e.constructor &&
+                            (n = e.constructor.name),
+                        'Map' === n || 'Set' === n
+                            ? Array.from(n)
+                            : 'Arguments' === n ||
+                              /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
+                            ? _(e, t)
+                            : void 0
+                    );
+                }
+            }
+            function _(e, t) {
+                (null == t || t > e.length) && (t = e.length);
+                for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
+                return r;
+            }
+            var I = { label: '', count: [0, 0] },
+                P = Object(a.memo)(
+                    function(e) {
+                        var t,
+                            n = e.settingGroup,
+                            c = Object(r.useHookComponent)('ReactiumUI'),
+                            u = c.Icon,
+                            s = c.Button,
+                            l = x(
+                                Object(a.useState)({
+                                    loading: !0,
+                                    valid: !1,
+                                    forceUpdated: new Date(),
+                                }),
+                                2,
+                            ),
+                            d = l[0],
+                            p = l[1],
+                            y = x(
+                                Object(a.useState)({
+                                    syncStatus: 'idle',
+                                    syncContext: I,
+                                }),
+                                2,
+                            ),
+                            b = y[0],
+                            m = y[1],
+                            g = function(e) {
+                                p(
+                                    (function(e) {
+                                        for (
+                                            var t = 1;
+                                            t < arguments.length;
+                                            t++
+                                        ) {
+                                            var n =
+                                                null != arguments[t]
+                                                    ? arguments[t]
+                                                    : {};
+                                            t % 2
+                                                ? C(Object(n), !0).forEach(
+                                                      function(t) {
+                                                          w(e, t, n[t]);
+                                                      },
+                                                  )
+                                                : Object.getOwnPropertyDescriptors
+                                                ? Object.defineProperties(
+                                                      e,
+                                                      Object.getOwnPropertyDescriptors(
+                                                          n,
+                                                      ),
+                                                  )
+                                                : C(Object(n)).forEach(function(
+                                                      t,
+                                                  ) {
+                                                      Object.defineProperty(
+                                                          e,
+                                                          t,
+                                                          Object.getOwnPropertyDescriptor(
+                                                              n,
+                                                              t,
+                                                          ),
+                                                      );
+                                                  });
+                                        }
+                                        return e;
+                                    })({}, d, {}, e),
+                                );
+                            },
+                            v =
+                                ((t = n),
+                                {
+                                    appId: f.a.get(t, 'appId'),
+                                    host: f.a.get(t, 'host'),
+                                    token: f.a.get(t, 'token'),
+                                }),
+                            h = v.appId,
+                            j = v.host,
+                            E = v.token;
+                        Object(r.useAsyncEffect)(
+                            (function() {
+                                var e = S(
+                                    regeneratorRuntime.mark(function e(t) {
+                                        var n;
+                                        return regeneratorRuntime.wrap(function(
+                                            e,
+                                        ) {
+                                            for (;;)
+                                                switch ((e.prev = e.next)) {
+                                                    case 0:
+                                                        if (!E) {
+                                                            e.next = 6;
+                                                            break;
+                                                        }
+                                                        return (
+                                                            g({ loading: !0 }),
+                                                            (e.next = 4),
+                                                            o.a.Cloud.run(
+                                                                'syndicate-satellite-test',
+                                                            )
+                                                        );
+                                                    case 4:
+                                                        (n = e.sent),
+                                                            t() &&
+                                                                g({
+                                                                    loading: !1,
+                                                                    valid: n,
+                                                                });
+                                                    case 6:
+                                                    case 'end':
+                                                        return e.stop();
+                                                }
+                                        },
+                                        e);
+                                    }),
+                                );
+                                return function(t) {
+                                    return e.apply(this, arguments);
+                                };
+                            })(),
+                            [h, j, E, d.forceUpdated],
+                        );
+                        var _ = {
+                                idle: Object(r.__)('Sync Content'),
+                                start: Object(r.__)('Syncing...'),
+                                begin: Object(r.__)('Syncing Taxonomies...'),
+                                'after-taxonomies': Object(r.__)(
+                                    'Syncing Media...',
+                                ),
+                                'after-media': Object(r.__)('Syncing Types...'),
+                                'after-types': Object(r.__)(
+                                    'Syncing %context...',
+                                ),
+                                end: Object(r.__)('Finishing...'),
+                            },
+                            P = b.syncStatus,
+                            k = b.syncContext;
+                        Object(r.useAsyncEffect)(
+                            (function() {
+                                var e = S(
+                                    regeneratorRuntime.mark(function e(t) {
+                                        var n;
+                                        return regeneratorRuntime.wrap(function(
+                                            e,
+                                        ) {
+                                            for (;;)
+                                                switch ((e.prev = e.next)) {
+                                                    case 0:
+                                                        if ('idle' !== P) {
+                                                            e.next = 2;
+                                                            break;
+                                                        }
+                                                        return e.abrupt(
+                                                            'return',
+                                                        );
+                                                    case 2:
+                                                        if ('end' !== P) {
+                                                            e.next = 8;
+                                                            break;
+                                                        }
+                                                        return (
+                                                            (e.next = 5),
+                                                            o.a.Cloud.run(
+                                                                'syndicate-satellite-sync-reset',
+                                                            )
+                                                        );
+                                                    case 5:
+                                                        t() &&
+                                                            m({
+                                                                syncStatus:
+                                                                    'idle',
+                                                                syncContext: I,
+                                                            }),
+                                                            (e.next = 10);
+                                                        break;
+                                                    case 8:
+                                                        return (
+                                                            (n = setInterval(
+                                                                S(
+                                                                    regeneratorRuntime.mark(
+                                                                        function e() {
+                                                                            var n,
+                                                                                r,
+                                                                                a;
+                                                                            return regeneratorRuntime.wrap(
+                                                                                function(
+                                                                                    e,
+                                                                                ) {
+                                                                                    for (;;)
+                                                                                        switch (
+                                                                                            (e.prev =
+                                                                                                e.next)
+                                                                                        ) {
+                                                                                            case 0:
+                                                                                                return (
+                                                                                                    (e.next = 2),
+                                                                                                    o.a.Cloud.run(
+                                                                                                        'syndicate-satellite-sync',
+                                                                                                    )
+                                                                                                );
+                                                                                            case 2:
+                                                                                                (n =
+                                                                                                    e.sent),
+                                                                                                    (r =
+                                                                                                        n.syncStatus),
+                                                                                                    (a =
+                                                                                                        n.syncContext),
+                                                                                                    t() &&
+                                                                                                        m(
+                                                                                                            {
+                                                                                                                syncStatus: r,
+                                                                                                                syncContext: a,
+                                                                                                            },
+                                                                                                        );
+                                                                                            case 6:
+                                                                                            case 'end':
+                                                                                                return e.stop();
+                                                                                        }
+                                                                                },
+                                                                                e,
+                                                                            );
+                                                                        },
+                                                                    ),
+                                                                ),
+                                                                500,
+                                                            )),
+                                                            e.abrupt(
+                                                                'return',
+                                                                function() {
+                                                                    return clearInterval(
+                                                                        n,
+                                                                    );
+                                                                },
+                                                            )
+                                                        );
+                                                    case 10:
+                                                    case 'end':
+                                                        return e.stop();
+                                                }
+                                        },
+                                        e);
+                                    }),
+                                );
+                                return function(t) {
+                                    return e.apply(this, arguments);
+                                };
+                            })(),
+                            [P].concat(O(f.a.get(k, 'count', I.count))),
+                        );
+                        var A = (function() {
+                            var e = S(
+                                regeneratorRuntime.mark(function e() {
+                                    var t, n, r;
+                                    return regeneratorRuntime.wrap(function(e) {
+                                        for (;;)
+                                            switch ((e.prev = e.next)) {
+                                                case 0:
+                                                    return (
+                                                        (e.next = 2),
+                                                        o.a.Cloud.run(
+                                                            'syndicate-satellite-sync',
+                                                        )
+                                                    );
+                                                case 2:
+                                                    (t = e.sent),
+                                                        (n = t.syncStatus),
+                                                        (r = t.syncContext),
+                                                        m({
+                                                            syncStatus: n,
+                                                            syncContext: r,
+                                                        });
+                                                case 6:
+                                                case 'end':
+                                                    return e.stop();
+                                            }
+                                    }, e);
+                                }),
+                            );
+                            return function() {
+                                return e.apply(this, arguments);
+                            };
+                        })();
+                        if (!(h && j && E)) return null;
+                        d.loading || d.valid;
+                        var T = f.a.get(k, 'label', ''),
+                            N = x(f.a.get(k, 'count', [0, 0]), 2),
+                            D = N[0],
+                            R = N[1];
+                        return i.a.createElement(
+                            'div',
+                            { className: 'm-xs-20' },
+                            i.a.createElement(
+                                s,
+                                {
+                                    size: 'md',
+                                    color: 'idle' === P ? 'danger' : 'clear',
+                                    onClick: function() {
+                                        return A();
+                                    },
+                                    disabled: 'idle' !== P,
+                                },
+                                'idle' !== P &&
+                                    i.a.createElement(
+                                        'div',
+                                        {
+                                            className: 'mr-xs-8',
+                                            style: {
+                                                width: '20px',
+                                                height: '20px',
+                                            },
+                                        },
+                                        i.a.createElement(u, {
+                                            name: 'Feather.DownloadCloud',
+                                        }),
+                                    ),
+                                ' ',
+                                f.a
+                                    .get(_, [P], _.start)
+                                    .replace(
+                                        '%context',
+                                        ''
+                                            .concat(T, ' ')
+                                            .concat(
+                                                R > 0 &&
+                                                    ''.concat(D, '/').concat(R),
+                                            ),
+                                    ),
+                            ),
+                        );
+                    },
+                    function(e, t) {
+                        return (
+                            f.a.get(e, 'groupName') ===
+                                f.a.get(t, 'groupName') &&
+                            p()(
+                                f.a.get(e, 'settingGroup'),
+                                f.a.get(t, 'settingGroup'),
+                            )
+                        );
+                    },
+                ),
+                k = function(e) {
+                    var t = Object(r.useHookComponent)('MenuItem');
+                    return i.a.createElement(t, {
+                        route: '/admin/plugins/SyndicateClient',
+                        label: Object(r.__)('Syndicate Client'),
+                    });
+                },
+                A = n(4),
+                T = n.n(A);
+            function N(e, t, n, r, o, a, i) {
+                try {
+                    var c = e[a](i),
+                        u = c.value;
+                } catch (e) {
+                    return void n(e);
+                }
+                c.done ? t(u) : Promise.resolve(u).then(r, o);
+            }
+            function D(e, t) {
+                var n = Object.keys(e);
+                if (Object.getOwnPropertySymbols) {
+                    var r = Object.getOwnPropertySymbols(e);
+                    t &&
+                        (r = r.filter(function(t) {
+                            return Object.getOwnPropertyDescriptor(
+                                e,
+                                t,
+                            ).enumerable;
+                        })),
+                        n.push.apply(n, r);
+                }
+                return n;
+            }
+            function R(e) {
+                for (var t = 1; t < arguments.length; t++) {
+                    var n = null != arguments[t] ? arguments[t] : {};
+                    t % 2
+                        ? D(Object(n), !0).forEach(function(t) {
+                              q(e, t, n[t]);
+                          })
+                        : Object.getOwnPropertyDescriptors
+                        ? Object.defineProperties(
+                              e,
+                              Object.getOwnPropertyDescriptors(n),
+                          )
+                        : D(Object(n)).forEach(function(t) {
+                              Object.defineProperty(
+                                  e,
+                                  t,
+                                  Object.getOwnPropertyDescriptor(n, t),
+                              );
+                          });
+                }
+                return e;
+            }
+            function q(e, t, n) {
+                return (
+                    t in e
+                        ? Object.defineProperty(e, t, {
+                              value: n,
+                              enumerable: !0,
+                              configurable: !0,
+                              writable: !0,
+                          })
+                        : (e[t] = n),
+                    e
+                );
+            }
+            function U(e, t) {
+                return (
+                    (function(e) {
+                        if (Array.isArray(e)) return e;
+                    })(e) ||
+                    (function(e, t) {
+                        if (
+                            'undefined' == typeof Symbol ||
+                            !(Symbol.iterator in Object(e))
+                        )
+                            return;
+                        var n = [],
+                            r = !0,
+                            o = !1,
+                            a = void 0;
+                        try {
+                            for (
+                                var i, c = e[Symbol.iterator]();
+                                !(r = (i = c.next()).done) &&
+                                (n.push(i.value), !t || n.length !== t);
+                                r = !0
+                            );
+                        } catch (e) {
+                            (o = !0), (a = e);
+                        } finally {
+                            try {
+                                r || null == c.return || c.return();
+                            } finally {
+                                if (o) throw a;
                             }
                         }
                         return n;
                     })(e, t) ||
                     (function(e, t) {
                         if (!e) return;
-                        if ('string' == typeof e) return P(e, t);
+                        if ('string' == typeof e) return z(e, t);
                         var n = Object.prototype.toString.call(e).slice(8, -1);
                         'Object' === n &&
                             e.constructor &&
@@ -632,7 +1089,7 @@
                             'Arguments' === n ||
                             /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
                         )
-                            return P(e, t);
+                            return z(e, t);
                     })(e, t) ||
                     (function() {
                         throw new TypeError(
@@ -641,63 +1098,63 @@
                     })()
                 );
             }
-            function P(e, t) {
+            function z(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
             }
-            var I = function(e) {
+            var L = function(e) {
                 var t = e.editor,
                     n = Object(r.useHandle)('AdminTools'),
                     o = f.a.get(n, 'Modal'),
-                    c = Object(i.useRef)(),
+                    c = Object(a.useRef)(),
                     u = Object(r.useHookComponent)('ElementDialog'),
-                    l = Object(r.useHookComponent)('Revisions'),
-                    s = Object(r.useHookComponent)('ReactiumUI'),
-                    d = s.Button,
-                    p = s.Toggle,
-                    y = (s.Alert, s.Icon),
+                    s = Object(r.useHookComponent)('Revisions'),
+                    l = Object(r.useHookComponent)('ReactiumUI'),
+                    d = l.Button,
+                    p = l.Toggle,
+                    y = (l.Alert, l.Icon),
                     b = f.a.get(t, 'value', {}),
                     m = {
                         on: Object(r.__)('Turn off synchronization'),
                         off: Object(r.__)('Turn on synchronization'),
                     },
-                    g = x(Object(i.useState)(f.a.get(b, 'meta.syndicate')), 2),
-                    h = g[0],
-                    v = g[1],
-                    O = !0 === f.a.get(h, 'manual', !1),
+                    g = U(Object(a.useState)(f.a.get(b, 'meta.syndicate')), 2),
+                    v = g[0],
+                    h = g[1],
+                    O = !0 === f.a.get(v, 'manual', !1),
                     j = m[!1 === O ? 'on' : 'off'],
-                    _ = function(e) {
-                        v(f.a.get(e.value, 'meta.syndicate'));
+                    S = function(e) {
+                        h(f.a.get(e.value, 'meta.syndicate'));
                     };
                 if (
-                    (Object(i.useEffect)(
+                    (Object(a.useEffect)(
                         function() {
                             return (
-                                t.addEventListener('clean', _),
-                                t.addEventListener('save-success', _),
+                                t.addEventListener('clean', S),
+                                t.addEventListener('save-success', S),
                                 function() {
-                                    t.addEventListener('clean', _),
-                                        t.addEventListener('save-success', _);
+                                    t.addEventListener('clean', S),
+                                        t.addEventListener('save-success', S);
                                 }
                             );
                         },
                         [t],
                     ),
-                    void 0 === h)
+                    void 0 === v)
                 )
                     return null;
-                var w = f.a.get(
+                var C = f.a.get(
                         b,
                         ['branches', f.a.get(b, 'history.branch'), 'history'],
                         [],
                     ),
-                    P = f.a.get(b, 'branches.syndicate.history', []),
-                    I =
-                        f.a.get(w, 0) !== f.a.get(P, 0) ||
-                        w.length !== P.length ||
-                        S.a.difference(P, w).length > 0,
-                    k = (function() {
+                    w = f.a.get(b, 'branches.syndicate.history', []),
+                    x =
+                        f.a.get(C, 0) !== f.a.get(w, 0) ||
+                        C.length !== w.length ||
+                        T.a.difference(w, C).length > 0,
+                    E = (function() {
                         var e,
                             n =
                                 ((e = regeneratorRuntime.mark(function e() {
@@ -708,8 +1165,8 @@
                                                 case 0:
                                                     return (
                                                         o.show(
-                                                            a.a.createElement(
-                                                                l,
+                                                            i.a.createElement(
+                                                                s,
                                                                 {
                                                                     ref: c,
                                                                     startingContent:
@@ -755,21 +1212,21 @@
                                     var t = this,
                                         n = arguments;
                                     return new Promise(function(r, o) {
-                                        var i = e.apply(t, n);
-                                        function a(e) {
-                                            C(i, r, o, a, c, 'next', e);
+                                        var a = e.apply(t, n);
+                                        function i(e) {
+                                            N(a, r, o, i, c, 'next', e);
                                         }
                                         function c(e) {
-                                            C(i, r, o, a, c, 'throw', e);
+                                            N(a, r, o, i, c, 'throw', e);
                                         }
-                                        a(void 0);
+                                        i(void 0);
                                     });
                                 });
                         return function() {
                             return n.apply(this, arguments);
                         };
                     })();
-                return a.a.createElement(
+                return i.a.createElement(
                     u,
                     {
                         editor: t,
@@ -779,26 +1236,26 @@
                             'Use to toggle manual synchronization on this content.',
                         ),
                     },
-                    a.a.createElement(
+                    i.a.createElement(
                         'div',
                         { className: 'p-xs-20' },
-                        a.a.createElement(
+                        i.a.createElement(
                             'div',
                             { className: 'form-group mb-xs-8' },
-                            a.a.createElement(
+                            i.a.createElement(
                                 'label',
                                 null,
-                                a.a.createElement('span', null, j),
-                                a.a.createElement(p, {
+                                i.a.createElement('span', null, j),
+                                i.a.createElement(p, {
                                     value: !0,
                                     checked: !1 === O,
                                     onChange: function(e) {
                                         var n = {
-                                            meta: E(
+                                            meta: R(
                                                 {},
                                                 f.a.get(b, 'meta', {}),
                                                 {
-                                                    syndicate: E({}, h, {
+                                                    syndicate: R({}, v, {
                                                         manual:
                                                             !1 ===
                                                             e.target.checked,
@@ -812,16 +1269,16 @@
                             ),
                         ),
                         !0 === O &&
-                            I &&
-                            a.a.createElement(
+                            x &&
+                            i.a.createElement(
                                 d,
                                 {
                                     size: 'sm',
                                     appearance: 'pill',
-                                    onClick: k,
+                                    onClick: E,
                                     type: 'button',
                                 },
-                                a.a.createElement(y, {
+                                i.a.createElement(y, {
                                     name: 'Feather.GitBranch',
                                     className: 'mr-xs-8',
                                 }),
@@ -830,9 +1287,9 @@
                     ),
                 );
             };
-            function k(e, t, n, r, o, i, a) {
+            function M(e, t, n, r, o, a, i) {
                 try {
-                    var c = e[i](a),
+                    var c = e[a](i),
                         u = c.value;
                 } catch (e) {
                     return void n(e);
@@ -874,7 +1331,7 @@
                                                     zone: [
                                                         'plugin-settings-SyndicateClient',
                                                     ],
-                                                    component: l,
+                                                    component: s,
                                                     order: 0,
                                                 }),
                                                 o.a.Zone.addComponent({
@@ -883,7 +1340,7 @@
                                                     zone: [
                                                         'admin-sidebar-settings',
                                                     ],
-                                                    component: O,
+                                                    component: k,
                                                     order: 0,
                                                 }),
                                                 o.a.Zone.addComponent({
@@ -892,15 +1349,26 @@
                                                     zone: [
                                                         'settings-editor-SyndicateClient',
                                                     ],
-                                                    component: v,
+                                                    component: h,
                                                     order: 0,
+                                                }),
+                                                o.a.Zone.addComponent({
+                                                    id:
+                                                        'SYNDICATE-CLIENT-SETTINGS-SYNC',
+                                                    zone: [
+                                                        'settings-editor-SyndicateClient',
+                                                    ],
+                                                    component: P,
+                                                    order:
+                                                        o.a.Enums.priority
+                                                            .lowest,
                                                 }),
                                                 o.a.Zone.addComponent({
                                                     id: '',
                                                     zone: [
                                                         'admin-content-sidebar',
                                                     ],
-                                                    component: I,
+                                                    component: L,
                                                     order:
                                                         o.a.Enums.priority
                                                             .highest,
@@ -915,14 +1383,14 @@
                             var t = this,
                                 n = arguments;
                             return new Promise(function(r, o) {
-                                var i = e.apply(t, n);
-                                function a(e) {
-                                    k(i, r, o, a, c, 'next', e);
+                                var a = e.apply(t, n);
+                                function i(e) {
+                                    M(a, r, o, i, c, 'next', e);
                                 }
                                 function c(e) {
-                                    k(i, r, o, a, c, 'throw', e);
+                                    M(a, r, o, i, c, 'throw', e);
                                 }
-                                a(void 0);
+                                i(void 0);
                             });
                         });
                 return function() {

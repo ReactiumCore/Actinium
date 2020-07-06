@@ -10,7 +10,7 @@ const PLUGIN = {
     order: 100,
     version: {
         actinium: '>=3.2.6',
-        plugin: '0.0.3',
+        plugin: '0.0.5',
     },
     bundle: [],
     meta: {
@@ -54,18 +54,18 @@ Actinium.Hook.register('warning', async () => {
     const { appId, host, token } = await Actinium.SyndicateClient.settings();
 
     if (!appId) {
-        LOG('');
-        LOG(chalk.cyan.bold('Warning:'), 'missing syndicate Application Id');
+        WARN('');
+        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate Application Id');
     }
 
     if (!host) {
-        LOG('');
-        LOG(chalk.cyan.bold('Warning:'), 'missing syndicate host');
+        WARN('');
+        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate host');
     }
 
     if (!token) {
-        LOG('');
-        LOG(
+        WARN('');
+        WARN(
             chalk.cyan.bold('Warning:'),
             'missing syndicate client refresh token',
         );
@@ -83,8 +83,6 @@ Actinium.Hook.register('running', async () => {
         },
         Actinium.SyndicateClient.sync,
     );
-
-    await Actinium.SyndicateClient.sync();
 });
 
 Actinium.Hook.register(
@@ -185,6 +183,26 @@ Actinium.Hook.register(
     },
 );
 
+Actinium.Hook.register('syndicate-client-sync-begin', async () => {
+    Actinium.Cache.set('syndicate.status', 'begin');
+});
+
+Actinium.Hook.register('syndicate-client-sync-after-taxonomies', async () => {
+    Actinium.Cache.set('syndicate.status', 'after-taxonomies');
+});
+
+Actinium.Hook.register('syndicate-client-sync-after-media', async () => {
+    Actinium.Cache.set('syndicate.status', 'after-media');
+});
+
+Actinium.Hook.register('syndicate-client-sync-after-types', async () => {
+    Actinium.Cache.set('syndicate.status', 'after-types');
+});
+
+Actinium.Hook.register('syndicate-client-sync-end', async () => {
+    Actinium.Cache.set('syndicate.status', 'end');
+});
+
 const cloudAPIs = [
     { name: 'syndicate-satellite-test', sdk: 'SyndicateClient.test' },
 ].forEach(({ name, sdk }) =>
@@ -205,7 +223,42 @@ Actinium.Cloud.define(PLUGIN.ID, 'syndicate-satellite-sync', async req => {
     if (!Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.ManualSync']))
         throw new Error('Not permitted.');
 
-    LOG('Manual content sync triggered.');
-    await Actinium.SyndicateClient.sync();
-    return 'ok';
+    const syncStatus = Actinium.Cache.get('syndicate.status', 'idle');
+    const syncContext = Actinium.Cache.get('syndicate.context', {
+        label: '',
+        count: [0, 0],
+    });
+
+    if (syncStatus === 'idle') {
+        BOOT('Manual content sync triggered.');
+        Actinium.Cache.get('syndicate.status', 'start');
+        Actinium.SyndicateClient.sync();
+        return 'start';
+    }
+
+    return { syncStatus, syncContext };
 });
+
+/**
+ * @api {Cloud} syndicate-satellite-sync-reset syndicate-satellite-sync-reset
+ * @apiDescription Reset sync status to idle, allowing a manual sync.
+ * @apiPermission Syndicate.ManualSync
+ * @apiGroup Cloud
+ * @apiName syndicate-satellite-sync-reset
+ */
+Actinium.Cloud.define(
+    PLUGIN.ID,
+    'syndicate-satellite-sync-reset',
+    async req => {
+        if (!Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.ManualSync']))
+            throw new Error('Not permitted.');
+
+        Actinium.Cache.set('syndicate.status', 'idle');
+        Actinium.Cache.set('syndicate.context', {
+            label: '',
+            count: [0, 0],
+        });
+
+        return 'ok';
+    },
+);

@@ -53,7 +53,7 @@ const parseConfig = () => {
     }
 
     if (ENV.LOG_LEVEL) {
-        config.logLevel = ENV.LOG_LEVEL;
+        config.logLevel = ENV.PARSE_LOG_LEVEL;
     }
 
     return config;
