@@ -985,27 +985,30 @@ Media.Content.retrieve = async (params, options) => {
     const files = {};
     const obj = new Actinium.Object(collection).set('objectId', contentId);
 
+    if (!obj) {
+        return files;
+    }
+
     for (const field of fields) {
         const rel = obj.relation(field);
         const count = await rel.query().count({ useMasterKey: true });
 
-        let tax =
+        let related =
             count > 0
                 ? await rel
                       .query()
                       .skip(0)
                       .limit(count)
-                      .include('type')
+                      .include(field)
                       .find(options)
                 : [];
 
-        tax = tax.map(item => ({
+        related = related.map(item => ({
             ...item.toJSON(),
             field,
-            isMedia: true,
-            type: item.get('type').toJSON(),
         }));
-        op.set(files, field, tax);
+
+        op.set(files, field, related);
     }
 
     return files;
