@@ -64,7 +64,7 @@ Actinium.Collection.register(COLLECTION, {
     addField: false,
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'capability-check', req => {
+Actinium.Cloud.define(PLUGIN.ID, 'capability-check', async req => {
     let caps =
         op.has(req, 'params.capability') &&
         typeof req.params.capability === 'string'
@@ -91,6 +91,29 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-check', req => {
     }
 
     return CloudHasCapabilities(req, caps, strict);
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'capability-bulk-check', async req => {
+    const bulkChecks = Object.entries(op.get(req.params, 'checks', {}));
+    if (bulkChecks.length < 1)
+        throw new Error('No capability checks submitted.');
+
+    const response = {};
+    for (const [key, check] of bulkChecks) {
+        let { strict = false, capabilities = [] } = check;
+        capabilities = _.compact(_.flatten([capabilities])).filter(
+            cap => typeof cap === 'string',
+        );
+        if (capabilities.length < 1)
+            throw new Error(`No capabilities provided for check ${key}.`);
+        op.set(
+            response,
+            [key],
+            CloudHasCapabilities(req, capabilities, strict),
+        );
+    }
+
+    return response;
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
@@ -154,6 +177,50 @@ Actinium.Cloud.define(PLUGIN.ID, 'level-check', async req => {
 Reactium.Cloud.run('capability-check', { capability: 'user.view', strict: false})
  * @apiSuccess {Boolean} permitted
  */
+
+/**
+  * @api {Cloud} capability-bulk-check capability-bulk-check
+  * @apiVersion 3.5.0
+  * @apiGroup Cloud
+  * @apiName capability-bulk-check
+  * @apiDescription Check groups of capabilities in bulk.
+  * @apiParams {Object} checks key pairs checks to perform for current session indexed by a label.
+  * @apiParam (check) {Array} capabilities one or more string capabilities to check together
+  * @apiParam (check) {Boolean} [strict=true] if [true] all capabilities in the check must be permitted for request user, else only one must match
+  * @apiExample Example Usage
+const checks = {
+ canPublish: {
+  capabilities: ['Content_article.publish', 'publish-content'],
+  strict: false,
+ },
+ canUnpublish: {
+  capabilities: ['Content_article.unpublish', 'unpublish-content'],
+  strict: false,
+ },
+ canSetStatusDRAFT: {
+  capabilities: ["Content_article.setStatus-DRAFT", "set-content-status"],
+  strict: false,
+ },
+ canSetStatusTEST: {
+  capabilities: ["Content_article.setStatus-TEST", "set-content-status"],
+  strict: false,
+ },
+ canSetStatusREVIEW: {
+  capabilities: ["Content_article.setStatus-REVIEW", "set-content-status"],
+  strict: false,
+ },
+};
+
+Reactium.Cloud.run('capability-bulk-check', { checks });
+  * @apiSuccess
+{
+    canPublish: false
+    canUnpublish: false,
+    canSetStatusDRAFT: true,
+    canSetStatusTEST: true,
+    canSetStatusREVIEW: true,
+}
+  */
 
 /**
  * @api {Cloud} capability-get capability-get
