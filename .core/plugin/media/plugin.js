@@ -193,6 +193,7 @@ Actinium.Hook.register(
     async (user, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
+        options = options || { useMasterKey: true };
         const media = await Actinium.Media.User.files({ user }, options);
 
         if (_.isError(media)) return;

@@ -1,8 +1,7 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const op = require('object-path');
-const mediaList = require('./_plugins/media-list');
-const contentList = require('./_plugins/content-list');
+
 const {
     AclTargets,
     CloudRunOptions,
@@ -281,49 +280,6 @@ Actinium.Hook.register('warning', async () => {
 
     return Actinium.User.init();
 });
-
-// user content query
-Actinium.Hook.register('content-query', async (qry, params) => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-
-    if (op.get(params, 'user')) {
-        let user = params.user;
-        if (_.isString(user)) {
-            user = new Actinium.Object(Parse.User).set('objectId', user);
-        }
-
-        qry.equalTo('user', user);
-    }
-});
-
-Actinium.Hook.register(
-    'user-retrieve-response',
-    async (user, params, options) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-
-        const content = await Actinium.Content.User.list({ user }, options);
-
-        if (_.isError(content)) return;
-
-        const meta = user.get('meta') || {};
-        op.set(meta, 'content', content);
-        user.set('meta', meta);
-    },
-);
-
-Actinium.Hook.register(
-    'content-activity',
-    async (activityType, ...activityParams) => contentList(...activityParams),
-);
-
-Actinium.Hook.register(
-    'content-status-changed',
-    (contentObj, typeObj, status, prev) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        if (prev !== 'TRASH' || status === 'TRASH') return;
-        return contentList(contentObj, typeObj, false);
-    },
-);
 
 Actinium.Hook.register(
     'content-trashed',
