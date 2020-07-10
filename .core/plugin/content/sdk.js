@@ -1076,7 +1076,7 @@ Content.list = async (params, options) => {
 
 Content.listAll = async (params, options) => {
     const indexBy = op.get(params, 'indexBy', 'objectId');
-    const { types } = await Actinium.Type.list();
+    const { types } = await Actinium.Type.list({}, options);
     let output = {};
 
     op.del(params, 'indexBy');
