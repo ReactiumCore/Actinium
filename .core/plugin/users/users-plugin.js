@@ -282,12 +282,39 @@ Actinium.Hook.register('warning', async () => {
     return Actinium.User.init();
 });
 
+// user content query
+Actinium.Hook.register('content-query', async (qry, params) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    if (op.get(params, 'user')) {
+        let user = params.user;
+        if (_.isString(user)) {
+            user = new Actinium.Object(Parse.User).set('objectId', user);
+        }
+
+        qry.equalTo('user', user);
+    }
+});
+
+Actinium.Hook.register(
+    'user-retrieve-response',
+    async (user, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        const content = await Actinium.Content.User.list({ user }, options);
+
+        if (_.isError(content)) return;
+
+        const meta = user.get('meta') || {};
+        op.set(meta, 'content', content);
+        user.set('meta', meta);
+    },
+);
+
 Actinium.Hook.register(
     'content-activity',
     async (activityType, ...activityParams) => contentList(...activityParams),
 );
-
-Actinium.Hook.register('after-media-save', mediaList);
 
 Actinium.Hook.register(
     'content-status-changed',
@@ -318,21 +345,6 @@ Actinium.Hook.register(
         );
     },
 );
-
-Actinium.Hook.register('before-media-delete', req => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    let user = req.object.get('user');
-
-    if (!user) return;
-
-    const objectId = req.object.id;
-    const key = ['media', objectId];
-
-    return Actinium.User.Meta.delete(
-        { objectId: user.id, keys: key.join('.') },
-        MasterOptions(),
-    );
-});
 
 Actinium.Hook.register(
     'user-before-save',

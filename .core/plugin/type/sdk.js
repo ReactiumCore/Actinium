@@ -332,7 +332,7 @@ Type.status = async (params, options) => {
  * @apiGroup Actinium
  * @apiParam {Boolean} schema Whether to include the schema object of the Type.
  */
-Type.list = async (params, options) => {
+Type.list = async (params = {}, options) => {
     let pages = 0,
         total = 0;
 

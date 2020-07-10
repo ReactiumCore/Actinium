@@ -130,6 +130,9 @@ User.list = async (params, options) => {
     const optimize = op.get(params, 'optimize', false);
     const refresh = op.get(params, 'refresh', false);
     const indexBy = op.get(params, 'indexBy');
+    const outputType = String(
+        op.get(params, 'outputType', 'JSON'),
+    ).toUpperCase();
     const orderBy = op.get(params, 'orderBy', ['fname', 'lname']);
     const orders = ['ascending', 'descending'];
     let order = String(op.get(params, 'order', 'ascending')).toLowerCase();
@@ -234,7 +237,9 @@ User.list = async (params, options) => {
     const pages = Math.max(Math.ceil(count / limit), 1);
     const next = page + 1 <= pages ? page + 1 : null;
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
-    const results = await qry.find(options);
+    let results = await qry.find(options);
+    results =
+        outputType === 'JSON' ? results.map(item => serialize(item)) : results;
 
     response = {
         count,
@@ -247,7 +252,7 @@ User.list = async (params, options) => {
         orderBy,
         indexBy,
         search,
-        results: results.map(item => serialize(item)),
+        results,
     };
 
     await Actinium.Hook.run('user-list-response', response, params, options);
@@ -319,13 +324,14 @@ User.retrieve = async (params, options) => {
 
     op.set(params, 'fieldsHooked', fields);
 
+    params.outputType = 'OBJECT';
     const { results = [] } = await User.list(params, options);
 
-    const user = op.get(results, [0]);
+    const user = _.first(results);
 
     await Actinium.Hook.run('user-retrieve-response', user, params, options);
 
-    return user;
+    return user.toJSON();
 };
 
 /**

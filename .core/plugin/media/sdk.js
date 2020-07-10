@@ -23,7 +23,7 @@ const {
     UserFromSession,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
 
-const Media = { ENUMS, Content: {} };
+const Media = { ENUMS, Content: {}, Image: sharp, User: {} };
 
 const getDirectories = async options => {
     const cached = Actinium.Cache.get('media-directories-fetch');
@@ -302,15 +302,16 @@ await Actinium.Media.directorySave({
   ]
 });
  */
-Media.directorySave = async ({
-    directory,
-    capabilities,
-    permissions = [],
-    objectId,
-    options,
-    reload,
-    user,
-}) => {
+Media.directorySave = async params => {
+    let {
+        directory,
+        capabilities,
+        permissions = [],
+        objectId,
+        options,
+        reload,
+        user,
+    } = params;
     if (directory) {
         directory = String(slugify(directory)).toLowerCase();
     }
@@ -489,15 +490,9 @@ const results = Actinium.Media.files({ directory: 'uploads' });
    prev: Number
 }
  */
-Media.files = async ({
-    directory,
-    limit = 50,
-    page = 1,
-    search,
-    user,
-    tag,
-    type,
-}) => {
+Media.files = async params => {
+    let { directory, limit = 50, page = 1, search, user, tag, type } = params;
+
     if (!user) return {};
 
     let searchFields = [
@@ -680,15 +675,6 @@ Media.fileType = filename => {
 };
 
 /**
- * @api {Asynchronous} Media.Image Media.Image
- * @apiVersion 3.1.3
- * @apiGroup Actinium
- * @apiName Media.Image
- * @apiDescription Under the hood, Actinium uses [https://sharp.pixelplumbing.com](Sharp) a Node.js image processing library. You can use the API however you like in your own application.
- */
-Media.Image = sharp;
-
-/**
  * @api {Asynchronous} Media.load() Media.load
  * @apiVersion 3.1.3
  * @apiGroup Actinium
@@ -715,6 +701,105 @@ Media.load = async () => {
     return Actinium.Cache.get('Media');
 };
 
+Media.createFromURL = async (params, options) => {
+    let { directory = 'uploads', outputType = 'JSON', url, user } = params;
+
+    let resp = {};
+
+    // Error if !url value
+    if (!url) {
+        op.set(resp, 'error', { message: 'url is a required parameter' });
+        return resp;
+    }
+
+    // See if the url exists
+    try {
+        await Actinium.Cloud.httpRequest({ url });
+    } catch (error) {
+        op.set(resp, 'error', {
+            message: `${url} not found`,
+            code: error.status,
+        });
+        return resp;
+    }
+
+    // Get capabilities array
+    const capabilities = await Actinium.Setting.get(
+        'media.capabilities.retrieve',
+        ['Media.retrieve'],
+    );
+
+    // Format directory
+    directory = String(slugify(directory)).toLowerCase();
+
+    // Object properties
+    const ext = url.split('.').pop();
+    const filename = String(url.split('/').pop()).toLowerCase();
+    const localURL = `/media/${directory}/${filename}`;
+    const type = Media.fileType(url);
+
+    const data = {
+        capabilities,
+        directory,
+        ext,
+        filename,
+        redirect: { url },
+        type,
+        url: localURL,
+        user,
+        uuid: uuid(),
+    };
+
+    // Create thumbnail
+    if (type === 'IMAGE') {
+        const thumbnail = await Actinium.Media.crop({
+            url,
+            options: { width: 200, height: 200 },
+        });
+
+        if (thumbnail) {
+            op.set(data, 'thumbnail', thumbnail);
+        }
+    }
+
+    // Create the Actinium Object
+    let file;
+
+    try {
+        file = await new Actinium.Object(ENUMS.COLLECTION.MEDIA).save(
+            data,
+            options,
+        );
+    } catch (error) {
+        op.set(resp, 'error', error);
+        return resp;
+    }
+
+    // Format the file output
+    file = String(outputType).toUpperCase() === 'JSON' ? file.toJSON() : file;
+    op.set(resp, 'result', file);
+
+    // Create the directory
+    if (directory !== 'uploads') {
+        try {
+            await Media.directorySave({
+                directory,
+                capabilities,
+                options,
+                user,
+                reload: false,
+            });
+        } catch (error) {
+            op.set(resp, 'error', error);
+        }
+    }
+
+    // Update the media cache
+    await Media.load();
+
+    return resp;
+};
+
 /**
  * @api {Asynchronous} Media.crop(url,config) Media.crop
  * @apiVersion 3.1.3
@@ -732,12 +817,9 @@ const thumbnail = await Actinium.Media.crop({
 });
 ...
  */
-Media.crop = async ({
-    ext,
-    prefix,
-    url,
-    options = { width: 400, height: 400 },
-}) => {
+Media.crop = async params => {
+    let { ext, prefix, url, options = { width: 400, height: 400 } } = params;
+
     url = typeof url === 'string' ? url : url.url();
     url = String(url).replace('undefined/', `${ENV.PARSE_MOUNT}/`);
 
@@ -1014,103 +1096,19 @@ Media.Content.retrieve = async (params, options) => {
     return files;
 };
 
-Media.createFromURL = async (params, options) => {
-    let { directory = 'uploads', outputType = 'JSON', url, user } = params;
-
-    let resp = {};
-
-    // Error if !url value
-    if (!url) {
-        op.set(resp, 'error', { message: 'url is a required parameter' });
-        return resp;
+Media.User.files = (params, options) => {
+    if (!op.get(params, 'user')) {
+        return new Error('user is a required parameter');
     }
-
-    // See if the url exists
-    try {
-        await Actinium.Cloud.httpRequest({ url });
-    } catch (error) {
-        op.set(resp, 'error', {
-            message: `${url} not found`,
-            code: error.status,
-        });
-        return resp;
-    }
-
-    // Get capabilities array
-    const capabilities = await Actinium.Setting.get(
-        'media.capabilities.retrieve',
-        ['Media.retrieve'],
-    );
-
-    // Format directory
-    directory = String(slugify(directory)).toLowerCase();
-
-    // Object properties
-    const ext = url.split('.').pop();
-    const filename = String(url.split('/').pop()).toLowerCase();
-    const localURL = `/media/${directory}/${filename}`;
-    const type = Media.fileType(url);
-
-    const data = {
-        capabilities,
-        directory,
-        ext,
-        filename,
-        redirect: { url },
-        type,
-        url: localURL,
-        user,
-        uuid: uuid(),
-    };
-
-    // Create thumbnail
-    if (type === 'IMAGE') {
-        const thumbnail = await Actinium.Media.crop({
-            url,
-            options: { width: 200, height: 200 },
-        });
-
-        if (thumbnail) {
-            op.set(data, 'thumbnail', thumbnail);
-        }
-    }
-
-    // Create the Actinium Object
-    let file;
-
-    try {
-        file = await new Actinium.Object(ENUMS.COLLECTION.MEDIA).save(
-            data,
-            options,
-        );
-    } catch (error) {
-        op.set(resp, 'error', error);
-        return resp;
-    }
-
-    // Format the file output
-    file = String(outputType).toUpperCase() === 'JSON' ? file.toJSON() : file;
-    op.set(resp, 'result', file);
-
-    // Create the directory
-    if (directory !== 'uploads') {
-        try {
-            await Media.directorySave({
-                directory,
-                capabilities,
-                options,
-                user,
-                reload: false,
-            });
-        } catch (error) {
-            op.set(resp, 'error', error);
-        }
-    }
-
-    // Update the media cache
-    await Media.load();
-
-    return resp;
+    return getMedia({ ...params, objectId: null, outputType: 'JSON' }, options);
 };
 
 module.exports = Media;
+
+/**
+ * @api {Asynchronous} Media.Image Media.Image
+ * @apiVersion 3.1.3
+ * @apiGroup Actinium
+ * @apiName Media.Image
+ * @apiDescription Under the hood, Actinium uses [https://sharp.pixelplumbing.com](Sharp) a Node.js image processing library. You can use the API however you like in your own application.
+ */
