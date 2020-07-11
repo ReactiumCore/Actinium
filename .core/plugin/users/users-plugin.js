@@ -1,8 +1,7 @@
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const op = require('object-path');
-const mediaList = require('./_plugins/media-list');
-const contentList = require('./_plugins/content-list');
+
 const {
     AclTargets,
     CloudRunOptions,
@@ -283,22 +282,6 @@ Actinium.Hook.register('warning', async () => {
 });
 
 Actinium.Hook.register(
-    'content-activity',
-    async (activityType, ...activityParams) => contentList(...activityParams),
-);
-
-Actinium.Hook.register('after-media-save', mediaList);
-
-Actinium.Hook.register(
-    'content-status-changed',
-    (contentObj, typeObj, status, prev) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        if (prev !== 'TRASH' || status === 'TRASH') return;
-        return contentList(contentObj, typeObj, false);
-    },
-);
-
-Actinium.Hook.register(
     'content-trashed',
     async (contentObj, typeObj, isNew) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
@@ -318,21 +301,6 @@ Actinium.Hook.register(
         );
     },
 );
-
-Actinium.Hook.register('before-media-delete', req => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    let user = req.object.get('user');
-
-    if (!user) return;
-
-    const objectId = req.object.id;
-    const key = ['media', objectId];
-
-    return Actinium.User.Meta.delete(
-        { objectId: user.id, keys: key.join('.') },
-        MasterOptions(),
-    );
-});
 
 Actinium.Hook.register(
     'user-before-save',

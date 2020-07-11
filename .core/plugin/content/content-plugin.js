@@ -234,6 +234,36 @@ Actinium.Hook.register(
     },
 );
 
+// user content query
+Actinium.Hook.register('content-query', async (qry, params) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    if (op.get(params, 'user')) {
+        let user = params.user;
+        if (_.isString(user)) {
+            user = new Actinium.Object(Parse.User).set('objectId', user);
+        }
+
+        qry.equalTo('user', user);
+    }
+});
+
+Actinium.Hook.register(
+    'user-retrieve-response',
+    async (user, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        options = options || { useMasterKey: true };
+        const content = await Actinium.Content.User.list({ user }, options);
+
+        if (_.isError(content)) return;
+
+        const meta = user.get('meta') || {};
+        op.set(meta, 'content', content);
+        user.set('meta', meta);
+    },
+);
+
 // Used for User activity log
 Actinium.Content.registerActivity('content-saved');
 Actinium.Content.registerActivity('content-slug-changed');

@@ -163,65 +163,6 @@ Actinium.Hook.register('content-schema-field-types', fieldTypes => {
     fieldTypes['Media'] = { type: 'Relation', targetClass: 'Media' };
 });
 
-// Actinium.Hook.register(
-//     'content-saved',
-//     async (content, typeObj, isNew, params, options) => {
-//         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-//
-//         content = !content.id
-//             ? await Actinium.Content.retrieve(content, options)
-//             : content;
-//
-//         const tax = _.flatten(
-//             Taxonomy.Content.fields(content, options).map(field =>
-//                 Object.values({ ...op.get(params, field, {}) }),
-//             ),
-//         );
-//
-//         // prettier-ignore
-//         const add = tax.filter(item => !op.has(item, 'deleted') && op.get(item, 'pending') === true);
-//         const del = tax.filter(item => op.get(item, 'deleted') === true);
-//
-//         // prettier-ignore
-//         const [addTAX, delTAX] = await Promise.all([
-//             add.map(({ field, slug, type }) => Taxonomy.Content.attach({ content, field, slug, type }), options),
-//             del.map(({ field, slug, type }) => Taxonomy.Content.detach({ content, field, slug, type }), options)
-//         ]);
-//
-//         const newTax = await Taxonomy.Content.retrieve(
-//             { content, type: typeObj },
-//             options,
-//         );
-//
-//         Object.entries(newTax).forEach(([key, value]) =>
-//             op.set(content, key, value),
-//         );
-//     },
-// );
-
-// beforeSave_content
-// Actinium.Hook.register(
-//     'beforeSave_content',
-//     async ({ object, options }) => {
-//         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-//
-//         const collection = object.className;
-//         const type = await Actinium.Type.retrieve({ collection }, options);
-//
-//         _.chain(Object.values(type.fields))
-//             .where({ fieldType: 'Media' })
-//             .pluck('fieldName')
-//             .value()
-//             .forEach(field => {
-//                 field = String(field).toLowerCase();
-//                 const val = object.get(field);
-//                 if (!Array.isArray(val)) return;
-//                 object.unset(field);
-//             });
-//     },
-//     100000000,
-// );
-
 // content-retrieve hook
 Actinium.Hook.register('content-retrieve', async (content, params, options) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
@@ -232,6 +173,36 @@ Actinium.Hook.register('content-retrieve', async (content, params, options) => {
         op.set(content, key, value),
     );
 });
+
+// user media query
+Actinium.Hook.register('media-query', async (qry, params) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+    if (op.get(params, 'user')) {
+        let user = params.user;
+        if (_.isString(user)) {
+            user = new Actinium.Object(Parse.User).set('objectId', user);
+        }
+
+        qry.equalTo('user', user);
+    }
+});
+
+Actinium.Hook.register(
+    'user-retrieve-response',
+    async (user, params, options) => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+
+        options = options || { useMasterKey: true };
+        const media = await Actinium.Media.User.files({ user }, options);
+
+        if (_.isError(media)) return;
+
+        const meta = user.get('meta') || {};
+        op.set(meta, 'media', media);
+        user.set('meta', meta);
+    },
+);
 
 // Register Cloud functions
 

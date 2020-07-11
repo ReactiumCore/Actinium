@@ -13,6 +13,8 @@ const ENUMS = require('./enums');
 
 const Content = { ENUMS };
 
+Content.User = {};
+
 Content.Log = {};
 
 /**
@@ -1070,6 +1072,42 @@ Content.list = async (params, options) => {
     await Actinium.Hook.run('content-list', response, params, options);
 
     return response;
+};
+
+Content.listAll = async (params, options) => {
+    const indexBy = op.get(params, 'indexBy', 'objectId');
+    const { types } = await Actinium.Type.list({}, options);
+    let output = {};
+
+    op.del(params, 'indexBy');
+    op.del(params, 'page');
+
+    for (let type of types) {
+        let page = 1;
+        let content = [];
+        const { machineName, objectId } = type;
+        const p = {
+            ...params,
+            page,
+            type: { machineName },
+            indexBy: 'objectId',
+        };
+        let { pages, results } = await Content.list(p, options);
+
+        content = results;
+        page += 1;
+
+        while (page <= pages) {
+            op.set(p, page, page);
+            let { results } = await Content.list(p, options);
+            content = content.concat(results);
+            page += 1;
+        }
+
+        op.set(output, op.get(type, indexBy), content);
+    }
+
+    return output;
 };
 
 /**
@@ -2782,6 +2820,37 @@ Content.typeMaintenance = async () => {
     if (logged === true) {
         INFO('');
     }
+};
+
+Content.User.list = async (params, options) => {
+    if (!op.get(params, 'user')) {
+        return new Error('user is a required parameter');
+    }
+
+    const indexBy = op.get(params, 'indexBy', 'typeID');
+    const indexContentBy = op.get(params, 'indexContentBy', 'contentID');
+    const content = await Content.listAll(params, options);
+
+    const output = {};
+    Object.entries(content).forEach(([typeID, items]) => {
+        const newItems = Object.values(items).map(item => ({
+            collection: `Content_${item.type.machineName}`,
+            contentID: item.objectId,
+            machineName: item.type.machineName,
+            slug: item.slug,
+            status: item.status,
+            title: item.title,
+            typeID,
+            type: item.type,
+            updatedAt: item.updatedAt,
+            url: `/admin/content/${item.type.machineName}`,
+        }));
+
+        const key = indexBy === 'typeID' ? typeID : op.get(content, indexBy);
+        op.set(output, key, _.indexBy(newItems, indexBy));
+    });
+
+    return output;
 };
 
 Actinium.Harness.test(
