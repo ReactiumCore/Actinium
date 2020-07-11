@@ -2,6 +2,8 @@ const path = require('path');
 const fs = require('fs-extra');
 const express = require('express');
 
+Actinium.Middleware.registerHook('plugin-assets', '/api/plugin-assets', -10000);
+
 Actinium.Middleware.register(
     'static',
     app => {

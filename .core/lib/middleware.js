@@ -13,6 +13,25 @@ const matches = [
 
 const noop = () => Promise.resolve();
 
+class HookMiddleware {
+    constructor(req, res, next) {
+        this.req = req;
+        this.res = res;
+
+        // first next
+        this.stack = () => next();
+    }
+
+    use(cb) {
+        const next = this.stack;
+        this.stack = () => cb(this.req, this.res, next);
+    }
+
+    next() {
+        this.stack();
+    }
+}
+
 const mw = {
     sort: [],
     list: {},
@@ -85,6 +104,23 @@ mw.register = (id, callback, order = 100) => {
     }
 
     mw.sort.push({ id, callback, order });
+};
+
+mw.registerHook = (...params) => {
+    let [id, path, order = 100] = params;
+    if (typeof path === 'number') order = path;
+    if (typeof order !== 'number') order = 100;
+
+    let args = [
+        async (req, res, next) => {
+            const mw = new HookMiddleware(req, res, next);
+            await Actinium.Hook.run(`${id}-middleware`, mw);
+            mw.next();
+        },
+    ];
+
+    if (typeof path === 'string') args = [path, ...args];
+    mw.register(id, app => app.use(...args), order);
 };
 
 mw.replace = (id, callback) => op.set(mw.replacements, id, callback);

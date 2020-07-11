@@ -5,6 +5,7 @@ const S3Adapter = require('@parse/s3-files-adapter');
 const AWS = require('aws-sdk');
 const config = require(`${BASE_DIR}/.core/actinium-config`);
 const chalk = require('chalk');
+const express = require('express');
 
 const PLUGIN = {
     ID: 'S3Adapter',
@@ -13,13 +14,16 @@ const PLUGIN = {
         'Actinium S3 file adapter plugin, used to allow runtime change of underlying Parse file adapter to allow AWS S3 Storage or Digital Ocean Spaces.',
     order: 0,
     version: {
-        actinium: '>=3.1.2',
-        plugin: '0.0.1',
+        actinium: '>=3.1.8',
+        plugin: '0.0.2',
     },
     meta: {
         group: 'FilesAdapter',
         builtIn: true,
         settings: true,
+        logoURL: '/plugin-assets/S3Adapter/add-files.svg',
+        scriptURL: '/plugin-assets/S3Adapter/s3-adapter.js',
+        styleURL: '/plugin-assets/S3Adapter/s3-adapter-plugin.css',
     },
 };
 
@@ -58,19 +62,21 @@ Actinium.Hook.register('add-meta-asset', async metaAsset => {
     metaAsset.targetFileName = `${name}-${version}${ext}`;
 });
 
-const static = true;
-Actinium.Plugin.addLogo(
-    PLUGIN.ID,
-    path.resolve(__dirname, 'plugin-assets/add-files.svg'),
-    static,
-);
-Actinium.Plugin.addScript(
-    PLUGIN.ID,
-    path.resolve(__dirname, 'plugin-assets/s3-adapter.js'),
-    static,
-);
-Actinium.Plugin.addStylesheet(
-    PLUGIN.ID,
-    path.resolve(__dirname, 'plugin-assets/s3-adapter-plugin.css'),
-    static,
-);
+Actinium.Hook.register('activate', async ({ ID, meta = {} }, req) => {
+    if (ID !== PLUGIN.ID) return;
+    op.set(meta, 'logoURL', '/plugin-assets/S3Adapter/add-files.svg');
+    op.set(meta, 'scriptURL', '/plugin-assets/S3Adapter/s3-adapter.js');
+    op.set(meta, 'styleURL', '/plugin-assets/S3Adapter/s3-adapter-plugin.css');
+    if (req.object) {
+        req.object.set('meta', meta);
+    }
+});
+
+Actinium.Hook.register('plugin-assets-middleware', async app => {
+    const router = express.Router();
+    router.use(
+        `/${PLUGIN.ID}`,
+        express.static(path.resolve(__dirname, 'plugin-assets')),
+    );
+    app.use(router);
+});

@@ -76,7 +76,9 @@ if (Array.isArray(levelMap)) {
     const [level] = levelMap;
     LOG_LEVEL = level;
 }
-ENV.LOG_LEVEL = op.has(Enums.logLevels, LOG_LEVEL) ? LOG_LEVEL : 'BOOT';
+ENV.LOG_LEVEL = LOG_LEVEL = op.has(Enums.logLevels, LOG_LEVEL)
+    ? LOG_LEVEL
+    : 'BOOT';
 ENV.PARSE_LOG_LEVEL = op.get(Enums, ['parseLogLevels', LOG_LEVEL], 'error');
 
 ENV.PARSE_DASHBOARD_USERS = stringToObject(
