@@ -136,6 +136,10 @@ Actinium.Hook.register(
     Actinium.Enums.priority.highest,
 );
 
+Actinium.Hook.register('start', () => {
+    Actinium.Blueprint.register(BLUEPRINT.ID, BLUEPRINT);
+});
+
 Actinium.Hook.register('activate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
     // Your activation code here
