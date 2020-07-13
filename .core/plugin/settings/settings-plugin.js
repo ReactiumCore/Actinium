@@ -136,12 +136,15 @@ Actinium.Hook.register(
     Actinium.Enums.priority.highest,
 );
 
-Actinium.Hook.register('blueprint-defaults', async blueprints => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        if (!blueprints.find(({ ID }) => ID === BLUEPRINT.ID)) {
-            blueprints.push(BLUEPRINT);
-        }
-    }
+Actinium.Hook.register('activate', ({ ID }) => {
+    if (ID !== PLUGIN.ID) return;
+    // Your activation code here
+    Actinium.Blueprint.register(BLUEPRINT.ID, BLUEPRINT);
+});
+
+Actinium.Hook.register('deactivate', ({ ID }) => {
+    if (ID !== PLUGIN.ID) return;
+    Actinium.Blueprint.unregister(BLUEPRINT.ID);
 });
 
 Actinium.Hook.register('route-defaults', async routes => {

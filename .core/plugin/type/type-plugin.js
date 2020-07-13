@@ -58,14 +58,21 @@ Actinium.Hook.register('type-deleted', async () => {
     Actinium.Cache.del('types');
 });
 
-// Register Blueprints
-Actinium.Hook.register(
-    'blueprint-defaults',
-    blueprints => {
-        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-    },
-    -1000,
-);
+const registerBlueprints = (reg = true) => ({ ID }) => {
+    if (ID && ID !== PLUGIN.ID) return;
+    if (reg === true)
+        PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
+    else PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+};
+
+// Start: Blueprints
+Actinium.Hook.register('start', registerBlueprints(true));
+
+// Activate: Blueprints
+Actinium.Hook.register('activate', registerBlueprints(true));
+
+// Deactivate: Blueprints
+Actinium.Hook.register('deactivate', registerBlueprints(false));
 
 // Register Routes
 Actinium.Hook.register('route-defaults', routes => {

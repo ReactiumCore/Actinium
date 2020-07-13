@@ -36,9 +36,9 @@ Actinium.Capability.register(
 );
 
 // Add admin-tools zone when blueprint.meta.admin === true blueprints
-Actinium.Hook.register('blueprints', async Blueprints => {
-    const protected = Blueprints.protected;
-    for (const bp of Blueprints.list) {
+Actinium.Hook.register('blueprints', async () => {
+    const protected = Actinium.Blueprint.protected;
+    for (const bp of Actinium.Blueprint.list) {
         if (
             op.get(bp, 'meta.admin', false) === true &&
             !op.has(bp, 'sections.tools')
@@ -47,9 +47,10 @@ Actinium.Hook.register('blueprints', async Blueprints => {
                 zones: ['admin-tools'],
             });
 
-            if (protected.includes(bp.ID)) Blueprint.unprotect(bp.ID);
-            Blueprint.register(bp.ID, bp).protect();
+            if (protected.includes(bp.ID)) Actinium.Blueprint.unprotect(bp.ID);
+            Actinium.Blueprint.register(bp.ID, bp);
         }
+        if (op.get(bp, 'meta.admin', false) === true) console.log(bp);
     }
 });
 

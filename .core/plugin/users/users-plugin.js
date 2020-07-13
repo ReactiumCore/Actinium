@@ -26,7 +26,6 @@ const PLUGIN = {
 };
 
 const PLUGIN_ROUTES = require('./routes');
-const PLUGIN_BLUEPRINTS = require('./blueprints');
 const PLUGIN_SCHEMA = require('./schema');
 
 const avatarTypes = {
@@ -191,15 +190,22 @@ const pref = {
 
 Actinium.Plugin.register(PLUGIN, true);
 
-// Register Blueprints
-Actinium.Hook.register(
-    'blueprint-defaults',
-    blueprints => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-        PLUGIN_BLUEPRINTS.forEach(item => blueprints.push(item));
-    },
-    -1000,
-);
+const PLUGIN_BLUEPRINTS = require('./blueprints');
+const registerBlueprints = (reg = true) => ({ ID }) => {
+    if (ID && ID !== PLUGIN.ID) return;
+    if (reg === true)
+        PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
+    else PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+};
+
+// Start: Blueprints
+Actinium.Hook.register('start', registerBlueprints(true));
+
+// Activate: Blueprints
+Actinium.Hook.register('activate', registerBlueprints(true));
+
+// Deactivate: Blueprints
+Actinium.Hook.register('deactivate', registerBlueprints(false));
 
 // Register Routes
 Actinium.Hook.register('route-defaults', routes => {
