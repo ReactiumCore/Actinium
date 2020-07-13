@@ -33,14 +33,17 @@ Actinium.Capability.register(
 );
 
 // Add admin-tools zone when blueprint.meta.admin === true blueprints
-Actinium.Hook.register('blueprint-list', blueprints =>
-    blueprints.forEach(blueprint => {
-        if (op.get(blueprint, 'meta.admin', false) === true) {
-            blueprint.sections['tools'] = {
-                zones: ['admin-tools'],
-            };
-        }
-    }),
+Actinium.Hook.register(
+    'blueprint-list',
+    blueprints =>
+        blueprints.forEach(blueprint => {
+            if (op.get(blueprint, 'meta.admin', false) === true) {
+                blueprint.sections['tools'] = {
+                    zones: ['admin-tools'],
+                };
+            }
+        }),
+    1000000,
 );
 
 /**
