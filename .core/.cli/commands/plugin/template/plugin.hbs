@@ -112,7 +112,9 @@ Actinium.Hook.register('update', ({ ID }) => {
 
 Actinium.Hook.register('deactivate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
+    {{#if blueprints}}
     PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+    {{/if}}
 });
 
 {{#if cloud}}
