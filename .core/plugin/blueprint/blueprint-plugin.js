@@ -50,7 +50,6 @@ Actinium.Hook.register('blueprints', async () => {
             if (protected.includes(bp.ID)) Actinium.Blueprint.unprotect(bp.ID);
             Actinium.Blueprint.register(bp.ID, bp);
         }
-        if (op.get(bp, 'meta.admin', false) === true) console.log(bp);
     }
 });
 
