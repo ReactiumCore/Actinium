@@ -21,6 +21,9 @@ const PLUGIN = {
     },
 };
 
+const SDK = require('./sdk');
+Actinium.Blueprint = SDK;
+
 Actinium.Plugin.register(PLUGIN, true);
 
 Actinium.Capability.register(
@@ -33,15 +36,22 @@ Actinium.Capability.register(
 );
 
 // Add admin-tools zone when blueprint.meta.admin === true blueprints
-Actinium.Hook.register('blueprint-list', blueprints =>
-    blueprints.forEach(blueprint => {
-        if (op.get(blueprint, 'meta.admin', false) === true) {
-            blueprint.sections['tools'] = {
+Actinium.Hook.register('blueprints', async Blueprints => {
+    const protected = Blueprints.protected;
+    for (const bp of Blueprints.list) {
+        if (
+            op.get(bp, 'meta.admin', false) === true &&
+            !op.has(bp, 'sections.tools')
+        ) {
+            op.set(bp, 'sections.tools', {
                 zones: ['admin-tools'],
-            };
+            });
+
+            if (protected.includes(bp.ID)) Blueprint.unprotect(bp.ID);
+            Blueprint.register(bp.ID, bp).protect();
         }
-    }),
-);
+    }
+});
 
 /**
 * @api {Cloud} blueprints blueprints
@@ -55,7 +65,8 @@ Actinium.Cloud.run('blueprints');
 */
 Actinium.Cloud.define(PLUGIN.ID, 'blueprints', async req => {
     if (CloudHasCapabilities(req, ['blueprint.retrieve'])) {
-        return Actinium.Blueprint.list();
+        await Actinium.Hook.run('blueprints', Actinium.Blueprint);
+        return Actinium.Blueprint.list;
     }
 
     throw 'Not permitted.';

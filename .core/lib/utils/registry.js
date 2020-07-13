@@ -29,6 +29,7 @@ const op = require('object-path');
  * @apiParam register {Method} pass an identifier and a data object to register the object. The identifier will be added if it is not already registered (but protected) and not banned.
  * @apiParam unprotect {Method} pass an identifier to unprotect an object
  * @apiParam unregister {Method} pass an identifier to unregister an object. When in HISTORY mode (default), previous registration will be retained, but the object will not be listed. In CLEAN mode, the previous registrations will be removed, unless protected.
+ * @apiParam flush {Method} clear all registrations. Resets registry to newly constructed state.
  */
 
 class Registry {
@@ -118,6 +119,13 @@ class Registry {
         );
 
         return this;
+    }
+
+    flush() {
+        this.__protected = [];
+        this.__registered = [];
+        this.__unregister = [];
+        this.__banned = [];
     }
 
     protect(id) {

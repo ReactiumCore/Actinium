@@ -1,5 +1,3 @@
-const Hook = require('./hook');
-
 const DEFAULTS = [
     {
         sections: {
@@ -58,28 +56,11 @@ const DEFAULTS = [
     },
 ];
 
-const Blueprint = {
-    blueprints: {},
-};
-
-Blueprint.init = async () => {
-    const defaultBlueprints = DEFAULTS;
-    await Actinium.Hook.run('blueprint-defaults', DEFAULTS);
-
-    Blueprint.blueprints = defaultBlueprints.reduce((blueprints, blueprint) => {
-        const { ID } = blueprint;
-        if (ID) {
-            blueprints[ID] = blueprint;
-        }
-
-        return blueprints;
-    }, {});
-};
-
-Blueprint.list = async () => {
-    const list = Object.values(Blueprint.blueprints);
-    await Actinium.Hook.run('blueprint-list', list);
-    return list;
-};
+const Blueprint = new Actinium.Utils.Registry(
+    'BLUEPRINTS',
+    'ID',
+    Actinium.Utils.Registry.MODES.CLEAN,
+);
+DEFAULTS.forEach(bp => Blueprint.register(bp.ID, bp));
 
 module.exports = Blueprint;
