@@ -62,7 +62,6 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) role-find Run when a role is fetched from the server. The fetched `Parse.Role` object is passed to the hook.
  * @apiParam (Hooks) role-removed Run when a role is removed. The removed role and updated role ist is passed to the hook.
  * @apiParam (Hooks) roles Triggered when roles are fetched from the server. The roles object is passed to the hook.
- * @apiParam (Hooks) route-defaults Triggered when the list of default Routes is generated. Introduces a way to add to the default Routes. The Route Array is passed to the hook.
  * @apiParam (Hooks) route-list
  * @apiParam (Hooks) route-retrieve
  * @apiParam (Hooks) running Triggered before the end of the Actinium bootstrap after warnings and tests have run.

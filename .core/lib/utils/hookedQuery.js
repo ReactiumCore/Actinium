@@ -19,6 +19,8 @@ module.exports = async (
     collection,
     queryHook = 'hooked-query-query',
     outputHook = 'hooked-query-output',
+    resultsKey = 'results',
+    resultsAs = 'object',
 ) => {
     options = options || { useMasterKey: true };
 
@@ -33,7 +35,7 @@ module.exports = async (
     outputType = String(outputType).toUpperCase();
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
 
-    let resp = { count: 0, page: 1, pages: 1, limit, results: [] };
+    let resp = { count: 0, page: 1, pages: 1, limit, [resultsKey]: [] };
 
     // 1.0 - Initialize query
     let qry = new Actinium.Query(collection);
@@ -62,7 +64,7 @@ module.exports = async (
 
     // 3.1 - Process results
     while (results.length > 0) {
-        op.set(resp, 'results', _.flatten([resp.results, results]));
+        op.set(resp, [resultsKey], _.flatten([resp[resultsKey], results]));
 
         // 3.2 - Get next page if page < 1
         if (page < 1) {
@@ -76,7 +78,13 @@ module.exports = async (
         }
     }
 
-    op.set(resp, 'results', _.indexBy(resp.results, 'id'));
+    op.set(
+        resp,
+        resultsKey,
+        resultsAs === 'object'
+            ? _.indexBy(resp.results, 'id')
+            : resp[resultsKey],
+    );
 
     // 4.0 - Pagination info
     op.set(resp, 'count', count);
@@ -98,8 +106,9 @@ module.exports = async (
 
     // 6.0 - Process toJSON
     if (outputType === 'JSON') {
-        Object.entries(resp.results).forEach(([id, item]) => {
-            resp.results[id] = serialize(item);
+        const results = resp[resultsKey];
+        Object.entries(results).forEach(([id, item]) => {
+            results[id] = serialize(item);
         });
     }
 

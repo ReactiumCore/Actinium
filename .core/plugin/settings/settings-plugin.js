@@ -30,38 +30,6 @@ const {
  | setting.${group}-delete | administrator,super-admin | Ability to delete the setting with `group` setting group. e.g. setting.foo-delete to allow delete of setting group `foo` |
  */
 
-const COLLECTION = 'Setting';
-
-const BLUEPRINT = {
-    sections: {
-        sidebar: {
-            zones: ['admin-sidebar'],
-            meta: {},
-        },
-        main: {
-            zones: ['admin-header', 'settings-groups', 'settings-actions'],
-            meta: {},
-        },
-    },
-    meta: {
-        builtIn: true,
-        admin: true,
-        namespace: 'admin-page',
-    },
-    ID: 'Settings',
-    description: 'Settings blueprint',
-    className: 'Blueprint',
-};
-
-const ROUTE = {
-    route: '/admin/settings',
-    blueprint: BLUEPRINT.ID,
-    meta: {
-        builtIn: true,
-    },
-    capabilities: ['settings-ui.view'],
-};
-
 const PLUGIN = {
     ID: 'Settings',
     description: 'Settings plugin used to manage application settings',
@@ -76,6 +44,8 @@ const PLUGIN = {
         builtIn: true,
     },
 };
+
+const COLLECTION = PLUGIN.ID;
 
 Actinium.Capability.register(
     `${COLLECTION}.create`,
@@ -136,25 +106,56 @@ Actinium.Hook.register(
     Actinium.Enums.priority.highest,
 );
 
-Actinium.Hook.register('start', () => {
-    Actinium.Blueprint.register(BLUEPRINT.ID, BLUEPRINT);
-});
+const PLUGIN_BLUEPRINTS = require('./blueprints');
+const registerBlueprints = (reg = true) => ({ ID }) => {
+    if (ID && ID !== PLUGIN.ID) return;
+    if (reg === true)
+        PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
+    else PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+};
 
-Actinium.Hook.register('activate', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-    // Your activation code here
-    Actinium.Blueprint.register(BLUEPRINT.ID, BLUEPRINT);
-});
+// Start: Blueprints
+Actinium.Hook.register('start', registerBlueprints(true));
 
-Actinium.Hook.register('deactivate', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-    Actinium.Blueprint.unregister(BLUEPRINT.ID);
-});
+// Activate: Blueprints
+Actinium.Hook.register('activate', registerBlueprints(true));
 
-Actinium.Hook.register('route-defaults', async routes => {
+// Deactivate: Blueprints
+Actinium.Hook.register('deactivate', registerBlueprints(false));
+
+const PLUGIN_ROUTES = require('./routes');
+const saveRoutes = async () => {
+    for (const route of PLUGIN_ROUTES) {
+        await Actinium.Route.save(route);
+    }
+};
+
+// Update routes on startup
+Actinium.Hook.register('start', async () => {
     if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        if (!routes.find(({ route }) => route === ROUTE.route)) {
-            routes.push(ROUTE);
+        await saveRoutes();
+    }
+});
+
+// Update routes on plugin activation
+Actinium.Hook.register('activate', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        await saveRoutes();
+    }
+});
+
+// Update routes on plugin update
+Actinium.Hook.register('update', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        await saveRoutes();
+    }
+});
+
+// Remove routes on deactivation
+Actinium.Hook.register('deactivate', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        for (const route of PLUGIN_ROUTES) {
+            await Actinium.Route.delete(route);
         }
     }
 });

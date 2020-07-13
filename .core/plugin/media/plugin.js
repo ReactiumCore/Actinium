@@ -12,7 +12,6 @@ const COLLECTION = ENUMS.COLLECTION;
 
 const PLUGIN = require('./meta');
 const PLUGIN_SDK = require('./sdk');
-const PLUGIN_ROUTES = require('./routes');
 const PLUGIN_SCHEMA = require('./schema');
 
 // Create SDK Singleton
@@ -60,10 +59,41 @@ Actinium.Hook.register('activate', registerBlueprints(true));
 // Deactivate: Blueprints
 Actinium.Hook.register('deactivate', registerBlueprints(false));
 
-// Register Routes
-Actinium.Hook.register('route-defaults', routes => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    PLUGIN_ROUTES.forEach(item => routes.push(item));
+const PLUGIN_ROUTES = require('./routes');
+const saveRoutes = async () => {
+    for (const route of PLUGIN_ROUTES) {
+        await Actinium.Route.save(route);
+    }
+};
+
+// Update routes on startup
+Actinium.Hook.register('start', async () => {
+    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
+        await saveRoutes();
+    }
+});
+
+// Update routes on plugin activation
+Actinium.Hook.register('activate', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        await saveRoutes();
+    }
+});
+
+// Update routes on plugin update
+Actinium.Hook.register('update', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        await saveRoutes();
+    }
+});
+
+// Remove routes on deactivation
+Actinium.Hook.register('deactivate', async ({ ID }) => {
+    if (ID === PLUGIN.ID) {
+        for (const route of PLUGIN_ROUTES) {
+            await Actinium.Route.delete(route);
+        }
+    }
 });
 
 // Load MediaDirectories to memory

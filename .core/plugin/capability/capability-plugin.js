@@ -212,7 +212,7 @@ const checks = {
 };
 
 Reactium.Cloud.run('capability-bulk-check', { checks });
-  * @apiSuccess
+  * @apiSuccess response
 {
     canPublish: false
     canUnpublish: false,
