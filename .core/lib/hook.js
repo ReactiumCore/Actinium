@@ -4,51 +4,67 @@ const _ = require('underscore');
 const op = require('object-path');
 const ActionSequence = require('action-sequence');
 const assert = require('assert');
+const Enums = require('./enums');
 
-const noop = () => Promise.resolve();
-
-const Hook = {
-    action: {
-        middleware: {},
-        install: {},
-        start: {},
-        uninstall: {},
-        activate: {},
-        deactivate: {},
-        warning: {},
-        user: {},
-    },
+const noop = {
+    sync: () => {},
+    async: () => Promise.resolve(),
 };
 
-Hook.flush = name => op.set(Hook.action, name, {});
+const Hook = {
+    action: {},
+    actionIds: {},
+};
 
-Hook.unregister = id =>
-    Object.keys(Hook.action).forEach(action => {
-        op.del(Hook.action, `${action}.${id}`);
-    });
+Hook.flush = (name, type = 'async') =>
+    op.set(Hook.action, `${type}.${name}`, {});
 
-Hook.register = (name, callback, order = 100, id) => {
+Hook.unregister = id => {
+    const path = op.get(Hook.actionIds, [id]);
+    if (path) {
+        op.del(Hook.action, path);
+        op.del(Hook.actionIds, [id]);
+    }
+};
+
+Hook._register = (type = 'async') => (
+    name,
+    callback,
+    order = Enums.priority.neutral,
+    id,
+) => {
     id = id || uuid();
-    op.set(Hook.action, `${name}.${id}`, { id, order, callback });
+    const path = `${type}.${name}.${id}`;
+    op.set(Hook.actionIds, [id], path);
+    op.set(Hook.action, `${type}.${name}.${id}`, { id, order, callback });
+
     return id;
 };
 
-Hook.list = () => Object.keys(Hook.action).sort();
+Hook.register = Hook._register('async');
+Hook.registerSync = Hook._register('sync');
 
-Hook.run = async (name, ...params) => {
-    const context = { hook: name, params };
+Hook.list = (type = 'async') =>
+    Object.keys(op.get(Hook.action, type, {})).sort();
 
-    const actions = _.sortBy(
-        Object.values(op.get(Hook.action, `${name}`, {})),
+Hook._actions = (name, type = 'async', params) =>
+    _.sortBy(
+        Object.values(op.get(Hook.action, `${type}.${name}`, {})),
         'order',
     ).reduce((acts, action) => {
-        const { callback = noop, id } = action;
-        acts[id] = () => callback(...params, context);
+        const { callback = noop[type], id } = action;
+        acts[id] = ({ context }) => callback(...params, context);
         return acts;
     }, {});
 
+Hook.run = async (name, ...params) => {
+    const context = { hook: name, params };
     try {
-        await ActionSequence({ actions });
+        await ActionSequence({
+            actions: Hook._actions(name, 'async', params),
+            context,
+        });
+
         return context;
     } catch (errors) {
         Object.entries(errors).forEach(([id, error]) => {
@@ -79,6 +95,15 @@ Hook.run = async (name, ...params) => {
             }
         });
     }
+};
+
+Hook.runSync = (name, ...params) => {
+    const context = { hook: name, params };
+    Object.values(Hook._actions(name, 'sync', params)).forEach(callback =>
+        callback({ context }),
+    );
+
+    return context;
 };
 
 module.exports = Hook;

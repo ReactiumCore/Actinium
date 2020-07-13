@@ -104,7 +104,7 @@ FilesAdapter.update = async () => {
         const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
         await proxy._set(adapter);
     } catch (error) {
-        ERROR('Error setting files-adapter.');
+        ERROR('Error setting files-adapter.', error);
     }
 };
 
