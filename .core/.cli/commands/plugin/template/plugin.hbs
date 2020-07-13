@@ -33,7 +33,7 @@ const PLUGIN_BLUEPRINTS = require('./blueprints');
 const registerBlueprints = (reg = true) => ({ ID }) => {
     if (ID && ID !== PLUGIN.ID) return;
     if (reg === true) PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
-    else if (reg === true) PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+    else PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
 };
 
 // Start: Blueprints
