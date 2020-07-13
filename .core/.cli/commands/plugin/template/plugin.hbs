@@ -30,6 +30,20 @@ Actinium['{{sdk}}'] = op.get(Actinium, '{{sdk}}', PLUGIN_SDK);
 
 {{#if blueprints}}
 const PLUGIN_BLUEPRINTS = require('./blueprints');
+const registerBlueprints = (reg = true) => ({ ID }) => {
+    if (ID && ID !== PLUGIN.ID) return;
+    if (reg === true) PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
+    else if (reg === true) PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
+};
+
+// Start: Blueprints
+Actinium.Hook.register('start', registerBlueprints(true));
+
+// Activate: Blueprints
+Actinium.Hook.register('activate', registerBlueprints(true));
+
+// Deactivate: Blueprints
+Actinium.Hook.register('deactivate', registerBlueprints(false));
 {{/if}}
 
 /**
@@ -94,27 +108,6 @@ Actinium.Hook.register('activate', ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
     // Your activation code here
-
-    {{#if blueprints}}
-    PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
-    {{/if}}
-});
-
-Actinium.Hook.register('update', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-
-    // Your activation code here
-
-    {{#if blueprints}}
-    PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
-    {{/if}}
-});
-
-Actinium.Hook.register('deactivate', ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-    {{#if blueprints}}
-    PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
-    {{/if}}
 });
 
 {{#if cloud}}
