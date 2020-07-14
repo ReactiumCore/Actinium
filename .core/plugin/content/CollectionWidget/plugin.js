@@ -9,6 +9,9 @@ const {
 const PLUGIN = {
     ID: 'CollectionWidget',
     name: 'Collection Widget',
+    meta: {
+        group: 'Editing',
+    },
 };
 
 const relationGet = async (params, options) => {

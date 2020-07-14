@@ -3,6 +3,7 @@ const op = require('object-path');
 
 const PLUGIN = {
     ID: 'Changelog',
+    name: 'Change Log',
     description: 'Content change log',
     meta: {
         group: 'core',

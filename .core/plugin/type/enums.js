@@ -5,6 +5,7 @@ const PLUGIN_ROUTES = require('./routes');
 const PLUGIN = {
     ID: 'Type',
     name: 'Content Types',
+    description: 'Manage your content types',
     meta: {
         builtIn: true,
         group: 'core',

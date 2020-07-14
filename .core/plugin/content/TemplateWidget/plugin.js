@@ -1,6 +1,9 @@
 const PLUGIN = {
     ID: 'TemplateWidget',
     name: 'Template Widget',
+    meta: {
+        group: 'Editing',
+    },
 };
 
 Actinium.Plugin.register(PLUGIN, true);

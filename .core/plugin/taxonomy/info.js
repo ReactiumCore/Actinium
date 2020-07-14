@@ -9,6 +9,7 @@ module.exports = {
     },
     bundle: [],
     meta: {
+        group: 'Editing',
         builtIn: true,
     },
 };

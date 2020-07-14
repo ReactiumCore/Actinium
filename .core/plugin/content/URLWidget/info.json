@@ -1,4 +1,7 @@
 {
     "ID": "URLWidget",
-    "name": "URL Widget"
+    "name": "URL Widget",
+    "meta": {
+        "group": "Editing"
+    }
 }
