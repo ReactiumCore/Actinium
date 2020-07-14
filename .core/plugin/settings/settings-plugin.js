@@ -45,7 +45,7 @@ const PLUGIN = {
     },
 };
 
-const COLLECTION = PLUGIN.ID;
+const COLLECTION = 'Setting';
 
 Actinium.Capability.register(
     `${COLLECTION}.create`,
