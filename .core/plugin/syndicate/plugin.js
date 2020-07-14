@@ -15,6 +15,7 @@ const PLUGIN = {
     },
     bundle: [],
     meta: {
+        group: 'Networking',
         settings: true,
         builtIn: true,
     },

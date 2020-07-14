@@ -21,11 +21,28 @@ const PLUGIN = {
         group: 'FilesAdapter',
         builtIn: true,
         settings: true,
-        logoURL: '/plugin-assets/S3Adapter/add-files.svg',
-        scriptURL: '/plugin-assets/S3Adapter/s3-adapter.js',
-        styleURL: '/plugin-assets/S3Adapter/s3-adapter-plugin.css',
     },
 };
+
+const _addStaticAssets = plugin => {
+    op.set(
+        plugin,
+        'meta.assets.admin.logo',
+        '/plugin-assets/S3Adapter/add-files.svg',
+    );
+    op.set(
+        plugin,
+        'meta.assets.admin.script',
+        '/plugin-assets/S3Adapter/s3-adapter.js',
+    );
+    op.set(
+        plugin,
+        'meta.assets.admin.style',
+        '/plugin-assets/S3Adapter/s3-adapter-plugin.css',
+    );
+};
+
+_addStaticAssets(PLUGIN);
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
@@ -50,27 +67,14 @@ Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     return new S3Adapter(settings);
 });
 
-Actinium.Hook.register('add-meta-asset', async metaAsset => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID) || PLUGIN.ID === metaAsset.ID)
-        return;
-    const parsedFilename = path.parse(metaAsset.targetFileName);
-    const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
+const installAssets = async (pluginObj, req) => {
+    if (PLUGIN.ID !== pluginObj.ID) return;
 
-    const appVer = op.get(config, 'version');
-    const version = op.get(plugin, 'version', appVer);
-    const { name, ext } = parsedFilename;
-    metaAsset.targetFileName = `${name}-${version}${ext}`;
-});
-
-Actinium.Hook.register('activate', async ({ ID, meta = {} }, req) => {
-    if (ID !== PLUGIN.ID) return;
-    op.set(meta, 'logoURL', '/plugin-assets/S3Adapter/add-files.svg');
-    op.set(meta, 'scriptURL', '/plugin-assets/S3Adapter/s3-adapter.js');
-    op.set(meta, 'styleURL', '/plugin-assets/S3Adapter/s3-adapter-plugin.css');
+    _addStaticAssets(pluginObj);
     if (req.object) {
-        req.object.set('meta', meta);
+        req.object.set('meta', op.get(pluginObj, 'meta', {}));
     }
-});
+};
 
 Actinium.Hook.register('plugin-assets-middleware', async app => {
     const router = express.Router();
