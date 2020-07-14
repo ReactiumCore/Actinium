@@ -204,14 +204,17 @@ Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
 };
 
 Plugable.addLogo = (ID, filePath, app = 'admin') => {
+    if (typeof app !== 'string') app = 'admin';
     Plugable.addMetaAsset(ID, filePath, `${app}.logo`);
 };
 
 Plugable.addScript = (ID, filePath, app = 'admin') => {
+    if (typeof app !== 'string') app = 'admin';
     Plugable.addMetaAsset(ID, filePath, `${app}.script`);
 };
 
 Plugable.addStylesheet = (ID, filePath, app = 'admin') => {
+    if (typeof app !== 'string') app = 'admin';
     Plugable.addMetaAsset(ID, filePath, `${app}.style`);
 };
 
