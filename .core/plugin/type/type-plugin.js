@@ -117,7 +117,9 @@ Actinium.Capability.register(
 );
 Actinium.Capability.register(
     `${COLLECTION}.retrieve`,
-    {},
+    {
+        allowed: ['anonymous'],
+    },
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(

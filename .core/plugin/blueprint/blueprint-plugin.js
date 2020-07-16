@@ -64,10 +64,8 @@ Actinium.Hook.register('blueprints', async () => {
 Actinium.Cloud.run('blueprints');
 */
 Actinium.Cloud.define(PLUGIN.ID, 'blueprints', async req => {
-    if (CloudHasCapabilities(req, ['blueprint.retrieve'])) {
-        await Actinium.Hook.run('blueprints', Actinium.Blueprint);
-        return Actinium.Blueprint.list;
-    }
+    await Actinium.Hook.run('blueprints', Actinium.Blueprint);
+    return Actinium.Blueprint.list;
 
     throw 'Not permitted.';
 });
