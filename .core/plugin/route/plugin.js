@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const op = require('object-path');
-
+const _ = require('underscore');
 const PLUGIN = require('./info');
 const COLLECTION = PLUGIN.ID;
 
@@ -159,6 +159,23 @@ Actinium.Hook.register('route-delete', async req => {
     if (op.get(route, 'meta.builtIn')) {
         throw 'Deleting built-in route not permitted.';
     }
+});
+
+// if possible, add permission to these results
+Actinium.Hook.register('route-list-output', async (...params) => {
+    const [{ routes = [] }, , , , , , req] = params;
+
+    routes.forEach(route => {
+        const capabilities = route.get('capabilities');
+        if (!Array.isArray(capabilities) || capabilities.length < 1)
+            route.set('permitted', true);
+        else if (req) {
+            route.set(
+                'permitted',
+                Actinium.Utils.CloudHasCapabilities(req, capabilities, false),
+            );
+        }
+    });
 });
 
 /**

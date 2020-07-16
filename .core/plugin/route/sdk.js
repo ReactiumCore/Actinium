@@ -70,6 +70,7 @@ Route.list = async (params, opts, req) => {
         'route-list-output',
         'routes',
         'array',
+        req,
     );
 };
 

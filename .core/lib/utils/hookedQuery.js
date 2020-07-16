@@ -6,6 +6,12 @@ const serialize = require('./serialize');
  * @apiDefine HookedQuery
  * @apiParam {Object} params Request params
  * @apiParam {Object} options Parse options for request
+ * @apiParam {String} collection Parse collection name
+ * @apiParam {String} [queryHook='hooked-query-query'] hook name to be invoked before running query
+ * @apiParam {String} [outputHook='hooked-query-output'] hook name to be invoked before returning results
+ * @apiParam {String} [resultsKey='results'] property where list of results will be found
+ * @apiParam {String} [resultsKey='object'] 'object' to get results as an object, indexed by objectId, 'array' to get results as array of objects
+ * @apiParam {Object} [req] Parse cloud request object, optional.
  * @apiParam (params) {String} [order=ascending] list order
  * @apiParam (params) {String} [limit=100] number of items per page
  * @apiParam (params) {String} [page=-1] current page, if < 0, all pages will be loaded
@@ -21,6 +27,7 @@ module.exports = async (
     outputHook = 'hooked-query-output',
     resultsKey = 'results',
     resultsAs = 'object',
+    req,
 ) => {
     options = options || { useMasterKey: true };
 
@@ -49,7 +56,7 @@ module.exports = async (
     qry[order](orderBy);
 
     // 1.3 - Run hook: queryHook
-    await Actinium.Hook.run(queryHook, qry, params, options, collection);
+    await Actinium.Hook.run(queryHook, qry, params, options, collection, req);
 
     // 2.0 - Get count
     let count = await qry.count(options);
@@ -102,7 +109,16 @@ module.exports = async (
     if (prev > 0) op.set(resp, 'prev', prev);
 
     // 5.0 - Run hook: outputHook
-    await Actinium.Hook.run(outputHook, resp, params, options, collection);
+    await Actinium.Hook.run(
+        outputHook,
+        resp,
+        params,
+        options,
+        collection,
+        resultsKey,
+        resultsAs,
+        req,
+    );
 
     // 6.0 - Process toJSON
     if (outputType === 'JSON') {
