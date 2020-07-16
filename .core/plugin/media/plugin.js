@@ -53,6 +53,12 @@ const registerBlueprints = (reg = true) => ({ ID }) => {
 // Start: Blueprints
 Actinium.Hook.register('start', registerBlueprints(true));
 
+// Start: Capabilities
+Actinium.Hook.register('start', () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    Actinium.Capability.register('media-ui.view');
+});
+
 // Activate: Blueprints
 Actinium.Hook.register('activate', registerBlueprints(true));
 

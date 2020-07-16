@@ -194,7 +194,7 @@ Capability.User.get = user => {
 };
 
 const _loadedCapabilities = async () => {
-    const query = new Parse.Query(COLLECTION);
+    const query = new Actinium.Query(COLLECTION);
     const groups = {};
     const results = await query.find({ useMasterKey: true });
 
@@ -203,6 +203,9 @@ const _loadedCapabilities = async () => {
         const excludedList = [];
 
         const { group } = result.toJSON();
+
+        if (!group) continue;
+
         groups[group] = result;
 
         let allowed = [],
@@ -236,8 +239,6 @@ const _loadedCapabilities = async () => {
 };
 
 Capability.load = async () => {
-    if (Actinium.Cache.get('capabilities.loaded')) return;
-
     if (Actinium.started !== true) {
         BOOT('');
         BOOT(chalk.cyan('Loading capabilities...'));
@@ -287,7 +288,7 @@ Capability.load = async () => {
         capabilities[group] = normalizeCapability({ allowed, excluded });
     });
 
-    let query = new Parse.Query('_Role');
+    let query = new Actinium.Query('_Role');
     const roleObjects = await query.find({ useMasterKey: true });
     const roles = roleObjects.reduce((roles, role) => {
         roles[role.get('name')] = role;
@@ -296,10 +297,13 @@ Capability.load = async () => {
 
     // saveAll
     const objects = Object.entries(capabilities).map(([group, cap]) => {
-        let obj = new Parse.Object(COLLECTION);
+        if (!group) return;
+
+        let obj = new Actinium.Object(COLLECTION);
         if (group in loaded) {
             obj = loaded[group];
         }
+
         obj.set('group', group);
         const allowed = obj.relation('allowed');
         const excluded = obj.relation('excluded');
@@ -312,10 +316,13 @@ Capability.load = async () => {
         obj.unset('allowedList');
         obj.unset('excludedList');
 
+        obj.save(null, { useMasterKey: true });
+
         return obj;
     });
 
-    await Parse.Object.saveAll(objects, { useMasterKey: true });
+    //await Actinium.Object.saveAll(objects, { useMasterKey: true });
+    await Promise.all(_.compact(objects));
     await Actinium.Hook.run('capability-loaded');
 
     if (Actinium.started !== true) {
@@ -323,19 +330,12 @@ Capability.load = async () => {
         BOOT('');
     }
 
-    Actinium.Cache.set(
-        'capabilities.loaded',
-        true,
-        Actinium.Enums.cache.dataLoading,
-        Capability.load,
-    );
-
     sort = [];
     unreg = [];
 };
 
 const _getRoles = async () => {
-    const roleQuery = new Parse.Query('_Role');
+    const roleQuery = new Actinium.Query('_Role');
     const roleObjects = await roleQuery.find({ useMasterKey: true });
     return roleObjects.reduce((roles, role) => {
         roles[role.get('name')] = role;
@@ -350,10 +350,9 @@ const _addCapability = async (group, cap) => {
     capabilities[group] = capability;
     const roles = await _getRoles();
 
-    const query = new Parse.Query(COLLECTION);
-    query.equalTo('group', group);
-    let obj = await query.first({ useMasterKey: true });
-    if (!obj) obj = new Parse.Object(COLLECTION);
+    // prettier-ignore
+    const obj = await new Actinium.Query(COLLECTION).equalTo('group', group).first({ useMasterKey: true }) || new Actinium.Object(COLLECTION);
+
     obj.set('group', group);
 
     const allowedRel = obj.relation('allowed');
@@ -394,7 +393,7 @@ const _addCapability = async (group, cap) => {
 };
 
 const _removeCapability = async group => {
-    const query = new Parse.Query(COLLECTION);
+    const query = new Actinium.Query(COLLECTION);
     query.equalTo('group', group);
 
     const capability = await query.first({ useMasterKey: true });
@@ -485,7 +484,7 @@ Actinium.Harness.test(
 Actinium.Harness.test(
     'Capability.User.can()',
     async assert => {
-        const query = new Parse.Query('_User');
+        const query = new Actinium.Query('_User');
         query.equalTo('username', 'test-user');
         const user = await query.first({ useMasterKey: true });
 
@@ -522,11 +521,11 @@ Actinium.Harness.test(
     },
 
     async () => {
-        const query = new Parse.Query('_User');
+        const query = new Actinium.Query('_User');
         query.equalTo('username', 'test-user');
         let user = await query.first({ useMasterKey: true });
         if (!user) {
-            user = new Parse.User();
+            user = new Actinium.User();
             user.set('username', 'test-user');
             user.set('password', ';lajksdf;lajsdf');
             user.set('confirm', ';lajksdf;lajsdf');
@@ -541,7 +540,7 @@ Actinium.Harness.test(
         });
     },
     async () => {
-        const query = new Parse.Query('_User');
+        const query = new Actinium.Query('_User');
         query.equalTo('username', 'test-user');
         const user = await query.first({ useMasterKey: true });
 
