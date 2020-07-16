@@ -267,12 +267,9 @@ Actinium.Cloud.run('directories').then(directories => {
 });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'directories', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.list', [
-        'Media.retrieve',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, 'media-ui.view')) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const { user } = req;
     const { search, verbose } = req.params;
