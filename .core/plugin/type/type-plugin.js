@@ -142,7 +142,7 @@ Actinium.Collection.register(
     COLLECTION,
     {
         create: false,
-        retrieve: false,
+        retrieve: true,
         update: false,
         delete: false,
         addField: false,
