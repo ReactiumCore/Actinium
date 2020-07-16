@@ -4933,9 +4933,9 @@
   },
   {
     "type": "Function",
-    "url": "Plugin.addLogo(ID,filePath)",
+    "url": "Plugin.addLogo(ID,filePath,app)",
     "title": "Plugin.addLogo()",
-    "version": "3.1.6",
+    "version": "3.5.5",
     "group": "Actinium",
     "name": "Plugin_addLogo",
     "description": "<p>Register a logo image for your plugin at plugin activation. This calls Plugin.addMetaAsset() with assetURL of <code>logoURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load logoURLs found for active actinium plugins. This logo image will represent your plugin in the plugin manager.</p>",
@@ -4958,11 +4958,11 @@
           },
           {
             "group": "Parameter",
-            "type": "Boolean",
+            "type": "String",
             "optional": true,
-            "field": "static",
-            "defaultValue": "false",
-            "description": "<p>when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.</p>"
+            "field": "app",
+            "defaultValue": "admin",
+            "description": "<p>the application prefix for the asset object path</p>"
           }
         ]
       }
@@ -4972,9 +4972,9 @@
   },
   {
     "type": "Function",
-    "url": "Plugin.addMetaAsset(ID,filePath,assetURLType)",
+    "url": "Plugin.addMetaAsset(ID,filePath,assetObjectPath)",
     "title": "Plugin.addMetaAsset()",
-    "version": "3.1.6",
+    "version": "3.5.5",
     "group": "Actinium",
     "name": "Plugin_addMetaAsset",
     "description": "<p>Register an asset to the Parse file API and store the URL in your plugin meta object. Example usage, for providing a browser js script, a css file, or a plugin manager logo image. This is generally called after you have called <code>Actinium.Plugin.register()</code> to register your plugin, and the assets will be added to your plugin on plugin <code>activation</code> hook.</p> <p>Before your asset is stored, and the URL created, you will have an opportunity to change the targetFileName, when the <code>add-meta-asset</code> hook is called. For example the S3 file adapter plugin automatically adds the plugin version or Actinium version to asset filename (and URL) so that the correct asset is cached in your S3 bucket.</p>",
@@ -4999,17 +4999,9 @@
             "group": "Parameter",
             "type": "String",
             "optional": true,
-            "field": "assetURLType",
+            "field": "assetObjectPath",
             "defaultValue": "assetURL",
-            "description": "<p>string (object path relative to plugin.meta) to store in plugin meta the file URL for the asset. e.g. by default your file URL will be found at <code>plugin.meta.assetURL</code> object path.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Boolean",
-            "optional": true,
-            "field": "static",
-            "defaultValue": "false",
-            "description": "<p>when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.</p>"
+            "description": "<p>string (object path relative to plugin.meta) to store in plugin meta the file URL for the asset. e.g. by default your file URL will be found at <code>plugin.meta.assets.admin.assetURL</code> object path.</p>"
           }
         ]
       }
@@ -5017,7 +5009,7 @@
     "examples": [
       {
         "title": "example-plugin.js",
-        "content": "// A plugin object, see Actinium.Plugin.register() for more information.\nconst PLUGIN = {\n  ID: 'Example',\n  name: 'Example Plugin',\n  description: 'A generic plugin',\n  version: {\n      plugin: 0.0.1,\n      actinium: 3.1.6,\n  },\n};\n\nActinium.Plugin.register(PLUGIN);\n\n// all these execute on `activation` hook of your plugin\n// addLogo uses addMetaAsset with assetURLType='logoURL'\nActinium.Plugin.addLogo(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset-logo.svg'),\n);\n// addLogo uses addMetaAsset with assetURLType='scriptURL'\nActinium.Plugin.addScript(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset.js'),\n);\n// addLogo uses addMetaAsset with assetURLType='styleURL'\nActinium.Plugin.addStylesheet(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset-plugin.css'),\n);\nActinium.Plugin.addMetaAsset(PLUGIN.ID, 'plugin-assets/worker.js', 'webworkerURL');",
+        "content": "// A plugin object, see Actinium.Plugin.register() for more information.\nconst PLUGIN = {\n  ID: 'Example',\n  name: 'Example Plugin',\n  description: 'A generic plugin',\n  version: {\n      plugin: 0.0.1,\n      actinium: 3.1.6,\n  },\n};\n\nActinium.Plugin.register(PLUGIN);\n\n// all these execute on `activation` hook of your plugin\n// addLogo uses addMetaAsset with assetObjectPath='logoURL'\nActinium.Plugin.addLogo(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset-logo.svg'),\n);\n// addLogo uses addMetaAsset with assetObjectPath='scriptURL'\nActinium.Plugin.addScript(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset.js'),\n);\n// addLogo uses addMetaAsset with assetObjectPath='styleURL'\nActinium.Plugin.addStylesheet(\n    PLUGIN.ID,\n    path.resolve(__dirname, 'plugin-assets/reset-plugin.css'),\n);\nActinium.Plugin.addMetaAsset(PLUGIN.ID, 'plugin-assets/worker.js', 'webworkerURL');",
         "type": "json"
       },
       {
@@ -5031,9 +5023,9 @@
   },
   {
     "type": "Function",
-    "url": "Plugin.addScript(ID,filePath)",
+    "url": "Plugin.addScript(ID,filePath,app)",
     "title": "Plugin.addScript()",
-    "version": "3.1.6",
+    "version": "3.5.5",
     "group": "Actinium",
     "name": "Plugin_addScript",
     "description": "<p>Register a front-end Reactium plugin script asset for your plugin. This calls Plugin.addMetaAsset() with assetURL of <code>scriptURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load scriptURLs found for active actinium plugins. In this way, you can publish plugin code to the Actinium admin.</p>",
@@ -5056,11 +5048,11 @@
           },
           {
             "group": "Parameter",
-            "type": "Boolean",
+            "type": "String",
             "optional": true,
-            "field": "static",
-            "defaultValue": "false",
-            "description": "<p>when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.</p>"
+            "field": "app",
+            "defaultValue": "admin",
+            "description": "<p>the application prefix for the asset object path</p>"
           }
         ]
       }
@@ -5070,9 +5062,9 @@
   },
   {
     "type": "Function",
-    "url": "Plugin.addStylesheet(ID,filePath)",
+    "url": "Plugin.addStylesheet(ID,filePath,app)",
     "title": "Plugin.addStylesheet()",
-    "version": "3.1.6",
+    "version": "3.5.5",
     "group": "Actinium",
     "name": "Plugin_addStylesheet",
     "description": "<p>Register a front-end Reactium plugin script asset for your plugin. This calls Plugin.addMetaAsset() with assetURL of <code>styleURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load styleURLs found for active actinium plugins. In this way, you can publish styles for your plugin to be used when your plugin is active in the Actinium admin.</p>",
@@ -5095,11 +5087,11 @@
           },
           {
             "group": "Parameter",
-            "type": "Boolean",
+            "type": "String",
             "optional": true,
-            "field": "static",
-            "defaultValue": "false",
-            "description": "<p>when true, file will be copied to static assets directory to be served as a static asset instead of attached as file object.</p>"
+            "field": "app",
+            "defaultValue": "admin",
+            "description": "<p>the application prefix for the asset object path</p>"
           }
         ]
       }
@@ -6801,6 +6793,44 @@
             "optional": false,
             "field": "options",
             "description": "<p>Parse options for request</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "collection",
+            "description": "<p>Parse collection name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "queryHook",
+            "defaultValue": "hooked-query-query",
+            "description": "<p>hook name to be invoked before running query</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "outputHook",
+            "defaultValue": "hooked-query-output",
+            "description": "<p>hook name to be invoked before returning results</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "resultsKey",
+            "defaultValue": "results",
+            "description": "<p>property where list of results will be found</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "req",
+            "description": "<p>Parse cloud request object, optional.</p>"
           }
         ],
         "params": [
@@ -16461,8 +16491,8 @@
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
-    "groupTitle": "_Users_johndillick_dev_atomic_reactor_actinium__core_middleware_docs_content_main_js",
+    "group": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
+    "groupTitle": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
     "name": ""
   }
 ]

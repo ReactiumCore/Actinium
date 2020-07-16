@@ -389,16 +389,9 @@ Actinium.Cloud.run('media', { page: 1, limit: 20 directory: 'avatars', search: '
     prev: Number
 }
  */
-Actinium.Cloud.define(PLUGIN.ID, 'media', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.retrieve', [
-        'Media.retrieve',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
-        return Promise.reject(ENUMS.ERRORS.PERMISSION);
-
-    return Actinium.Media.files({ ...req.params, user: req.user });
-});
+Actinium.Cloud.define(PLUGIN.ID, 'media', async req =>
+    Actinium.Media.files({ ...req.params, user: req.user }),
+);
 
 /**
  * @api {Cloud} media-delete media-delete

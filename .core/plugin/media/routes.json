@@ -13,7 +13,7 @@
         "meta": {
             "builtIn": true
         },
-        "capabilities": ["Media.retrieve"]
+        "capabilities": ["media-ui.view"]
     },
     {
         "route": "/admin/media",
@@ -21,6 +21,6 @@
         "meta": {
             "builtIn": true
         },
-        "capabilities": ["Media.retrieve"]
+        "capabilities": ["media-ui.view"]
     }
 ]
