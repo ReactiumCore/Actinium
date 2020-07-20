@@ -202,6 +202,8 @@ Actinium.Hook.register('route-list-output', async (...params) => {
     });
 });
 
+// Actinium.Hook.register('route-list-query', async (qry, params, options, collection) => {});
+
 module.exports = PLUGIN;
 
 /**

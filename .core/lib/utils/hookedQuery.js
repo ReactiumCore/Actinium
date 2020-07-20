@@ -58,6 +58,46 @@ module.exports = async (
     // 1.3 - Run hook: queryHook
     await Actinium.Hook.run(queryHook, qry, params, options, collection, req);
 
+    // 1.3.5 - Standardized Query Params
+    const queryWhitelist = [
+        'containedBy',
+        'containedIn',
+        'contains',
+        'containsAll',
+        'containsAllStartingWith',
+        'descending',
+        'doesNotExist',
+        'endsWith',
+        'equalTo',
+        'exclude',
+        'greaterThan',
+        'greaterThanOrEqualTo',
+        'include',
+        'includeAll',
+        'lessThan',
+        'lessThanOrEqualTo',
+        'matches',
+        'notContainedIn',
+        'notEqualTo',
+        'select',
+        'startsWith',
+    ];
+    const queryParams = _.compact(
+        Array.from(op.get(params, 'queryParams', [])),
+    );
+    if (queryParams.length > 0) {
+        queryParams.forEach(({ method, params = [] }) => {
+            console.log({
+                method,
+                params,
+                wl: queryWhitelist.includes(method),
+            });
+            if (queryWhitelist.includes(method)) {
+                qry[method](...params);
+            }
+        });
+    }
+
     // 2.0 - Get count
     let count = await qry.count(options);
 

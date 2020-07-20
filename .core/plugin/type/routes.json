@@ -4,7 +4,8 @@
         "blueprint": "ContentType",
         "meta": {
             "builtIn": true,
-            "order": 0
+            "order": 0,
+            "app": "admin"
         },
         "capabilities": ["type-ui.view"]
     },
@@ -13,7 +14,8 @@
         "blueprint": "ContentType",
         "meta": {
             "builtIn": true,
-            "order": 0
+            "order": 0,
+            "app": "admin"
         },
         "capabilities": ["type-ui.view"]
     },
@@ -22,7 +24,8 @@
         "blueprint": "ContentTypes",
         "meta": {
             "builtIn": true,
-            "order": 0
+            "order": 0,
+            "app": "admin"
         },
         "capabilities": ["type-ui.view"]
     }

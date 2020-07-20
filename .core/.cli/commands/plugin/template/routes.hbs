@@ -1,11 +1,13 @@
 module.exports = [
     {{#each routes}}
     {
-      blueprint: "{{this.blueprint}}",
-      route: "{{this.route}}",
+      blueprint: '{{this.blueprint}}',
+      route: '{{this.route}}',
       meta: {
-          "admin": {{this.admin}},
-          "builtIn": {{this.builtIn}}
+          builtIn: {{this.builtIn}}
+          {{#if this.admin}}
+          app: 'admin',
+          {{/if}}
       },
       capabilities: {{{this.capabilities}}},
     },
