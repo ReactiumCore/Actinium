@@ -13,6 +13,15 @@ const PLUGIN = require('./info');
 const Taxonomy = require('./sdk');
 Actinium['Taxonomy'] = op.get(Actinium, 'Taxonomy', Taxonomy);
 
+const registerCaps = async PLUGIN_SCHEMA => {
+    PLUGIN_SCHEMA = PLUGIN_SCHEMA || require('./schema');
+    PLUGIN_SCHEMA.forEach(({ actions = {}, collection }) =>
+        Object.keys(actions).forEach(action =>
+            Actinium.Capability.register(`${collection}.${action}`),
+        ),
+    );
+};
+
 /**
  * ----------------------------------------------------------------------------
  * Plugin registration
@@ -53,47 +62,49 @@ const saveRoutes = async () => {
 
 // Update routes on startup
 Actinium.Hook.register('start', async () => {
-    if (Actinium.Plugin.isActive(PLUGIN.ID)) {
-        await saveRoutes();
-    }
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    await saveRoutes();
+});
+
+// Start: Capabilities
+Actinium.Hook.register('start', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    registerCaps();
 });
 
 // Update routes on plugin activation
 Actinium.Hook.register('activate', async ({ ID }) => {
-    if (ID === PLUGIN.ID) {
-        await saveRoutes();
+    if (ID !== PLUGIN.ID) return;
+    await saveRoutes();
+});
+
+// Create capabilities on activation
+Actinium.Hook.register('activate', ({ ID }) => {
+    if (ID !== PLUGIN.ID) return;
+    registerCaps();
+});
+
+// Remove routes on deactivation
+Actinium.Hook.register('deactivate', async ({ ID }) => {
+    if (ID !== PLUGIN.ID) return;
+    for (const route of PLUGIN_ROUTES) {
+        await Actinium.Route.delete(route);
     }
 });
 
 // Update routes on plugin update
 Actinium.Hook.register('update', async ({ ID }) => {
-    if (ID === PLUGIN.ID) {
-        await saveRoutes();
-    }
-});
-
-// Remove routes on deactivation
-Actinium.Hook.register('deactivate', async ({ ID }) => {
-    if (ID === PLUGIN.ID) {
-        for (const route of PLUGIN_ROUTES) {
-            await Actinium.Route.delete(route);
-        }
-    }
+    if (ID !== PLUGIN.ID) return;
+    await saveRoutes();
 });
 
 // schema hook
 Actinium.Hook.register('schema', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-
     const PLUGIN_SCHEMA = require('./schema');
-    PLUGIN_SCHEMA.forEach(item => {
-        const { actions = {}, collection, schema = {} } = item;
+    PLUGIN_SCHEMA.forEach(({ actions = {}, collection, schema = {} }) => {
         if (!collection) return;
-
         Actinium.Collection.register(collection, actions, schema);
-        Object.keys(actions).forEach(action => {
-            Actinium.Capability.register(`${collection}.${action}`);
-        });
     });
 });
 

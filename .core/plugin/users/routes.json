@@ -5,7 +5,8 @@
         "meta": {
             "builtIn": true,
             "app": "admin"
-        }
+        },
+        "capabilities": ["user-ui.view"]
     },
     {
         "route": "/admin/users",
@@ -13,7 +14,8 @@
         "meta": {
             "builtIn": true,
             "app": "admin"
-        }
+        },
+        "capabilities": ["user-ui.view"]
     },
     {
         "route": "/admin/user/:id/:tab",
@@ -21,7 +23,8 @@
         "meta": {
             "builtIn": true,
             "app": "admin"
-        }
+        },
+        "capabilities": ["user-ui.view"]
     },
     {
         "route": "/admin/user/:id",
@@ -29,6 +32,7 @@
         "meta": {
             "builtIn": true,
             "app": "admin"
-        }
+        },
+        "capabilities": ["user-ui.view"]
     }
 ]

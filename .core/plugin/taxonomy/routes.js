@@ -6,7 +6,7 @@ module.exports = [
             builtIn: true,
             app: 'admin',
         },
-        capabilities: [],
+        capabilities: ['taxonomy.update'],
     },
     {
         blueprint: 'taxonomy-blueprint',
@@ -15,7 +15,7 @@ module.exports = [
             builtIn: true,
             app: 'admin',
         },
-        capabilities: [],
+        capabilities: ['taxonomy.update'],
     },
     {
         blueprint: 'taxonomy-blueprint',
@@ -24,6 +24,6 @@ module.exports = [
             builtIn: true,
             app: 'admin',
         },
-        capabilities: [],
+        capabilities: ['taxonomy.update'],
     },
 ];
