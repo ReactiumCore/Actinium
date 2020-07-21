@@ -87,11 +87,6 @@ module.exports = async (
     );
     if (queryParams.length > 0) {
         queryParams.forEach(({ method, params = [] }) => {
-            console.log({
-                method,
-                params,
-                wl: queryWhitelist.includes(method),
-            });
             if (queryWhitelist.includes(method)) {
                 qry[method](...params);
             }
