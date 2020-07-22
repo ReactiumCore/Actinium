@@ -38,6 +38,12 @@ module.exports = {
                     destination: '/actinium_modules/.gitkeep',
                     source: '/tmp/update/actinium_modules/.gitkeep',
                 },
+                {
+                    overwrite: false,
+                    version: '>=3.5.5',
+                    destination: '/.npmrc',
+                    source: '/tmp/update/.npmrc',
+                },
             ],
             remove: [],
         },
