@@ -17,7 +17,7 @@ module.exports = spinner => {
         create: async ({ action, params, props }) => {
             message(`Creating ${chalk.cyan('docs')}...`);
 
-            let { src, dest, verbose } = params;
+            let { src, dest } = params;
 
             src = _.flatten(
                 src.map(search => {
@@ -55,8 +55,9 @@ module.exports = spinner => {
                     src,
                     dest: d,
                     lineEnding: '\n',
-                    debug: verbose,
-                    verbose,
+                    debug: false,
+                    verbose: false,
+                    silent: true,
                 });
             });
 
