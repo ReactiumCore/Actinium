@@ -15,18 +15,21 @@ let unreg = [];
 const capabilities = {};
 
 const normalizeCapability = (capabilityObj = {}) => {
+    let allowed = op.get(capabilityObj, 'allowed') || [];
+    let excluded = op.get(capabilityObj, 'excluded') || [];
+
     // banned is always excluded. super-admin may not be excluded, administrator may.
-    const excluded = _.uniq(
-        op.get(capabilityObj, 'excluded', []).concat('banned'),
-    ).filter(role => role !== 'super-admin');
+    excluded = _.uniq(excluded.concat('banned')).filter(
+        role => role !== 'super-admin',
+    );
 
     // administrator and super admin are always added to allowed
-    const allowed = _.uniq(
-        op
-            .get(capabilityObj, 'allowed', [])
+    allowed = _.uniq(
+        allowed
             .concat('administrator', 'super-admin')
             .filter(role => !excluded.includes(role)),
     );
+
     return {
         allowed,
         excluded,
@@ -86,16 +89,153 @@ const Capability = {
     },
     Role: {},
     User: {},
+    v2: require('./v2-capability'),
 };
 
+const _loadedCapabilities = async () => {
+    const query = new Actinium.Query(COLLECTION);
+    const groups = {};
+    const results = await query.find({ useMasterKey: true });
+
+    await Actinium.Hook.run('before-capability-load');
+
+    for (let result of results) {
+        const allowedList = [];
+        const excludedList = [];
+
+        const { group } = result.toJSON();
+
+        if (!group) continue;
+
+        groups[group] = result;
+
+        let allowed = [],
+            excluded = [];
+        const allowedRelation = result.get('allowed');
+        const excludedRelation = result.get('excluded');
+
+        if (allowedRelation) {
+            allowed = await allowedRelation
+                .query()
+                .find({ useMasterKey: true });
+        }
+
+        if (excludedRelation) {
+            excluded = await excludedRelation
+                .query()
+                .find({ useMasterKey: true });
+        }
+
+        allowed.forEach(role => {
+            const { name } = role.toJSON();
+            allowedList.push(name);
+        });
+        excluded.forEach(role => {
+            const { name } = role.toJSON();
+            excludedList.push(name);
+        });
+
+        result.set('allowedList', allowedList);
+        result.set('excludedList', excludedList);
+    }
+
+    return groups;
+};
+
+const _getRoles = async () => {
+    const roleQuery = new Actinium.Query('_Role');
+    const roleObjects = await roleQuery.find({ useMasterKey: true });
+    return roleObjects.reduce((roles, role) => {
+        roles[role.get('name')] = role;
+        return roles;
+    }, {});
+};
+
+const _addCapability = async (group, cap) => {
+    const { allowed = null, excluded = null } = cap;
+
+    const capability = await normalizeLevels(cap);
+
+    capabilities[group] = capability;
+    const roles = await _getRoles();
+
+    // prettier-ignore
+    const obj = await new Actinium.Query(COLLECTION).equalTo('group', group).first({ useMasterKey: true }) || new Actinium.Object(COLLECTION);
+
+    obj.set('group', group);
+
+    if (allowed !== null) {
+        const allowedRel = obj.relation('allowed');
+        const currentlyAllowed = await allowedRel
+            .query()
+            .find({ useMasterKey: true });
+
+        // remove no longer allowed
+        currentlyAllowed
+            .filter(
+                roleObj =>
+                    !capability.allowed.find(
+                        role => role === roleObj.get('name'),
+                    ),
+            )
+            .forEach(roleObj => allowedRel.remove(roleObj));
+        // add newly allowed
+        capability.allowed.forEach(
+            role => role in roles && allowedRel.add(roles[role]),
+        );
+    }
+
+    // remove no longer excluded
+    if (excluded !== null) {
+        const excludedRel = obj.relation('excluded');
+        const currentlyExcluded = await excludedRel
+            .query()
+            .find({ useMasterKey: true });
+
+        currentlyExcluded
+            .filter(
+                roleObj =>
+                    !capability.excluded.find(
+                        role => role === roleObj.get('name'),
+                    ),
+            )
+            .forEach(roleObj => excludedRel.remove(roleObj));
+
+        // add newly excluded
+        capability.excluded.forEach(
+            role => role in roles && excludedRel.add(roles[role]),
+        );
+    }
+
+    await obj.save(null, { useMasterKey: true });
+    return Actinium.Hook.run('capability-updated', group, capability);
+};
+
+const _removeCapability = async group => {
+    const query = new Actinium.Query(COLLECTION);
+    query.equalTo('group', group);
+
+    const capability = await query.first({ useMasterKey: true });
+
+    if (capability && group in capabilities) {
+        delete capabilities[group];
+        await capability.destroy({ useMasterKey: true });
+    }
+
+    return Actinium.Hook.run('capability-updated', group);
+};
+
+/*
 Capability.register = (
     group = 'global',
     perms = {
-        allowed: [],
-        excluded: [],
+        allowed: null,
+        excluded: null,
     },
     order = 100,
 ) => {
+    Capability.v2.register(group, perms, order);
+
     perms = normalizeCapability(perms);
 
     sort.push({
@@ -105,9 +245,12 @@ Capability.register = (
     });
 
     if (Actinium.started === true) {
+
         return _addCapability(group, perms);
     }
 };
+*/
+Capability.register = (...args) => Capability.v2.register(...args);
 
 Capability.unregister = group => {
     unreg.push(group);
@@ -193,52 +336,9 @@ Capability.User.get = user => {
     }, []);
 };
 
-const _loadedCapabilities = async () => {
-    const query = new Actinium.Query(COLLECTION);
-    const groups = {};
-    const results = await query.find({ useMasterKey: true });
-
-    for (let result of results) {
-        const allowedList = [];
-        const excludedList = [];
-
-        const { group } = result.toJSON();
-
-        if (!group) continue;
-
-        groups[group] = result;
-
-        let allowed = [],
-            excluded = [];
-        const allowedRelation = result.get('allowed');
-        const excludedRelation = result.get('excluded');
-
-        if (allowedRelation)
-            allowed = await allowedRelation
-                .query()
-                .find({ useMasterKey: true });
-        if (excludedRelation)
-            excluded = await excludedRelation
-                .query()
-                .find({ useMasterKey: true });
-
-        allowed.forEach(role => {
-            const { name } = role.toJSON();
-            allowedList.push(name);
-        });
-        excluded.forEach(role => {
-            const { name } = role.toJSON();
-            excludedList.push(name);
-        });
-
-        result.set('allowedList', allowedList);
-        result.set('excludedList', excludedList);
-    }
-
-    return groups;
-};
-
 Capability.load = async () => {
+    await Capability.v2.load();
+
     if (Actinium.started !== true) {
         BOOT('');
         BOOT(chalk.cyan('Loading capabilities...'));
@@ -316,7 +416,7 @@ Capability.load = async () => {
         obj.unset('allowedList');
         obj.unset('excludedList');
 
-        obj.save(null, { useMasterKey: true });
+        // obj.save(null, { useMasterKey: true });
 
         return obj;
     });
@@ -332,78 +432,6 @@ Capability.load = async () => {
 
     sort = [];
     unreg = [];
-};
-
-const _getRoles = async () => {
-    const roleQuery = new Actinium.Query('_Role');
-    const roleObjects = await roleQuery.find({ useMasterKey: true });
-    return roleObjects.reduce((roles, role) => {
-        roles[role.get('name')] = role;
-        return roles;
-    }, {});
-};
-
-const _addCapability = async (group, cap) => {
-    const { allowed = [], excluded = [] } = cap;
-    const capability = await normalizeLevels(cap);
-
-    capabilities[group] = capability;
-    const roles = await _getRoles();
-
-    // prettier-ignore
-    const obj = await new Actinium.Query(COLLECTION).equalTo('group', group).first({ useMasterKey: true }) || new Actinium.Object(COLLECTION);
-
-    obj.set('group', group);
-
-    const allowedRel = obj.relation('allowed');
-    const currentlyAllowed = await allowedRel
-        .query()
-        .find({ useMasterKey: true });
-    const excludedRel = obj.relation('excluded');
-    const currentlyExcluded = await excludedRel
-        .query()
-        .find({ useMasterKey: true });
-
-    // remove no longer allowed
-    currentlyAllowed
-        .filter(
-            roleObj =>
-                !capability.allowed.find(role => role === roleObj.get('name')),
-        )
-        .forEach(roleObj => allowedRel.remove(roleObj));
-    // add newly allowed
-    capability.allowed.forEach(
-        role => role in roles && allowedRel.add(roles[role]),
-    );
-
-    // remove no longer excluded
-    currentlyExcluded
-        .filter(
-            roleObj =>
-                !capability.excluded.find(role => role === roleObj.get('name')),
-        )
-        .forEach(roleObj => excludedRel.remove(roleObj));
-    // add newly excluded
-    capability.excluded.forEach(
-        role => role in roles && excludedRel.add(roles[role]),
-    );
-
-    await obj.save(null, { useMasterKey: true });
-    return Actinium.Hook.run('capability-updated', group, capability);
-};
-
-const _removeCapability = async group => {
-    const query = new Actinium.Query(COLLECTION);
-    query.equalTo('group', group);
-
-    const capability = await query.first({ useMasterKey: true });
-
-    if (capability && group in capabilities) {
-        delete capabilities[group];
-        await capability.destroy({ useMasterKey: true });
-    }
-
-    return Actinium.Hook.run('capability-updated', group);
 };
 
 Actinium.User.can = Capability.User.can;

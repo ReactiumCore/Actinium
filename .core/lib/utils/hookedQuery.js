@@ -20,17 +20,15 @@ const serialize = require('./serialize');
  */
 
 module.exports = async (
-    params,
-    options,
+    params = {},
+    options = {},
     collection,
     queryHook = 'hooked-query-query',
     outputHook = 'hooked-query-output',
     resultsKey = 'results',
-    resultsAs = 'object',
+    resultsAs = 'OBJECT',
     req,
 ) => {
-    options = options || { useMasterKey: true };
-
     let {
         limit = 100,
         order = 'ascending',
@@ -39,6 +37,7 @@ module.exports = async (
         page = -1,
     } = params;
 
+    resultsAs = String(resultsAs).toUpperCase();
     outputType = String(outputType).toUpperCase();
     order = ['ascending', 'descending'].includes(order) ? order : 'descending';
 
@@ -123,7 +122,7 @@ module.exports = async (
     op.set(
         resp,
         resultsKey,
-        resultsAs === 'object'
+        resultsAs === 'OBJECT'
             ? _.indexBy(resp.results, 'id')
             : resp[resultsKey],
     );
@@ -158,9 +157,9 @@ module.exports = async (
     // 6.0 - Process toJSON
     if (outputType === 'JSON') {
         const results = resp[resultsKey];
-        Object.entries(results).forEach(([id, item]) => {
-            results[id] = serialize(item);
-        });
+        Object.entries(results).forEach(([id, item]) =>
+            op.set(results, id, serialize(item)),
+        );
     }
 
     // 7.0 - Return response

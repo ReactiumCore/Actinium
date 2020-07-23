@@ -67,7 +67,7 @@ Actinium.Hook.register('start', async () => {
 });
 
 // Start: Capabilities
-Actinium.Hook.register('start', async () => {
+Actinium.Hook.register('before-capability-load', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     registerCaps();
 });

@@ -220,7 +220,7 @@ Actinium.Hook.register('start', async () => {
     }
 });
 
-Actinium.Hook.register('start', () => {
+Actinium.Hook.register('before-capability-load', () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     Actinium.Capability.register('user-ui.view');
 });
