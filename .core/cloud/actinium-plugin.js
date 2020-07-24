@@ -171,7 +171,8 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
 
         old = old.toJSON();
 
-        const { active: prev, version: prevVer } = old;
+        const { active: prev } = old;
+        const prevVer = op.get(old, 'version') || version;
 
         if (active === true) {
             if (semver.gt(semver.coerce(version), semver.coerce(prevVer))) {
