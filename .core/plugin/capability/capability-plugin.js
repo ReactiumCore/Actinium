@@ -2,6 +2,7 @@ const {
     CloudRunOptions,
     CloudHasCapabilities,
 } = require(`${ACTINIUM_DIR}/lib/utils`);
+
 const ParseNode = require('parse/node');
 const op = require('object-path');
 const _ = require('underscore');
@@ -23,6 +24,9 @@ const PLUGIN = {
         builtIn: true,
     },
 };
+
+const canEdit = req =>
+    CloudHasCapabilities(req, ['Capability.create', 'Capability.update'], true);
 
 Actinium.Plugin.register(PLUGIN, true);
 
@@ -116,47 +120,48 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-bulk-check', async req => {
     return response;
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'v1-capability-get', async req => {
-    if (!CloudHasCapabilities(req, 'Capability.retrieve'))
-        throw new Error('Permission denied');
+Actinium.Cloud.define(PLUGIN.ID, 'capability-grant', async req => {
+    if (!canEdit(req)) throw new Error('Permission denied');
 
-    const { capability } = req.params;
-    if (capability) return Actinium.Capability.get(capability);
-
-    return Actinium.Capability.get();
+    const result = await Actinium.Capability.grant(
+        req.params,
+        CloudRunOptions(req),
+    );
+    if (_.isError(result)) throw result;
+    return result;
 });
 
-const edit = async req => {
-    if (
-        !CloudHasCapabilities(
-            req,
-            ['Capability.create', 'Capability.update'],
-            true,
-        )
-    )
-        throw new Error('Permission denied');
+Actinium.Cloud.define(PLUGIN.ID, 'capability-revoke', async req => {
+    if (!canEdit(req)) throw new Error('Permission denied');
 
-    const capability = op.get(req, 'params.capability', '');
-    const perms = op.get(req, 'params.perms', {});
+    const result = await Actinium.Capability.revoke(
+        req.params,
+        CloudRunOptions(req),
+    );
+    if (_.isError(result)) throw result;
+    return result;
+});
 
-    if (typeof capability !== 'string' || capability.length < 4)
-        throw new Error('Capability string required.');
+Actinium.Cloud.define(PLUGIN.ID, 'capability-restrict', async req => {
+    if (!canEdit(req)) throw new Error('Permission denied');
 
-    await Actinium.Capability.register(capability, perms);
-    return Actinium.Capability.get(capability);
-};
+    const result = await Actinium.Capability.restrict(
+        req.params,
+        CloudRunOptions(req),
+    );
+    if (_.isError(result)) throw result;
+    return result;
+});
 
-Actinium.Cloud.define(PLUGIN.ID, 'capability-create', edit);
+Actinium.Cloud.define(PLUGIN.ID, 'capability-unrestrict', async req => {
+    if (!canEdit(req)) throw new Error('Permission denied');
 
-Actinium.Cloud.define(PLUGIN.ID, 'capability-edit', edit);
-
-Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
-    if (!CloudHasCapabilities(req, 'Capability.delete'))
-        throw new Error('Permission denied');
-
-    const capability = op.get(req, 'params.capability');
-    await Actinium.Capability.unregister(capability);
-    return true;
+    const result = await Actinium.Capability.unrestrict(
+        req.params,
+        CloudRunOptions(req),
+    );
+    if (_.isError(result)) throw result;
+    return result;
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'level-check', async req => {
@@ -175,13 +180,13 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
         .compact()
         .value();
 
-    let results = Actinium.Capability.v2.get(capabilities);
+    let results = Actinium.Capability.get(capabilities);
     if (_.isError(results)) {
         throw results;
     }
 
     if (!results || Object.keys(results).length < 1) {
-        results = await Actinium.Capability.v2.getAsync(capabilities);
+        results = await Actinium.Capability.getAsync(capabilities);
         if (_.isError(results)) {
             throw results;
         }
@@ -190,9 +195,82 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
     return _.isString(capability) ? _.first(Object.values(results)) : results;
 });
 
-Actinium.Hook.register('start', () => {
+Actinium.Hook.register(
+    'start',
+    () => {
+        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        Actinium.Capability.propagate();
+    },
+    -1000000,
+);
+
+Actinium.Cloud.beforeSave(COLLECTION, async req => {
+    await Actinium.Hook.run('before-capability-save', req);
+});
+
+Actinium.Cloud.beforeDelete(COLLECTION, async req => {
+    await Actinium.Hook.run('before-capability-delete', req);
+});
+
+Actinium.Cloud.afterSave(COLLECTION, async req => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    Actinium.Capability.v2.propagate();
+    if (Actinium.Cache.get('capability.propagating')) return;
+
+    const ignore = ['createdAt', 'updatedAt'];
+    const relKeys = ['allowed', 'excluded'];
+    const group = req.object.get('group');
+    const previous = Actinium.Capability.get(group);
+
+    const relations = {
+        allowed: {
+            origin: op.get(previous, 'allowed'),
+            value: await Actinium.Capability.relation(req.object, 'allowed', {
+                limit: 10000,
+                outputType: 'LIST',
+            }),
+        },
+        excluded: {
+            origin: op.get(previous, 'excluded'),
+            value: await Actinium.Capability.relation(req.object, 'excluded', {
+                limit: 10000,
+                outputType: 'LIST',
+            }),
+        },
+    };
+
+    const diff = Object.keys(req.object.toJSON()).reduce((obj, key) => {
+        const origin = !relKeys.includes(key)
+            ? req.original.get(key)
+            : op.get(relations, [key, 'origin']);
+
+        const value = !relKeys.includes(key)
+            ? req.object.get(key)
+            : op.get(relations, [key, 'value']);
+
+        if (!_.isEqual(origin, value) && !ignore.includes(key)) {
+            obj[key] = {
+                previous: origin,
+                current: value,
+            };
+        }
+        return obj;
+    }, {});
+
+    await Actinium.Capability.load(true, true);
+
+    if (Object.keys(diff).length > 0) {
+        await Actinium.Hook.run('capability-change', req, diff);
+    }
+
+    await Actinium.Hook.run('capability-saved', req);
+});
+
+Actinium.Cloud.afterDelete(COLLECTION, async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    if (Actinium.Cache.get('capability.propagating')) return;
+
+    await Actinium.Capability.load(true, true);
+    await Actinium.Hook.run('capability-deleted', req);
 });
 
 /**

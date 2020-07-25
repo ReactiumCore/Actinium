@@ -225,62 +225,25 @@ const _removeCapability = async group => {
     return Actinium.Hook.run('capability-updated', group);
 };
 
-/*
-Capability.register = (
-    group = 'global',
-    perms = {
-        allowed: null,
-        excluded: null,
-    },
-    order = 100,
-) => {
-    Capability.v2.register(group, perms, order);
-
-    perms = normalizeCapability(perms);
-
-    sort.push({
-        group,
-        ...perms,
-        order,
-    });
-
-    if (Actinium.started === true) {
-
-        return _addCapability(group, perms);
-    }
-};
-*/
 Capability.register = (...args) => Capability.v2.register(...args);
 
-Capability.unregister = group => {
-    unreg.push(group);
-    unreg = _.compact(_.uniq(unreg));
+Capability.grant = (...args) => Capability.v2.grant(...args);
 
-    if (Actinium.started === true) {
-        return _removeCapability(group);
-    }
-};
+Capability.unregister = group => Capability.v2.unregister(group);
 
-Capability.get = capability => {
-    if (typeof capability === 'string') {
-        return normalizeCapability(op.get(capabilities, [capability]));
-    } else if (Array.isArray(capability)) {
-        return capability.reduce((getCaps, capability) => {
-            getCaps[capability] = normalizeCapability(
-                op.get(capabilities, [capability]),
-            );
-            return getCaps;
-        }, {});
-    } else {
-        return Object.keys(capabilities).sort();
-    }
-};
+Capability.get = capability => Capability.v2.get(capability);
 
 Capability.roles = capability => {
     if (typeof capability !== 'string')
         throw 'Capability.roles() required string parameter capability.';
 
     const capObj = Capability.get(capability);
+
+    if (!capObj) {
+        ERROR(capability, 'does not exist');
+        return;
+    }
+
     const allowed = capObj.allowed.filter(r => !capObj.excluded.includes(r));
 
     return _.chain(allowed)
@@ -336,103 +299,7 @@ Capability.User.get = user => {
     }, []);
 };
 
-Capability.load = async () => {
-    await Capability.v2.load();
-
-    if (Actinium.started !== true) {
-        BOOT('');
-        BOOT(chalk.cyan('Loading capabilities...'));
-    }
-
-    await Actinium.Hook.run('capability-loading');
-
-    // Merge defaults with parse loaded
-    Object.entries(Capability.defaults).forEach(([group, defaultCap]) => {
-        const cap = normalizeCapability(defaultCap);
-        capabilities[group] = cap;
-    });
-
-    // Register new or changed
-    for (let cap of _.sortBy(sort, 'order')) {
-        const { group } = cap;
-        const oldCapability = capabilities[group];
-        const newCapability = normalizeCapability(cap);
-
-        capabilities[group] = newCapability;
-
-        await Actinium.Hook.run(
-            'capability-updated',
-            group,
-            newCapability,
-            oldCapability,
-        );
-    }
-
-    // unregisters
-    for (let group of unreg) {
-        if (op.has(capabilities, [group])) {
-            delete capabilities[group];
-            await Actinium.Hook.run('capability-unregistered', group);
-        }
-    }
-
-    const loaded = await _loadedCapabilities();
-
-    Object.values(loaded).forEach(result => {
-        const {
-            group,
-            allowedList: allowed = [],
-            excludedList: excluded = [],
-        } = result.toJSON();
-
-        capabilities[group] = normalizeCapability({ allowed, excluded });
-    });
-
-    let query = new Actinium.Query('_Role');
-    const roleObjects = await query.find({ useMasterKey: true });
-    const roles = roleObjects.reduce((roles, role) => {
-        roles[role.get('name')] = role;
-        return roles;
-    }, {});
-
-    // saveAll
-    const objects = Object.entries(capabilities).map(([group, cap]) => {
-        if (!group) return;
-
-        let obj = new Actinium.Object(COLLECTION);
-        if (group in loaded) {
-            obj = loaded[group];
-        }
-
-        obj.set('group', group);
-        const allowed = obj.relation('allowed');
-        const excluded = obj.relation('excluded');
-
-        cap.allowed.forEach(role => role in roles && allowed.add(roles[role]));
-        cap.excluded.forEach(
-            role => role in roles && excluded.add(roles[role]),
-        );
-
-        obj.unset('allowedList');
-        obj.unset('excludedList');
-
-        // obj.save(null, { useMasterKey: true });
-
-        return obj;
-    });
-
-    //await Actinium.Object.saveAll(objects, { useMasterKey: true });
-    await Promise.all(_.compact(objects));
-    await Actinium.Hook.run('capability-loaded');
-
-    if (Actinium.started !== true) {
-        BOOT(chalk.cyan('  Loaded.'));
-        BOOT('');
-    }
-
-    sort = [];
-    unreg = [];
-};
+Capability.load = () => Capability.v2.load();
 
 Actinium.User.can = Capability.User.can;
 Actinium.User.capabilities = Capability.User.get;
@@ -442,6 +309,7 @@ module.exports = Capability;
 /**
  * Tests
  */
+/*
 Actinium.Harness.test('Capability.get()', async assert => {
     assert(
         Array.isArray(Capability.get()),
@@ -609,7 +477,7 @@ Actinium.Harness.test(
         await Actinium.Capability.unregister('TestCapability.Foo');
     },
 );
-
+*/
 /**
  * @api {Object} Actinium.Capability Capabilities
  * @apiVersion 3.1.2

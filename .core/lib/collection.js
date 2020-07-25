@@ -136,7 +136,7 @@ Collection.load = async (collection = false) => {
                         ? { '*': true }
                         : {};
 
-                    Actinium.Capability.roles(
+                    Actinium.Capability.granted(
                         `${collection}.${capability}`,
                     ).forEach(role =>
                         op.set(
