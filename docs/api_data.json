@@ -12654,6 +12654,126 @@
   },
   {
     "type": "Hook",
+    "url": "before-capability-delete",
+    "title": "before-capability-delete",
+    "version": "3.1.2",
+    "group": "Hooks",
+    "name": "before_capability_delete",
+    "description": "<p>Triggered before a Capability object is deleted.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request object.</p>"
+          }
+        ]
+      }
+    },
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "before-capability-save",
+    "title": "before-capability-save",
+    "version": "3.1.2",
+    "group": "Hooks",
+    "name": "before_capability_save",
+    "description": "<p>Triggered before a Capability object is saved.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request object.</p>"
+          }
+        ]
+      }
+    },
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "capability-change",
+    "title": "capability-change",
+    "version": "3.1.2",
+    "group": "Hooks",
+    "name": "capability_change",
+    "description": "<p>Triggered when a Capability object is changed.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request object.</p>"
+          }
+        ]
+      }
+    },
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "capability-deleted",
+    "title": "capability-deleted",
+    "version": "3.1.2",
+    "group": "Hooks",
+    "name": "capability_deleted",
+    "description": "<p>Triggered after a Capability object is deleted.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request object.</p>"
+          }
+        ]
+      }
+    },
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "capability-saved",
+    "title": "capability-saved",
+    "version": "3.1.2",
+    "group": "Hooks",
+    "name": "capability_saved",
+    "description": "<p>Triggered after a Capability object is saved.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "request",
+            "description": "<p>The request object.</p>"
+          }
+        ]
+      }
+    },
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
     "url": "content-before-save",
     "title": "content-before-save",
     "description": "<p>Called after content saved with <code>Content.create()</code> or <code>Content.update()</code></p>",

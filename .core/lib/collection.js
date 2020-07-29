@@ -35,7 +35,7 @@ Collection.register = (
     collectionPerms[collection] = publicSetting;
 
     // Update Collection classLevelPermissions on capability updates
-    Actinium.Hook.register('capability-updated', async capability => {
+    Actinium.Hook.register('capability-change', async capability => {
         if (
             Actinium.Collection.loaded &&
             [
@@ -44,7 +44,9 @@ Collection.register = (
                 `${collection}.update`,
                 `${collection}.delete`,
                 `${collection}.addField`,
-            ].includes(capability)
+            ]
+                .map(c => String(c).toLowerCase(c))
+                .includes(capability)
         ) {
             await Actinium.Collection.load(collection);
             BOOT(
