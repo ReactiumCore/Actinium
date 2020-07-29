@@ -1,774 +1,820 @@
 const chalk = require('chalk');
-const uuid = require('uuid/v4');
 const _ = require('underscore');
 const op = require('object-path');
-const ActionSequence = require('action-sequence');
-const Hook = require('./hook');
+const slugify = require('slugify');
+const {
+    hookedQuery,
+    Registry,
+    serialize,
+} = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = 'Capability';
 
-const noop = () => Promise.resolve();
+const getRelation = async (cap, field, queryParams = {}) => {
+    const limit = op.get(queryParams, 'limit', 100);
+    const useMasterKey = true;
+    const rel = cap.relation(field);
+    let results = await rel
+        .query()
+        .limit(limit)
+        .ascending('name')
+        .find({ useMasterKey });
 
-let sort = [];
-let unreg = [];
+    const outputType = String(
+        op.get(queryParams, 'outputType', 'OBJECT'),
+    ).toUpperCase();
 
-const capabilities = {};
+    if (outputType === 'LIST') {
+        results = _.pluck(
+            results.map(item => item.toJSON()),
+            'name',
+        ).map(role => String(role).toLowerCase());
+    }
+
+    return outputType === 'JSON' ? results.map(item => item.toJSON()) : results;
+};
+
+const getRoles = async () => {
+    const { results } = await hookedQuery(
+        { limit: 100, outputType: 'JSON' },
+        { useMasterKey: true },
+        Parse.Role,
+        'capability-role-query',
+        'capability-roles',
+        'results',
+        'ARRAY',
+    );
+
+    return results;
+};
 
 const normalizeCapability = (capabilityObj = {}) => {
+    let allowed = op.get(capabilityObj, 'allowed', []) || [];
+    let excluded = op.get(capabilityObj, 'excluded', []) || [];
+
     // banned is always excluded. super-admin may not be excluded, administrator may.
-    const excluded = _.uniq(
-        op.get(capabilityObj, 'excluded', []).concat('banned'),
-    ).filter(role => role !== 'super-admin');
+    excluded = _.uniq(_.flatten([excluded, 'banned'])).filter(
+        role => role !== 'super-admin',
+    );
 
     // administrator and super admin are always added to allowed
-    const allowed = _.uniq(
-        op
-            .get(capabilityObj, 'allowed', [])
-            .concat('administrator', 'super-admin')
-            .filter(role => !excluded.includes(role)),
+    allowed = _.uniq(
+        _.flatten([allowed, 'administrator', 'super-admin']).filter(
+            role => !excluded.includes(role),
+        ),
     );
+
     return {
+        ...capabilityObj,
         allowed,
         excluded,
     };
 };
 
-const normalizeLevels = async (capabilityObj = {}) => {
-    capabilityObj = normalizeCapability(capabilityObj);
-
-    const allRoles = await _getRoles();
-    Object.entries(allRoles).forEach(([name, role]) => {
-        role = role.toJSON();
-        op.set(role, 'level', Number(op.get(role, 'level', 0)));
-        op.set(allRoles, name, role);
-    });
-
-    const byLevel = _.sortBy(Object.values(allRoles), 'level');
-    let allowed = op.get(capabilityObj, 'allowed', []);
-    const anonymous = allowed.includes('anonymous');
-    const excluded = !anonymous ? op.get(capabilityObj, 'excluded', []) : [];
-    allowed = _.chain(
-        allowed.map(role => {
-            const level = op.get(allRoles, [role, 'level'], 0);
-            return byLevel
-                .filter(
-                    ({ name, level: l }) =>
-                        name === role ||
-                        anonymous ||
-                        (l > level && !excluded.includes(name)),
-                )
-                .map(({ name }) => name);
-        }),
-    )
-        .flatten()
-        .compact()
-        .uniq()
-        .value();
-
-    return normalizeCapability({ allowed, excluded });
-};
-
-const Capability = {
-    defaults: {
-        'admin-ui.view': {
-            allowed: ['user', 'contributor', 'moderator'],
-            exclude: ['anonymous'],
-        },
-        'user.admin': {
-            exclude: ['user'],
-        },
-        'user.view': {
-            allowed: ['moderator'],
-        },
-        'user.ban': {
-            allowed: ['moderator'],
-        },
-    },
-    Role: {},
-    User: {},
-};
-
-Capability.register = (
-    group = 'global',
-    perms = {
-        allowed: [],
-        excluded: [],
-    },
-    order = 100,
+const updateCapabilityRoles = async (
+    params = {},
+    options = { useMasterKey: true },
 ) => {
-    perms = normalizeCapability(perms);
+    let { action, capability, field, role, roleList } = params;
 
-    sort.push({
-        group,
-        ...perms,
-        order,
+    if (!options) return new Error('Permission denied 2');
+
+    let err;
+    const requiredParams = ['action', 'capability', 'field', 'role'];
+    requiredParams.forEach(key => {
+        if (!op.get(params, key)) {
+            err = new Error(`${key} is a required parameter`);
+        }
+    });
+    if (err) return err;
+
+    action = String(action).toLowerCase();
+
+    // Get the Capability Object
+    let cap = await new Actinium.Query(COLLECTION)
+        .equalTo('group', capability)
+        .first(options);
+
+    // Create if no cap found
+    if (!cap) {
+        cap = await new Actinium.Object(COLLECTION).set('group', capability);
+    }
+
+    // Get relation
+    const rel = cap.relation(field);
+
+    // Normalize the role parameter into an array adding or removing iconic roles.
+    let roles =
+        field === 'allowed'
+            ? _.chain([role, 'super-admin', 'administrator'])
+                  .flatten()
+                  .uniq()
+                  .value()
+            : _.chain([role])
+                  .without('super-admin')
+                  .flatten()
+                  .uniq()
+                  .value();
+
+    // Add the roles to the relation
+    roles.forEach(name => {
+        let role = _.findWhere(roleList, { name });
+
+        if (!role) return;
+
+        role = new Actinium.Role().set('id', role.objectId);
+
+        if (action === 'add') rel.add(role);
+        if (action === 'remove') rel.remove(role);
     });
 
-    if (Actinium.started === true) {
-        return _addCapability(group, perms);
-    }
+    // Save the capability
+    cap = await cap.save(null, options);
+
+    // get the relations
+    const [allowed, excluded] = await Promise.all([
+        getRelation(cap, 'allowed', {
+            limit: roleList.length,
+            outputType: 'LIST',
+        }),
+        getRelation(cap, 'excluded', {
+            limit: roleList.length,
+            outputType: 'LIST',
+        }),
+    ]);
+
+    // output new object
+    return normalizeCapability({
+        group: capability,
+        objectId: cap.id,
+        allowed,
+        excluded,
+    });
 };
 
-Capability.unregister = group => {
-    unreg.push(group);
-    unreg = _.compact(_.uniq(unreg));
+const User = Capability => ({
+    /**
+     * @api {Function} Capability.User.can(capability,user) Capability.User.can()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.User.can()
+     * @apiDescription Synchronously evaluate if a user has the specified capability.
+     * @apiParam {String} capability The Capability group name.
+     * @apiParam {Mixed} user The user objectId String or an Actinium.User object.
+     * @apiExample Example Usage
+     // Using a user objectId
+     if (Actinium.Capability.User.can('user.view', 'KqBNgFPG2h')) {
+        console.log('Yep, you got it!');
+     }
 
-    if (Actinium.started === true) {
-        return _removeCapability(group);
+     // Inside a cloud function:
+     if (Actinium.Capability.User.can('user.view', req.user)) {
+        console.log('All good buddy!');
+     }
+     */
+    can: (cap, user) =>
+        _.intersection(Capability.User.roles(user), Capability.granted(cap))
+            .length > 0,
+
+    /**
+     * @api {Function} Capability.User.get(user) Capability.User.get()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.User.get()
+     * @apiDescription Synchronously retrieve a user's capabilites.
+     * @apiParam {Mixed} user The user objectId String for an Actinium.User object.
+     * @apiExample Example Usage
+    Actinium.Capability.User.get(req.user);
+     */
+    get: user => _.intersection(Capability.User.roles(user), Capability.get()),
+
+    roles: user => {
+        // Get the user ID
+        if (_.isObject(user)) {
+            // parse user object
+            user = op.get(user, 'id', user);
+
+            // json user object
+            user = _.isObject(user) ? op.get(user, 'objectId', user) : user;
+
+            // request object
+            user = _.isObject(user) ? op.get(user, 'user.id', user) : user;
+        }
+
+        // Get the user roles
+        const roleObj = Actinium.Roles.User.get(user);
+
+        let roles = Object.keys(roleObj).map(role =>
+            String(role).toLowerCase(),
+        );
+
+        // Add the anonymous role
+        roles.push('anonymous');
+
+        // Clean up the roles and output
+        return _.uniq(roles);
+    },
+});
+
+const Role = Capability => ({
+    /**
+     * @api {Function} Capability.Role.can(capability,role) Capability.Role.can()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.Role.can()
+     * @apiDescription Synchronously evaluate if a role has the specified capability.
+     * @apiParam {String} capability The Capability group name.
+     * @apiParam {String} role The Role name.
+     * @apiExample Example Usage
+    if (Actinium.Capability.Role.can('user.view', 'contributor')) {
+        console.log('Looks like you got it!');
     }
-};
+     */
+    can: (cap, role) => {
+        const roles = _.flatten([role]);
+        const granted = Capability.granted(cap);
+        return _.intersection(granted, roles).length > 0;
+    },
 
-Capability.get = capability => {
-    if (typeof capability === 'string') {
-        return normalizeCapability(op.get(capabilities, [capability]));
-    } else if (Array.isArray(capability)) {
-        return capability.reduce((getCaps, capability) => {
-            getCaps[capability] = normalizeCapability(
-                op.get(capabilities, [capability]),
+    /**
+     * @api {Function} Capability.Role.get(role) Capability.Role.get()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.Role.get()
+     * @apiDescription Synchronously retrieve a Role object capabilites.
+     * @apiParam {String} role Role name.
+     * @apiExample Example Usage
+    Actinium.Capability.Role.get('contributor');
+     */
+    get: role =>
+        _.compact(
+            Capability.get().map(cap => {
+                const { group } = cap;
+                const granted = Capability.granted(group);
+                return granted.includes(role) ? group : null;
+            }),
+        ),
+});
+
+class Capability {
+    constructor() {
+        this.roleList = [];
+        this.Registry = new Registry('capability', 'group');
+        this.Role = Role(this);
+        this.User = User(this);
+    }
+
+    /**
+     * @api {Array} Capability.list Capability.list
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.list
+     * @apiDescription Immutable array of registered capabilites.
+     * @apiExample Example Usage
+     console.log(Actinium.Capability.list);
+     */
+    get list() {
+        return this.Registry.list;
+    }
+
+    /**
+     * @api {Async} Capability.delete(capabilites) Capability.delete()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.delete()
+     * @apiDescription Delete a single or multiple Capability objects. Returns an Actinium.Object array of the deleted Capability objects. Triggers the `before-capability-delete` and `capability-deleted` hooks.
+     * @apiParam {Mixed} capabilities String or Array of capability group names.
+     * @apiExample Example Usage
+     Actinium.Capability.delete('user.view');
+     Actinium.Capability.delete(['user.view']);
+     */
+    delete(capabilities = []) {
+        capabilities = _.compact(
+            _.flatten([capabilities]).map(cap => {
+                cap = this.get(cap);
+                if (!cap) return;
+                return new Actinium.Object(COLLECTION).set('id', cap.objectId);
+            }),
+        );
+
+        return capabilities.length > 0
+            ? Actinium.Object.destroyAll(capabilities, { useMasterKey: true })
+            : [];
+    }
+
+    /**
+     * @api {Function} Capability.get(capability) Capability.get()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.get()
+     * @apiDescription Synchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus `capabilites` hook with the return value as the only parameter.
+     * @apiParam {Mixed} [capability] String or Array of capability group names.
+     * @apiExample Example Usage
+     console.log(Actinium.Capability.get());
+     console.log(Actinium.Capability.get('user.view'));
+     console.log(Actinium.Capability.get(['user.view']));
+     */
+    get(capability) {
+        const capabilities = _.chain([capability])
+            .flatten()
+            .compact()
+            .uniq()
+            .value()
+            .map(cap => String(cap).toLowerCase());
+
+        let results =
+            capabilities.length > 0
+                ? _.compact(
+                      capabilities.map(group =>
+                          _.findWhere(this.list, { group }),
+                      ),
+                  )
+                : this.list;
+
+        results = results.map(cap => normalizeCapability(cap));
+
+        // prettier-ignore
+        try { Actinium.Hook.runSync('capabilites', results); }
+        catch (err) { /* empty on purpose */ }
+
+        if (!capability) return results;
+
+        return _.isArray(capability)
+            ? _.indexBy(results, 'group')
+            : _.first(results);
+    }
+
+    /**
+     * @api {Function} Capability.granted(capability,role) Capability.granted()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.granted()
+     * @apiDescription Synchronously returns an Array of Actinium.Role names granted the capability. If the role parameter is specified, returns `Boolean`.
+     * @apiParam {String} capability The capability group name.
+     * @apiParam {String} [role] The role name to check.
+     * @apiExample Example Usage
+     console.log(Actinium.Capability.granted('user.view'));
+     console.log(Actinium.Capability.granted('user.view', 'administrator'))
+     */
+    granted(capability, role) {
+        if (!_.isString(capability)) {
+            throw new Error('capability must be of type String');
+        }
+
+        if (role && !_.isString(role)) {
+            throw new Error('role must boe of type String');
+        }
+
+        let cap = this.get(capability) || {};
+        cap = normalizeCapability(cap);
+
+        const { allowed = [] } = cap;
+        const roles = _.chain(allowed)
+            .without(this.restricted(capability))
+            .uniq()
+            .compact()
+            .value()
+            .map(r => String(r).toLowerCase());
+
+        if (role) return roles.includes(String(role).toLowerCase());
+
+        return roles;
+    }
+
+    /**
+     * @api {Function} Capability.isRegistered(capability) Capability.isRegistered()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.isRegistered()
+     * @apiDescription Synchronously check if a capability has been registered.
+     * @apiParam {String} capability The capability group name to check for.
+     * @apiExample Example Usage
+     Actinium.Capability.isRegistered('user.view');
+     */
+    isRegistered(capability) {
+        return this.Registry.isRegistered(capability);
+    }
+
+    /**
+     * @api {Function} Capability.register(id,capability,order) Capability.register()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.register()
+     * @apiDescription Synchronously register a new Capability object. If the capability exists this is a noop. Returns the results of `Capability.get()`.
+     * @apiParam {String} id The unique Capability group name.
+     * @apiParam {Object} [capability] Data associated with Capability object.
+     * @apiParam {Number} [order=100] The index where the capability is registered. Used when applying a sort on the `Capability.list` array.
+     * @apiExample Example Usage
+    Actinium.Capability.register('my-admin-ui.view', {
+      allowed: ['moderator', 'contributor'],
+      excluded: ['banned'],
+    });
+     */
+    register(id, capability = {}, order) {
+        id = String(id).toLowerCase();
+        id = String(id).substr(0, 1) === '_' ? id.split('_').pop() : id;
+
+        if (!this.Registry.isRegistered(id)) {
+            capability = _.isObject(capability) ? capability : {};
+            capability = normalizeCapability(capability);
+            if (!op.get(capability, 'objectId')) {
+                op.set(capability, 'pending', true);
+            }
+            this.Registry.register(id, capability, order);
+        }
+
+        return this.get();
+    }
+
+    relation(...args) {
+        return getRelation(...args);
+    }
+
+    /**
+     * @api {Function} Capability.restricted(capability,role) Capability.restricted()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.restricted()
+     * @apiDescription Synchronously returns an Array of Actinium.Role names restricted from the capability. If the role parameter is specified, returns `Boolean`.
+     * @apiParam {String} capability The capability group name.
+     * @apiParam {String} [role] The role name to check.
+     * @apiExample Example Usage
+     console.log(Actinium.Capability.restricted('user.view'));
+     console.log(Actinium.Capability.restricted('user.view', 'administrator'))
+     */
+    restricted(capability, role) {
+        if (!_.isString(capability)) {
+            throw new Error('capability must be of type String');
+        }
+
+        if (role && !_.isString(role)) {
+            throw new Error('role must boe of type String');
+        }
+
+        let cap = this.get(capability) || {};
+        cap = normalizeCapability(cap);
+
+        const { excluded = [] } = cap;
+
+        const roles = _.chain([excluded, 'banned'])
+            .flatten()
+            .uniq()
+            .compact()
+            .value()
+            .map(r => String(r).toLowerCase());
+
+        if (role) return roles.includes(String(role).toLowerCase());
+
+        return roles;
+    }
+
+    /**
+     * @api {Function} Capability.update(id,capability,order) Capability.update()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.update()
+     * @apiDescription Synchronously update a new Capability object. Returns the results of `Capability.get()`.
+     * @apiParam {String} id The unique Capability group name.
+     * @apiParam {Object} [capability] Data associated with Capability object.
+     * @apiExample Example Usage
+    Actinium.Capability.update('my-admin-ui.view', {
+      allowed: ['moderator', 'contributor'],
+      excluded: ['banned'],
+    });
+     */
+    update(id, capability = {}) {
+        this.Registry.cleanup(id);
+        return this.register(id, capability);
+    }
+
+    async _ensureContentTypeCapabilities() {
+        const caps = ['create', 'retrieve', 'update', 'delete', 'addField'];
+        const { types } = await Actinium.Type.list({}, { useMasterKey: true });
+        types.forEach(({ type }) => {
+            const group = `content.${String(type).toLowerCase()}`;
+            const config = normalizeCapability({ group });
+            caps.forEach(cap => {
+                if (this.get(group)) return;
+                this.register(`${group}.${cap}`, config);
+            });
+        });
+    }
+
+    async fetch() {
+        // 1.0 - Get roles
+        this.roleList = await getRoles();
+
+        const output = [];
+
+        // 2.0 - Create the query
+        const { results = [] } = await hookedQuery(
+            { limit: 200, outputType: 'OBJECT' },
+            { useMasterKey: true },
+            COLLECTION,
+            'capability-query',
+            'capabilities',
+            'results',
+            'ARRAY',
+        );
+
+        // 3.0 - Get relation fields and map the capability object
+        for (const cap of results) {
+            const group = cap.get('group');
+
+            const [allowed, excluded] = await Promise.all([
+                getRelation(cap, 'allowed', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+                getRelation(cap, 'excluded', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+            ]);
+
+            // prettier-ignore
+            output.push(normalizeCapability({
+                group,
+                objectId: cap.id,
+                allowed,
+                excluded,
+            }));
+        }
+
+        return output;
+    }
+
+    /**
+     * @api {Async} Capability.getAsync(capability) Capability.getAsync()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.getAsync()
+     * @apiDescription Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus `capabilites` hook with the return value as the only parameter.
+     * @apiParam {Mixed} [capability] String or Array of capability group names.
+     * @apiExample Example Usage
+    const MyFunction = async () => {
+        const capabilites = await Actinium.Capability.getSync();
+        console.log(capabilites);
+        return capabilites;
+    }
+     */
+    async getAsync(capability) {
+        await this.load(true, true, 'getAsync()');
+        return this.get(capability);
+    }
+
+    /**
+     * @api {Async} Capability.grant(params,options) Capability.grant()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.grant()
+     * @apiDescription Asynchronously grant a capability to a role.
+     * @apiParam (params) {String} capability The Capability group name.
+     * @apiParam (params) {Mixed} role String or Array of Role names.
+     * @apiExample Example Usage
+    Actinium.Capability.grant(
+        { capability: 'user.view', role: ['moderator', 'contributor'] },
+        { useMasterKey: true }
+    );
+     */
+    async grant(params = {}, options) {
+        op.set(params, 'action', 'add');
+        op.set(params, 'field', 'allowed');
+        op.set(params, 'roleList', this.roleList);
+        const cap = await updateCapabilityRoles(params, options);
+        if (_.isError(cap)) throw cap;
+        return _.indexBy(this.list, 'group');
+    }
+
+    async load(refresh = false, flush = false, caller) {
+        // Return cached registry list
+        const loaded = Actinium.Cache.get('capability.loaded');
+        if (
+            loaded &&
+            flush !== true &&
+            refresh !== true &&
+            this.list.length > 0
+        ) {
+            if (caller) console.log(caller, '\n', 'cached', loaded);
+            return _.sortBy(this.list, 'group');
+        }
+
+        await Actinium.Hook.run('before-capability-load');
+
+        // Flush registry
+        if (flush === true) this.Registry.flush();
+
+        // Get from DB
+        const capabilities = await this.fetch();
+        Actinium.Cache.set('capability.loaded', true);
+
+        // Create Content Type capabilities if they don't exist
+        this._ensureContentTypeCapabilities();
+
+        // Add to registry
+        capabilities.forEach(cap => {
+            this.register(cap.group, cap);
+        });
+    }
+
+    async propagate() {
+        const caps = this.list.filter(item => {
+            if (!op.get(item, 'objectId')) return true;
+            return op.get(item, 'pending');
+        });
+
+        let roleEntries = {};
+        if (caps.length > 0) {
+            this.roleList = await getRoles();
+            roleEntries = this.roleList.reduce((entries, role) => {
+                const { name } = role;
+                entries[name] = new Actinium.Role().set('id', role.objectId);
+                return entries;
+            }, {});
+        }
+
+        let saves = [];
+
+        for (let item of caps) {
+            item = normalizeCapability(item);
+
+            const id = op.get(item, 'objectId');
+            const allowed = item.allowed.map(name => op.get(roleEntries, name));
+            const excluded = item.excluded.map(name =>
+                op.get(roleEntries, name),
             );
-            return getCaps;
-        }, {});
-    } else {
-        return Object.keys(capabilities).sort();
-    }
-};
 
-Capability.roles = capability => {
-    if (typeof capability !== 'string')
-        throw 'Capability.roles() required string parameter capability.';
+            const data = { ...item };
 
-    const capObj = Capability.get(capability);
-    const allowed = capObj.allowed.filter(r => !capObj.excluded.includes(r));
+            op.del(data, 'allowed');
+            op.del(data, 'excluded');
+            op.del(data, 'objectId');
+            op.del(data, 'order');
+            op.del(data, 'pending');
 
-    return _.chain(allowed)
-        .uniq()
-        .compact()
-        .value()
-        .sort();
-};
+            let obj = await new Actinium.Query(COLLECTION)
+                .equalTo('group', item.group)
+                .first({ useMasterKey: true });
 
-Capability.Role.can = (role, capability) => {
-    role = role ? role : 'anonymous';
-    const roles = Capability.roles(capability);
-    return roles.includes(role);
-};
+            obj = obj || new Actinium.Object(COLLECTION);
+            if (id) obj.set('id', id);
 
-Capability.Role.get = role => {
-    return Capability.get().reduce((arr, capability) => {
-        if (Capability.Role.can(role, capability)) arr.push(capability);
-        return arr;
-    }, []);
-};
+            Object.entries(data).forEach(([key, value]) => obj.set(key, value));
 
-Capability.User.can = (cap, user) => {
-    if (typeof user === 'object') {
-        // parse user object
-        user = op.get(user, 'id', user);
-        // json user object
-        user = typeof user === 'object' ? op.get(user, 'objectId', user) : user;
-        // request object
-        user = typeof user === 'object' ? op.get(user, 'user.id', user) : user;
-    }
+            const allowedRel = obj.relation('allowed');
+            allowed.forEach(role => allowedRel.add(role));
 
-    const roleObj = Actinium.Roles.User.get(user);
-    const roles = Object.keys(roleObj);
+            const excludedRel = obj.relation('excluded');
+            excluded.forEach(role => excludedRel.add(role));
 
-    // no roles exist yet, or capability allows anonymous access
-    if (roles.length < 1) {
-        roles.push['anonymous'];
-    }
-
-    if (_.intersection(roles, Capability.roles(cap)).length > 0) return true;
-
-    return false;
-};
-
-Capability.User.get = user => {
-    const roles = Actinium.Roles.User.get(user);
-    return Object.keys(roles).reduce((arr, role) => {
-        const caps = Capability.get().filter(cap =>
-            Capability.Role.can(role, cap),
-        );
-        return arr.concat(caps);
-    }, []);
-};
-
-const _loadedCapabilities = async () => {
-    const query = new Actinium.Query(COLLECTION);
-    const groups = {};
-    const results = await query.find({ useMasterKey: true });
-
-    for (let result of results) {
-        const allowedList = [];
-        const excludedList = [];
-
-        const { group } = result.toJSON();
-
-        if (!group) continue;
-
-        groups[group] = result;
-
-        let allowed = [],
-            excluded = [];
-        const allowedRelation = result.get('allowed');
-        const excludedRelation = result.get('excluded');
-
-        if (allowedRelation)
-            allowed = await allowedRelation
-                .query()
-                .find({ useMasterKey: true });
-        if (excludedRelation)
-            excluded = await excludedRelation
-                .query()
-                .find({ useMasterKey: true });
-
-        allowed.forEach(role => {
-            const { name } = role.toJSON();
-            allowedList.push(name);
-        });
-        excluded.forEach(role => {
-            const { name } = role.toJSON();
-            excludedList.push(name);
-        });
-
-        result.set('allowedList', allowedList);
-        result.set('excludedList', excludedList);
-    }
-
-    return groups;
-};
-
-Capability.load = async () => {
-    if (Actinium.started !== true) {
-        BOOT('');
-        BOOT(chalk.cyan('Loading capabilities...'));
-    }
-
-    await Actinium.Hook.run('capability-loading');
-
-    // Merge defaults with parse loaded
-    Object.entries(Capability.defaults).forEach(([group, defaultCap]) => {
-        const cap = normalizeCapability(defaultCap);
-        capabilities[group] = cap;
-    });
-
-    // Register new or changed
-    for (let cap of _.sortBy(sort, 'order')) {
-        const { group } = cap;
-        const oldCapability = capabilities[group];
-        const newCapability = normalizeCapability(cap);
-
-        capabilities[group] = newCapability;
-
-        await Actinium.Hook.run(
-            'capability-updated',
-            group,
-            newCapability,
-            oldCapability,
-        );
-    }
-
-    // unregisters
-    for (let group of unreg) {
-        if (op.has(capabilities, [group])) {
-            delete capabilities[group];
-            await Actinium.Hook.run('capability-unregistered', group);
-        }
-    }
-
-    const loaded = await _loadedCapabilities();
-
-    Object.values(loaded).forEach(result => {
-        const {
-            group,
-            allowedList: allowed = [],
-            excludedList: excluded = [],
-        } = result.toJSON();
-
-        capabilities[group] = normalizeCapability({ allowed, excluded });
-    });
-
-    let query = new Actinium.Query('_Role');
-    const roleObjects = await query.find({ useMasterKey: true });
-    const roles = roleObjects.reduce((roles, role) => {
-        roles[role.get('name')] = role;
-        return roles;
-    }, {});
-
-    // saveAll
-    const objects = Object.entries(capabilities).map(([group, cap]) => {
-        if (!group) return;
-
-        let obj = new Actinium.Object(COLLECTION);
-        if (group in loaded) {
-            obj = loaded[group];
+            saves.push(obj);
         }
 
-        obj.set('group', group);
-        const allowed = obj.relation('allowed');
-        const excluded = obj.relation('excluded');
-
-        cap.allowed.forEach(role => role in roles && allowed.add(roles[role]));
-        cap.excluded.forEach(
-            role => role in roles && excluded.add(roles[role]),
-        );
-
-        obj.unset('allowedList');
-        obj.unset('excludedList');
-
-        obj.save(null, { useMasterKey: true });
-
-        return obj;
-    });
-
-    //await Actinium.Object.saveAll(objects, { useMasterKey: true });
-    await Promise.all(_.compact(objects));
-    await Actinium.Hook.run('capability-loaded');
-
-    if (Actinium.started !== true) {
-        BOOT(chalk.cyan('  Loaded.'));
-        BOOT('');
-    }
-
-    sort = [];
-    unreg = [];
-};
-
-const _getRoles = async () => {
-    const roleQuery = new Actinium.Query('_Role');
-    const roleObjects = await roleQuery.find({ useMasterKey: true });
-    return roleObjects.reduce((roles, role) => {
-        roles[role.get('name')] = role;
-        return roles;
-    }, {});
-};
-
-const _addCapability = async (group, cap) => {
-    const { allowed = [], excluded = [] } = cap;
-    const capability = await normalizeLevels(cap);
-
-    capabilities[group] = capability;
-    const roles = await _getRoles();
-
-    // prettier-ignore
-    const obj = await new Actinium.Query(COLLECTION).equalTo('group', group).first({ useMasterKey: true }) || new Actinium.Object(COLLECTION);
-
-    obj.set('group', group);
-
-    const allowedRel = obj.relation('allowed');
-    const currentlyAllowed = await allowedRel
-        .query()
-        .find({ useMasterKey: true });
-    const excludedRel = obj.relation('excluded');
-    const currentlyExcluded = await excludedRel
-        .query()
-        .find({ useMasterKey: true });
-
-    // remove no longer allowed
-    currentlyAllowed
-        .filter(
-            roleObj =>
-                !capability.allowed.find(role => role === roleObj.get('name')),
-        )
-        .forEach(roleObj => allowedRel.remove(roleObj));
-    // add newly allowed
-    capability.allowed.forEach(
-        role => role in roles && allowedRel.add(roles[role]),
-    );
-
-    // remove no longer excluded
-    currentlyExcluded
-        .filter(
-            roleObj =>
-                !capability.excluded.find(role => role === roleObj.get('name')),
-        )
-        .forEach(roleObj => excludedRel.remove(roleObj));
-    // add newly excluded
-    capability.excluded.forEach(
-        role => role in roles && excludedRel.add(roles[role]),
-    );
-
-    await obj.save(null, { useMasterKey: true });
-    return Actinium.Hook.run('capability-updated', group, capability);
-};
-
-const _removeCapability = async group => {
-    const query = new Actinium.Query(COLLECTION);
-    query.equalTo('group', group);
-
-    const capability = await query.first({ useMasterKey: true });
-
-    if (capability && group in capabilities) {
-        delete capabilities[group];
-        await capability.destroy({ useMasterKey: true });
-    }
-
-    return Actinium.Hook.run('capability-updated', group);
-};
-
-Actinium.User.can = Capability.User.can;
-Actinium.User.capabilities = Capability.User.get;
-
-module.exports = Capability;
-
-/**
- * Tests
- */
-Actinium.Harness.test('Capability.get()', async assert => {
-    assert(
-        Array.isArray(Capability.get()),
-        'Capability.get() with no args returns list of capabilities.',
-    );
-    let cap = Capability.get('lkjasdf;lk');
-    assert(
-        op.has(cap, 'allowed') && op.has(cap, 'excluded'),
-        'Capability.get() with any capability will return allowed and excluded role names.',
-    );
-    assert(
-        op.get(cap, 'allowed').includes('super-admin') &&
-            op.get(cap, 'allowed').includes('administrator'),
-        'Capability.get() allowed always includes super-admin and administrator.',
-    );
-    assert(
-        op.get(cap, 'excluded').includes('banned') &&
-            !op.get(cap, 'excluded').includes('super-admin'),
-        'Capability.get() allowed always excludes banned, and never excludes super-admin.',
-    );
-});
-
-Actinium.Harness.test('Capability.Role.can()', async assert => {
-    assert(
-        Capability.Role.can('super-admin', 'anyrandomcap'),
-        'Capability.Role.can() will return true whenever super-admin is checked.',
-    );
-    assert(
-        !Capability.Role.can('banned', 'anyrandomcap'),
-        'Capability.Role.can() will return false whenever banned is checked.',
-    );
-});
-
-Actinium.Harness.test(
-    'Capability.Role.get()',
-    async assert => {
-        assert.equal(
-            Capability.Role.get('banned').length,
-            0,
-            'Capability.Role.get(banned) should return no capabilities',
-        );
-
-        assert(
-            Capability.Role.get('super-admin').includes(
-                'BannedSetAllowedButWontWork',
-            ),
-            'Capability.Role.get(super-admin) should include BannedSetAllowedButWontWork cap even though it was not explicitly set at register.',
-        );
-
-        assert(
-            !Capability.Role.get('administrator').includes(
-                'BannedSetAllowedButWontWork',
-            ),
-            'Capability.Role.get(administrator) should not include BannedSetAllowedButWontWork.',
-        );
-    },
-    async () => {
-        await Capability.register('BannedSetAllowedButWontWork', {
-            allowed: ['banned'],
-            excluded: ['administrator'],
-        });
-    },
-    async () => {
-        await Capability.unregister('BannedSetAllowedButWontWork');
-    },
-);
-
-Actinium.Harness.test(
-    'Capability.User.can()',
-    async assert => {
-        const query = new Actinium.Query('_User');
-        query.equalTo('username', 'test-user');
-        const user = await query.first({ useMasterKey: true });
-
-        // user id
-        assert.equal(
-            Capability.User.can('test-user-cap', user.id),
-            true,
-            'Capability.User.can() id should be permitted.',
-        );
-        // user username
-        assert.equal(
-            Capability.User.can('test-user-cap', user.get('username')),
-            true,
-            'Capability.User.can() username should be permitted.',
-        );
-        // user parse object
-        assert.equal(
-            Capability.User.can('test-user-cap', { user }),
-            true,
-            'Capability.User.can() parse request should be permitted.',
-        );
-        // user json object
-        assert.equal(
-            Capability.User.can('test-user-cap', user.toJSON()),
-            true,
-            'Capability.User.can() JSON user should be permitted.',
-        );
-        // some other cap
-        assert.equal(
-            Capability.User.can('random', user.toJSON()),
-            false,
-            'Capability.User.can() should be declined for capability that does not exist for non super-admin user.',
-        );
-    },
-
-    async () => {
-        const query = new Actinium.Query('_User');
-        query.equalTo('username', 'test-user');
-        let user = await query.first({ useMasterKey: true });
-        if (!user) {
-            user = new Actinium.User();
-            user.set('username', 'test-user');
-            user.set('password', ';lajksdf;lajsdf');
-            user.set('confirm', ';lajksdf;lajsdf');
-            user.set('email', 'email@example.com');
-
-            await user.save(null, { useMasterKey: true });
+        if (caps.length > 0) {
+            Actinium.Cache.set('capability.propagating', true);
         }
 
-        await Actinium.Roles.User.add(user.id, 'user', { useMasterKey: true });
-        await Capability.register('test-user-cap', {
-            allowed: ['user'],
-        });
-    },
-    async () => {
-        const query = new Actinium.Query('_User');
-        query.equalTo('username', 'test-user');
-        const user = await query.first({ useMasterKey: true });
+        saves = await Actinium.Object.saveAll(saves, { useMasterKey: true });
 
-        if (user) {
-            await user.destroy({ useMasterKey: true });
+        saves.forEach(obj => {
+            const group = obj.get('group');
+            const idx = _.findIndex(this.list, { group });
+            if (idx < 0) return;
+            const newObj = this.list[idx];
+            op.set(newObj, 'objectId', obj.id);
+            op.del(newObj, 'pending');
+            this.list.splice(idx, 1, newObj);
+        });
+
+        // update registry
+        if (caps.length > 0 && saves.length > 0) {
+            await this.load(true, true, 'propagate()');
         }
-        await Capability.unregister('test-user-cap');
-    },
-);
 
-Actinium.Harness.test(
-    'Capability.roles()',
-    async assert => {
-        const adminRoles = Capability.roles('TestCapability.Foo');
-        assert(
-            ['super-admin', 'administrator'].filter(role =>
-                adminRoles.find(r => r === role),
-            ).length === 2,
-            'Capability.roles() should include super-admin and administrator (if administrator isnt explicitly denied)',
+        Actinium.Cache.del('capability.propagating');
+        Actinium.Cache.set('capability.propagated', Date.now(), 500, () =>
+            this.propagate(),
         );
+    }
 
-        const noBannedRoles = Capability.roles('TestCapability.Foo');
-        assert(
-            !noBannedRoles.find(role => role === 'banned'),
-            'Capability.roles() should never included banned, no matter what.',
-        );
-        assert(
-            noBannedRoles.find(role => role === 'contributor'),
-            'Capability.roles() missing role.',
-        );
-    },
-    async () => {
-        await Actinium.Capability.register('TestCapability.Foo', {
-            allowed: ['contributor', 'banned'],
-        });
-    },
-    async () => {
-        await Actinium.Capability.unregister('TestCapability.Foo');
-    },
-);
+    /**
+     * @api {Async} Capability.restrict(params,options) Capability.restrict()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.restrict()
+     * @apiDescription Asynchronously restrict a role from a capability.
+     * @apiParam (params) {String} capability The Capability group name.
+     * @apiParam (params) {Mixed} role String or Array of Role names.
+     * @apiExample Example Usage
+    Actinium.Capability.restrict(
+        { capability: 'user.view', role: ['moderator', 'contributor'] },
+        { useMasterKey: true }
+    );
+     */
+    async restrict(params = {}, options) {
+        op.set(params, 'action', 'add');
+        op.set(params, 'field', 'excluded');
+        op.set(params, 'roleList', this.roleList);
+        const cap = await updateCapabilityRoles(params, options);
+        if (_.isError(cap)) throw cap;
+        return _.indexBy(this.list, 'group');
+    }
+
+    /**
+     * @api {Async} Capability.revoke(params,options) Capability.revoke()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.revoke()
+     * @apiDescription Asynchronously revoke a capability from a role.
+     * @apiParam (params) {String} capability The Capability group name.
+     * @apiParam (params) {Mixed} role String or Array of Role names.
+     * @apiExample Example Usage
+    Actinium.Capability.revoke(
+        { capability: 'user.view', role: [''contributor'] },
+        { useMasterKey: true }
+    );
+     */
+    async revoke(params = {}, options) {
+        op.set(params, 'action', 'remove');
+        op.set(params, 'field', 'allowed');
+        op.set(params, 'roleList', this.roleList);
+        const cap = await updateCapabilityRoles(params, options);
+        if (_.isError(cap)) throw cap;
+        return _.indexBy(this.list, 'group');
+    }
+
+    /**
+     * @api {Async} Capability.unrestrict(params,options) Capability.unrestrict()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.unrestrict()
+     * @apiDescription Asynchronously unrestrict a role from a capability.
+     * @apiParam (params) {String} capability The Capability group name.
+     * @apiParam (params) {Mixed} role String or Array of Role names.
+     * @apiExample Example Usage
+    Actinium.Capability.unrestrict(
+        { capability: 'user.view', role: ['user'] },
+        { useMasterKey: true }
+    );
+     */
+    async unrestrict(params = {}, options) {
+        op.set(params, 'action', 'remove');
+        op.set(params, 'field', 'excluded');
+        op.set(params, 'roleList', this.roleList);
+        const cap = await updateCapabilityRoles(params, options);
+        if (_.isError(cap)) throw cap;
+        return _.indexBy(this.list, 'group');
+    }
+}
+
+const instance = new Capability();
+
+Actinium.User.can = instance.User.can;
+Actinium.User.capabilities = instance.User.get;
+
+module.exports = instance;
 
 /**
- * @api {Object} Actinium.Capability Capabilities
+ * @api {Hook} before-capability-save before-capability-save
  * @apiVersion 3.1.2
- * @apiName Capabilities
- * @apiGroup Actinium
- * @apiDescription Actinium uses a concept of Roles, Levels, and Capabilities,
-designed to give the developer the ability to control what users can and cannot
-do within the application.
-
-A capability is permission to perform one or more types of task. Each user might have some capabilities but not others, depending on their role.
-
-Actinium comes with the default capabilities:
-
-| Capability | Roles |
-| ---------- | ----- |
-| user.admin | super-admin, administrator, moderator, contributor |
-| user.ban | super-admin, administrator, moderator |
-| user.view | super-admin, administrator, moderator |
-| user.create | super-admin, administrator |
-| user.edit | super-admin, administrator |
-| user.delete | super-admin, administrator |
-| plugin.view | super-admin, administrator |
-| plugin.activate | super-admin, administrator |
-| plugin.deactivate | super-admin, administrator |
-| plugin.uninstall | super-admin, administrator |
-
-### user.admin
-Ability to view the /admin pages.
-
-### user.ban
-Ability to ban a user.
-
-### user.view
-Ability to view the user list and other user profiles.
-
-### user.create
-Ability to create a new user.
-
-### user.edit
-Ability to edit a user.
-
-### user.delete
-Ability to delete a user.
-
-### plugin.view
-Ability to view the plugin list.
-
-### plugin.activate
-Ability to activate a plugin.
-
-### plugin.deactivate
-Ability to deactivate a plugin.
-
-### plugin.uninstall
-Ability to uninstall a plugin.
-
+ * @apiGroup Hooks
+ * @apiName before-capability-save
+ * @apiDescription Triggered before a Capability object is saved.
+ * @apiParam {Object} request The request object.
  */
 
 /**
-  * @api {Function} Actinium.Capability.register(group,roles,order) Capability.register()
-  * @apiVersion 3.1.2
-  * @apiGroup Actinium
-  * @apiName Capability.register
-  * @apiDescription Registers a new capability.
-  * @apiParam {String} [group=global] The capability group. Specifying a group namespaces your capability so that it doesn't collide with other plugins. For instance you may have a `view` capability. Adding this to the global group would potentially cause conflicts but adding it to _your-plugin-group_ can avoid this.
-  * @apiParam {Object} roles Allowed or excluded roles of the capability.
-  * @apiParam {Number} [order=100] The order index to register your capability. Useful when trying to overwrite an existing capability.
-  * @apiParam (Roles) {Array} [allowed] Array of role names that are allowed the capability.
-  * @apiParam (Roles) {Array} [excluded] Array or role names that are expressly not allowed the capability.
-  * @apiExample Example Usage:
-// Give only super-admin the ability to ban a user:
-
-Actinium.Capability.register(
-  'user.ban',
-  {
-    allowed: ['super-admin'],
-    excluded: ['administrator'],
-  },
-  1000,
-);
-  */
-
-/**
- * @api {Function} Actinium.Capability.unregister(capability) Capability.unregister()
+ * @api {Hook} before-capability-delete before-capability-delete
  * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName Capability.unregister
- * @apiDescription Unregisters a capability.
- * @apiParam {String} capability The capability to unregister.
- * @apiExample Example Usage:
-Actinium.Capability.unregister('sample.edit');
+ * @apiGroup Hooks
+ * @apiName before-capability-delete
+ * @apiDescription Triggered before a Capability object is deleted.
+ * @apiParam {Object} request The request object.
  */
 
 /**
-  * @api {Function} Actinium.Capability.get(capability) Capability.get()
-  * @apiVersion 3.1.2
-  * @apiGroup Actinium
-  * @apiName Capability.get
-  * @apiDescription Retrieves the specified capability. If no capability is specified a list of all capability names will be returned.
-  * @apiParam {Mixed} [capability] The string capability to retrieve, or array of capabilities to retrieve, or nothing to get list of names..
-  * @apiExample Example Usage:
-Actinium.Capability.get(['admin-ui.view', 'plugins-ui.view']);
-Actinium.Capability.get('user.edit');
-Actinium.Capability.get();
-  */
-
-/**
- * @api {Function} Actinium.Capability.Role.can(role,capability) Capability.Role.can()
+ * @api {Hook} capability-saved capability-saved
  * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName Capability.Role.can
- * @apiDescription Determines if the role has the specified capability. Returns `{Boolean}`.
- * @apiParam {String} role The role name.
- * @apiParam {String} capability The capability.
- * @apiExample Example Usage:
-Actinium.Capability.Role.can('banned', 'user.edit');
-// Retuns false
+ * @apiGroup Hooks
+ * @apiName capability-saved
+ * @apiDescription Triggered after a Capability object is saved.
+ * @apiParam {Object} request The request object.
  */
 
 /**
- * @api {Function} Actinium.Capability.Role.get(role) Capability.Role.get()
+ * @api {Hook} capability-deleted capability-deleted
  * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName Capability.Role.get
- * @apiDescription Get the capabilities of the specified role. Returns an `{Array}`.
- * @apiParam {String} role The role name.
- * @apiExample Example Usage:
-Actinium.Capability.Role.get('super-admin');
-// Retuns array of capabilities
-[
-   'user.view',
-   'user.create',
-   'user.edit',
-   'user.delete',
-   'user.ban',
-   'plugin.view',
-   'plugin.activate',
-   'plugin.deactivate'
-]
+ * @apiGroup Hooks
+ * @apiName capability-deleted
+ * @apiDescription Triggered after a Capability object is deleted.
+ * @apiParam {Object} request The request object.
  */
 
 /**
- * @api {Function} Actinium.Capability.User.get(user) Capability.User.get()
+ * @api {Hook} capability-change capability-change
  * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName Capability.User.get
- * @apiDescription Get the capabilities of the specified user. Returns an `{Array}`.
- * @apiParam {String} user The user id or username.
- * @apiExample Example Usage:
-Actinium.Capability.User.get('yg8yIUql');
-Actinium.Capability.User.get('username');
- */
-
-/**
- * @api {Function} Actinium.User.capabilities(user) User.capabilities()
- * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName User.capabilities
- * @apiDescription Get the capabilities of the specified user. Returns an `{Array}`.
- * @apiParam {String} user The user id or username.
- * @apiExample Example Usage:
- Actinium.User.capabilities('yg8yIUql');
- Actinium.User.capabilities('username');
- */
-
-/**
- * @api {Function} Actinium.Capability.User.can(capability,user) Capability.User.can()
- * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName Capability.User.can
- * @apiDescription Determines if a user has the specified capability. If the user is a Super Admin this will always return true. If the user is an Administrator this will almost always return true except in cases where the Administrator has been expressly excluded from the capability. Returns `{Boolean}`.
- * @apiParam {String} capability The capability name.
- * @apiParam {String} user The user id or username. Alternatively you can pass a request object. If the request object has the master key specified, role and capabilities are bipassed and `true` is returned.
- * @apiExample Example Usage:
-Actinium.Capability.User.can('user.edit', 'SuperAdmin');
-// Returns true
- */
-
-/**
- * @api {Function} Actinium.User.can(capability,user) User.can()
- * @apiVersion 3.1.2
- * @apiGroup Actinium
- * @apiName User.can
- * @apiDescription Determines if a user has the specified capability. If the user is a Super Admin this will always return true. If the user is an Administrator this will almost always return true except in cases where the Administrator has been expressly excluded capability. Returns `{Boolean}`.
- * @apiParam {String} capability The capability name.
- * @apiParam {String} user The user id or username. Alternatively you can pass a request object. If the request object has the master key specified, role and capabilities are bipassed and `true` is returned.
- * @apiExample Example Usage:
-Actinium.User.can('user.edit', 'SuperAdmin');
-// Returns true
+ * @apiGroup Hooks
+ * @apiName capability-change
+ * @apiDescription Triggered when a Capability object is changed.
+ * @apiParam {Object} request The request object.
  */

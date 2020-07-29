@@ -90,11 +90,11 @@ class Registry {
     }
 
     isRegistered(id) {
-        return !!_.findWhere(this.__registered, { id });
+        return !!_.findWhere(this.__registered, { [this.__idField]: id });
     }
 
     isBanned(id) {
-        return !!_.findWhere(this.__banned, { id });
+        return !!_.findWhere(this.__banned, { [this.__idField]: id });
     }
 
     ban(id) {
@@ -197,8 +197,8 @@ class Registry {
 }
 
 Registry.MODES = {
-    HISTORY: 'HISTORY',
     CLEAN: 'CLEAN',
+    HISTORY: 'HISTORY',
 };
 
 module.exports = Registry;

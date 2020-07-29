@@ -227,280 +227,6 @@ define({ "api": [
     "groupTitle": "Actinium"
   },
   {
-    "type": "Object",
-    "url": "Actinium.Capability",
-    "title": "Capabilities",
-    "version": "3.1.2",
-    "name": "Capabilities",
-    "group": "Actinium",
-    "description": "<p>Actinium uses a concept of Roles, Levels, and Capabilities, designed to give the developer the ability to control what users can and cannot do within the application.</p> <p>A capability is permission to perform one or more types of task. Each user might have some capabilities but not others, depending on their role.</p> <p>Actinium comes with the default capabilities:</p> <table> <thead> <tr> <th>Capability</th> <th>Roles</th> </tr> </thead> <tbody> <tr> <td>user.admin</td> <td>super-admin, administrator, moderator, contributor</td> </tr> <tr> <td>user.ban</td> <td>super-admin, administrator, moderator</td> </tr> <tr> <td>user.view</td> <td>super-admin, administrator, moderator</td> </tr> <tr> <td>user.create</td> <td>super-admin, administrator</td> </tr> <tr> <td>user.edit</td> <td>super-admin, administrator</td> </tr> <tr> <td>user.delete</td> <td>super-admin, administrator</td> </tr> <tr> <td>plugin.view</td> <td>super-admin, administrator</td> </tr> <tr> <td>plugin.activate</td> <td>super-admin, administrator</td> </tr> <tr> <td>plugin.deactivate</td> <td>super-admin, administrator</td> </tr> <tr> <td>plugin.uninstall</td> <td>super-admin, administrator</td> </tr> </tbody> </table> <h3>user.admin</h3> <p>Ability to view the /admin pages.</p> <h3>user.ban</h3> <p>Ability to ban a user.</p> <h3>user.view</h3> <p>Ability to view the user list and other user profiles.</p> <h3>user.create</h3> <p>Ability to create a new user.</p> <h3>user.edit</h3> <p>Ability to edit a user.</p> <h3>user.delete</h3> <p>Ability to delete a user.</p> <h3>plugin.view</h3> <p>Ability to view the plugin list.</p> <h3>plugin.activate</h3> <p>Ability to activate a plugin.</p> <h3>plugin.deactivate</h3> <p>Ability to deactivate a plugin.</p> <h3>plugin.uninstall</h3> <p>Ability to uninstall a plugin.</p>",
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.Role.can(role,capability)",
-    "title": "Capability.Role.can()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_Role_can",
-    "description": "<p>Determines if the role has the specified capability. Returns <code>{Boolean}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "role",
-            "description": "<p>The role name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "capability",
-            "description": "<p>The capability.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.Role.can('banned', 'user.edit');\n// Retuns false",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.Role.get(role)",
-    "title": "Capability.Role.get()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_Role_get",
-    "description": "<p>Get the capabilities of the specified role. Returns an <code>{Array}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "role",
-            "description": "<p>The role name.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.Role.get('super-admin');\n// Retuns array of capabilities\n[\n   'user.view',\n   'user.create',\n   'user.edit',\n   'user.delete',\n   'user.ban',\n   'plugin.view',\n   'plugin.activate',\n   'plugin.deactivate'\n]",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.User.can(capability,user)",
-    "title": "Capability.User.can()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_User_can",
-    "description": "<p>Determines if a user has the specified capability. If the user is a Super Admin this will always return true. If the user is an Administrator this will almost always return true except in cases where the Administrator has been expressly excluded from the capability. Returns <code>{Boolean}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "capability",
-            "description": "<p>The capability name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "user",
-            "description": "<p>The user id or username. Alternatively you can pass a request object. If the request object has the master key specified, role and capabilities are bipassed and <code>true</code> is returned.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.User.can('user.edit', 'SuperAdmin');\n// Returns true",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.User.get(user)",
-    "title": "Capability.User.get()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_User_get",
-    "description": "<p>Get the capabilities of the specified user. Returns an <code>{Array}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "user",
-            "description": "<p>The user id or username.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.User.get('yg8yIUql');\nActinium.Capability.User.get('username');",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.get(capability)",
-    "title": "Capability.get()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_get",
-    "description": "<p>Retrieves the specified capability. If no capability is specified a list of all capability names will be returned.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Mixed",
-            "optional": true,
-            "field": "capability",
-            "description": "<p>The string capability to retrieve, or array of capabilities to retrieve, or nothing to get list of names..</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.get(['admin-ui.view', 'plugins-ui.view']);\nActinium.Capability.get('user.edit');\nActinium.Capability.get();",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.register(group,roles,order)",
-    "title": "Capability.register()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_register",
-    "description": "<p>Registers a new capability.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": true,
-            "field": "group",
-            "defaultValue": "global",
-            "description": "<p>The capability group. Specifying a group namespaces your capability so that it doesn't collide with other plugins. For instance you may have a <code>view</code> capability. Adding this to the global group would potentially cause conflicts but adding it to <em>your-plugin-group</em> can avoid this.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "roles",
-            "description": "<p>Allowed or excluded roles of the capability.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Number",
-            "optional": true,
-            "field": "order",
-            "defaultValue": "100",
-            "description": "<p>The order index to register your capability. Useful when trying to overwrite an existing capability.</p>"
-          }
-        ],
-        "Roles": [
-          {
-            "group": "Roles",
-            "type": "Array",
-            "optional": true,
-            "field": "allowed",
-            "description": "<p>Array of role names that are allowed the capability.</p>"
-          },
-          {
-            "group": "Roles",
-            "type": "Array",
-            "optional": true,
-            "field": "excluded",
-            "description": "<p>Array or role names that are expressly not allowed the capability.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "// Give only super-admin the ability to ban a user:\n\nActinium.Capability.register(\n  'user.ban',\n  {\n    allowed: ['super-admin'],\n    excluded: ['administrator'],\n  },\n  1000,\n);",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.Capability.unregister(capability)",
-    "title": "Capability.unregister()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "Capability_unregister",
-    "description": "<p>Unregisters a capability.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "capability",
-            "description": "<p>The capability to unregister.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.Capability.unregister('sample.edit');",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
     "type": "Asynchronous",
     "url": "Utils.CloudACL(permissions,readCapability,writeCapability,existingACL)",
     "title": "Utils.CloudACL()",
@@ -1817,6 +1543,20 @@ define({ "api": [
             "optional": false,
             "field": "content",
             "description": "<p>Actinium.Object or serialized object from recently fetched content.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "schema",
+            "description": "<p>Content type current field schemas.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type object of evaluated content.</p>"
           }
         ]
       }
@@ -7867,75 +7607,6 @@ define({ "api": [
     "groupTitle": "Actinium"
   },
   {
-    "type": "Function",
-    "url": "Actinium.User.can(capability,user)",
-    "title": "User.can()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "User_can",
-    "description": "<p>Determines if a user has the specified capability. If the user is a Super Admin this will always return true. If the user is an Administrator this will almost always return true except in cases where the Administrator has been expressly excluded capability. Returns <code>{Boolean}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "capability",
-            "description": "<p>The capability name.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "user",
-            "description": "<p>The user id or username. Alternatively you can pass a request object. If the request object has the master key specified, role and capabilities are bipassed and <code>true</code> is returned.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.User.can('user.edit', 'SuperAdmin');\n// Returns true",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
-    "type": "Function",
-    "url": "Actinium.User.capabilities(user)",
-    "title": "User.capabilities()",
-    "version": "3.1.2",
-    "group": "Actinium",
-    "name": "User_capabilities",
-    "description": "<p>Get the capabilities of the specified user. Returns an <code>{Array}</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "user",
-            "description": "<p>The user id or username.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage:",
-        "content": "Actinium.User.capabilities('yg8yIUql');\nActinium.User.capabilities('username');",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Actinium"
-  },
-  {
     "type": "Asynchronous",
     "url": "Actinium.User.currentUser(options)",
     "title": "User.currentUser()",
@@ -8971,6 +8642,598 @@ define({ "api": [
     "groupTitle": "Actinium"
   },
   {
+    "type": "Function",
+    "url": "Capability.Role.can(capability,role)",
+    "title": "Capability.Role.can()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_Role_can__",
+    "description": "<p>Synchronously evaluate if a role has the specified capability.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "role",
+            "description": "<p>The Role name.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "if (Actinium.Capability.Role.can('user.view', 'contributor')) {\n    console.log('Looks like you got it!');\n}",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.Role.get(role)",
+    "title": "Capability.Role.get()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_Role_get__",
+    "description": "<p>Synchronously retrieve a Role object capabilites.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "role",
+            "description": "<p>Role name.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.Role.get('contributor');",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.User.can(capability,user)",
+    "title": "Capability.User.can()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_User_can__",
+    "description": "<p>Synchronously evaluate if a user has the specified capability.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "user",
+            "description": "<p>The user objectId String or an Actinium.User object.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "// Using a user objectId\nif (Actinium.Capability.User.can('user.view', 'KqBNgFPG2h')) {\n   console.log('Yep, you got it!');\n}\n\n// Inside a cloud function:\nif (Actinium.Capability.User.can('user.view', req.user)) {\n   console.log('All good buddy!');\n}",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.User.get(user)",
+    "title": "Capability.User.get()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_User_get__",
+    "description": "<p>Synchronously retrieve a user's capabilites.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "user",
+            "description": "<p>The user objectId String for an Actinium.User object.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.User.get(req.user);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.delete(capabilites)",
+    "title": "Capability.delete()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_delete__",
+    "description": "<p>Delete a single or multiple Capability objects. Returns an Actinium.Object array of the deleted Capability objects. Triggers the <code>before-capability-delete</code> and <code>capability-deleted</code> hooks.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "capabilities",
+            "description": "<p>String or Array of capability group names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.delete('user.view');\nActinium.Capability.delete(['user.view']);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.getAsync(capability)",
+    "title": "Capability.getAsync()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_getAsync__",
+    "description": "<p>Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": true,
+            "field": "capability",
+            "description": "<p>String or Array of capability group names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "const MyFunction = async () => {\n    const capabilites = await Actinium.Capability.getSync();\n    console.log(capabilites);\n    return capabilites;\n}",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.get(capability)",
+    "title": "Capability.get()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_get__",
+    "description": "<p>Synchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": true,
+            "field": "capability",
+            "description": "<p>String or Array of capability group names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "console.log(Actinium.Capability.get());\nconsole.log(Actinium.Capability.get('user.view'));\nconsole.log(Actinium.Capability.get(['user.view']));",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.grant(params,options)",
+    "title": "Capability.grant()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_grant__",
+    "description": "<p>Asynchronously grant a capability to a role.</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "params",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>String or Array of Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.grant(\n    { capability: 'user.view', role: ['moderator', 'contributor'] },\n    { useMasterKey: true }\n);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.granted(capability,role)",
+    "title": "Capability.granted()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_granted__",
+    "description": "<p>Synchronously returns an Array of Actinium.Role names granted the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "role",
+            "description": "<p>The role name to check.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "console.log(Actinium.Capability.granted('user.view'));\nconsole.log(Actinium.Capability.granted('user.view', 'administrator'))",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.isRegistered(capability)",
+    "title": "Capability.isRegistered()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_isRegistered__",
+    "description": "<p>Synchronously check if a capability has been registered.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name to check for.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.isRegistered('user.view');",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Array",
+    "url": "Capability.list",
+    "title": "Capability.list",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_list",
+    "description": "<p>Immutable array of registered capabilites.</p>",
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "console.log(Actinium.Capability.list);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.register(id,capability,order)",
+    "title": "Capability.register()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_register__",
+    "description": "<p>Synchronously register a new Capability object. If the capability exists this is a noop. Returns the results of <code>Capability.get()</code>.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique Capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "capability",
+            "description": "<p>Data associated with Capability object.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Number",
+            "optional": true,
+            "field": "order",
+            "defaultValue": "100",
+            "description": "<p>The index where the capability is registered. Used when applying a sort on the <code>Capability.list</code> array.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.register('my-admin-ui.view', {\n  allowed: ['moderator', 'contributor'],\n  excluded: ['banned'],\n});",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.restrict(params,options)",
+    "title": "Capability.restrict()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_restrict__",
+    "description": "<p>Asynchronously restrict a role from a capability.</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "params",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>String or Array of Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.restrict(\n    { capability: 'user.view', role: ['moderator', 'contributor'] },\n    { useMasterKey: true }\n);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.restricted(capability,role)",
+    "title": "Capability.restricted()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_restricted__",
+    "description": "<p>Synchronously returns an Array of Actinium.Role names restricted from the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "role",
+            "description": "<p>The role name to check.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "console.log(Actinium.Capability.restricted('user.view'));\nconsole.log(Actinium.Capability.restricted('user.view', 'administrator'))",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.revoke(params,options)",
+    "title": "Capability.revoke()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_revoke__",
+    "description": "<p>Asynchronously revoke a capability from a role.</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "params",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>String or Array of Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.revoke(\n    { capability: 'user.view', role: [''contributor'] },\n    { useMasterKey: true }\n);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
+    "url": "Capability.unrestrict(params,options)",
+    "title": "Capability.unrestrict()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_unrestrict__",
+    "description": "<p>Asynchronously unrestrict a role from a capability.</p>",
+    "parameter": {
+      "fields": {
+        "params": [
+          {
+            "group": "params",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The Capability group name.</p>"
+          },
+          {
+            "group": "params",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>String or Array of Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.unrestrict(\n    { capability: 'user.view', role: ['user'] },\n    { useMasterKey: true }\n);",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Function",
+    "url": "Capability.update(id,capability,order)",
+    "title": "Capability.update()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability_update__",
+    "description": "<p>Synchronously update a new Capability object. Returns the results of <code>Capability.get()</code>.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>The unique Capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": true,
+            "field": "capability",
+            "description": "<p>Data associated with Capability object.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Capability.update('my-admin-ui.view', {\n  allowed: ['moderator', 'contributor'],\n  excluded: ['banned'],\n});",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
     "type": "Cloud",
     "url": "acl-targets",
     "title": "acl-targets",
@@ -9043,6 +9306,15 @@ define({ "api": [
     "description": "<p>Check groups of capabilities in bulk.</p>",
     "parameter": {
       "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "checks",
+            "description": "<p>key pairs checks to perform for current session indexed by a label.</p>"
+          }
+        ],
         "check": [
           {
             "group": "check",
@@ -9150,48 +9422,6 @@ define({ "api": [
     "version": "3.1.2",
     "group": "Cloud",
     "name": "capability_create",
-    "description": "<p>Alias for capability-edit</p>",
-    "filename": ".core/plugin/capability/capability-plugin.js",
-    "groupTitle": "Cloud"
-  },
-  {
-    "type": "Cloud",
-    "url": "capability-delete",
-    "title": "capability-delete",
-    "version": "3.1.2",
-    "group": "Cloud",
-    "name": "capability_delete",
-    "description": "<p>Delete a capability.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "group",
-            "description": "<p>capability name in object path form <code>group.action</code> (e.g. user.edit)</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage",
-        "content": "Reactium.Cloud.run('capability-delete', { capability: 'user.view'})",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/plugin/capability/capability-plugin.js",
-    "groupTitle": "Cloud"
-  },
-  {
-    "type": "Cloud",
-    "url": "capability-edit",
-    "title": "capability-edit",
-    "version": "3.1.2",
-    "group": "Cloud",
-    "name": "capability_edit",
     "description": "<p>Create new capability or edit an existing one.</p>",
     "parameter": {
       "fields": {
@@ -9216,7 +9446,38 @@ define({ "api": [
     "examples": [
       {
         "title": "Example Usage",
-        "content": "// only administrators and super-admin users can \"mail.send\"\nReactium.Cloud.run('capability-edit', 'mail.send', {\n    \"allowed\": [\n        \"administrator\",\n        \"super-admin\"\n    ],\n    \"excluded\": [\n        \"banned\"\n    ]\n})",
+        "content": "// only administrators and super-admin users can \"mail.send\"\nReactium.Cloud.run('capability-create', {\n    \"group\": \"mail.send\",\n    \"allowed\": [\n        \"administrator\",\n        \"super-admin\"\n    ],\n    \"excluded\": [\n        \"banned\"\n    ]\n})",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/plugin/capability/capability-plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
+    "type": "Cloud",
+    "url": "capability-delete",
+    "title": "capability-delete",
+    "version": "3.1.2",
+    "group": "Cloud",
+    "name": "capability_delete",
+    "description": "<p>Delete a capability.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>String or Array of capability group values.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Reactium.Cloud.run('capability-delete', { capability: ['user.view']})\nReactium.Cloud.run('capability-delete', { capability: 'user.view' });",
         "type": "json"
       }
     ],
@@ -9263,6 +9524,158 @@ define({ "api": [
       {
         "title": "List Response Example",
         "content": "[\n       \"Capability.addField\",\n       \"Capability.create\",\n       \"Capability.delete\",\n       \"Capability.retrieve\",\n       \"Capability.update\",\n       \"Media.addField\",\n       \"Media.create\",\n       \"Media.delete\",\n       \"Media.retrieve\",\n       \"Media.update\",\n       \"Plugin.addField\",\n       \"Plugin.create\",\n       \"Plugin.delete\",\n       \"Plugin.retrieve\",\n       \"Plugin.update\",\n       \"Route.addField\",\n       \"Route.create\",\n       \"Route.delete\",\n       \"Route.retrieve\",\n       \"Route.update\",\n       \"Setting.addField\",\n       \"Setting.create\",\n       \"Setting.delete\",\n       \"Setting.retrieve\",\n       \"Setting.update\",\n       \"Token.addField\",\n       \"Token.create\",\n       \"Token.delete\",\n       \"Token.retrieve\",\n       \"Token.update\",\n       \"_Role.addField\",\n       \"_Role.create\",\n       \"_Role.delete\",\n       \"_Role.retrieve\",\n       \"_Role.update\",\n       \"blueprint.retrieve\",\n       \"user.admin\",\n       \"user.ban\",\n       \"user.view\"\n   ]",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/plugin/capability/capability-plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
+    "type": "Cloud",
+    "url": "capability-grant",
+    "title": "capability-grant",
+    "version": "3.1.2",
+    "group": "Cloud",
+    "name": "capability_grant",
+    "description": "<p>Add a role(s) from the Capability object allowed list.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>The String or Array of Actinium.Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Cloud.run('capability-grant', {\n  capability: 'user.view',\n  role: ['moderator', 'contributor']\n});",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/plugin/capability/capability-plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
+    "type": "Cloud",
+    "url": "capability-restrict",
+    "title": "capability-restrict",
+    "version": "3.1.2",
+    "group": "Cloud",
+    "name": "capability_restrict",
+    "description": "<p>Add a role(s) from the Capability object excluded list.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>The String or Array of Actinium.Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Cloud.run('capability-restrict', {\n  capability: 'user.view',\n  role: ['moderator', 'contributor']\n});",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/plugin/capability/capability-plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
+    "type": "Cloud",
+    "url": "capability-revoke",
+    "title": "capability-revoke",
+    "version": "3.1.2",
+    "group": "Cloud",
+    "name": "capability_revoke",
+    "description": "<p>Remove a role(s) from the Capability object allowed list.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>The String or Array of Actinium.Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Cloud.run('capability-revoke', {\n  capability: 'user.view',\n  role: ['moderator', 'contributor']\n});",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/plugin/capability/capability-plugin.js",
+    "groupTitle": "Cloud"
+  },
+  {
+    "type": "Cloud",
+    "url": "capability-unrestrict",
+    "title": "capability-unrestrict",
+    "version": "3.1.2",
+    "group": "Cloud",
+    "name": "capability_unrestrict",
+    "description": "<p>Remove a role(s) from the Capability object excluded list.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "capability",
+            "description": "<p>The capability group name.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": false,
+            "field": "role",
+            "description": "<p>The String or Array of Actinium.Role names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "Actinium.Cloud.run('capability-unrestrict', {\n  capability: 'user.view',\n  role: ['moderator', 'contributor']\n});",
         "type": "json"
       }
     ],

@@ -36,7 +36,7 @@ Roles.get = search => {
 Roles.load = (options = { useMasterKey }) => {
     return ActionSequence({
         actions: {
-            fetch: () => Parse.Cloud.run('roles', {}, { useMasterKey }),
+            fetch: () => Actinium.Cloud.run('roles', {}, { useMasterKey }),
             hook: () => Actinium.Hook.run('roles', Roles.get()),
         },
     });
@@ -67,10 +67,10 @@ Roles.User.get = search => {
 };
 
 Roles.User.add = (user, role = 'user', options = { useMasterKey }) =>
-    Parse.Cloud.run('role-user-add', { user, role }, options);
+    Actinium.Cloud.run('role-user-add', { user, role }, options);
 
 Roles.User.remove = (user, role = 'user', options = { useMasterKey }) =>
-    Parse.Cloud.run('role-user-remove', { user, role }, options);
+    Actinium.Cloud.run('role-user-remove', { user, role }, options);
 
 Roles.User.is = (user, role) => {
     // All users are granted implicit anonymous role
@@ -105,7 +105,7 @@ Roles.create = (roleObj = {}, options = { useMasterKey }) => {
     return ActionSequence({
         actions: {
             create: () =>
-                Parse.Cloud.run('role-create', { roleArray }, options),
+                Actinium.Cloud.run('role-create', { roleArray }, options),
             hook: () => Actinium.Hook.run('role-created', role, Roles.get()),
         },
     });
@@ -114,7 +114,7 @@ Roles.create = (roleObj = {}, options = { useMasterKey }) => {
 Roles.remove = (role, options = { useMasterKey }) =>
     ActionSequence({
         actions: {
-            remove: () => Parse.Cloud.run('role-remove', { role }, options),
+            remove: () => Actinium.Cloud.run('role-remove', { role }, options),
             hook: () => Actinium.Hook.run('role-removed', role, Roles.get()),
         },
     });

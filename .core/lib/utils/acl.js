@@ -60,16 +60,19 @@ const AclTargets = async req => {
         });
 
     const filterRoles = (roles, search) =>
-        roles.filter(role => {
-            const name = String(op.get(role, 'name')).toLowerCase();
-            const label = String(op.get(role, 'label')).toLowerCase();
+        _.chain([roles])
+            .flatten()
+            .compact()
+            .filter(role => {
+                const name = String(op.get(role, 'name')).toLowerCase();
+                const label = String(op.get(role, 'label')).toLowerCase();
 
-            return Boolean(
-                !search ||
-                    String(name).startsWith(search) ||
-                    String(label).startsWith(search),
-            );
-        });
+                return Boolean(
+                    !search ||
+                        String(name).startsWith(search) ||
+                        String(label).startsWith(search),
+                );
+            });
 
     // Use cached
     const cached = Actinium.Cache.get('acl-targets');
@@ -173,7 +176,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     let readRoles = [];
     if (readCap) {
         readRoles = _.compact(
-            Actinium.Capability.roles(readCap).map(name =>
+            Actinium.Capability.granted(readCap).map(name =>
                 op.get(allRoles, name),
             ),
         );
@@ -182,7 +185,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     let writeRoles = [];
     if (writeCap) {
         writeRoles = _.compact(
-            Actinium.Capability.roles(writeCap).map(name =>
+            Actinium.Capability.granted(writeCap).map(name =>
                 op.get(allRoles, name),
             ),
         );

@@ -1975,8 +1975,8 @@ Content.trash = async (params, options) => {
  * @apiDescription Return subset of all properties from master copy of content that *must* come from the master copy (not revisions). This helps with certainty about
  which properties are comeing from the collection, and which may be coming from revisions.
  * @apiParam {Object} content Actinium.Object or serialized object from recently fetched content.
- * @apiParams {Object} schema Content type current field schemas.
- * @apiParams {Object} type Type object of evaluated content.
+ * @apiParam {Object} schema Content type current field schemas.
+ * @apiParam {Object} type Type object of evaluated content.
  * @apiName Content.masterCopyProps
  * @apiGroup Actinium
  */

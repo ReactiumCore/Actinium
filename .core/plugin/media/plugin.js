@@ -53,10 +53,19 @@ const registerBlueprints = (reg = true) => ({ ID }) => {
 // Start: Blueprints
 Actinium.Hook.register('start', registerBlueprints(true));
 
-// Start: Capabilities
-Actinium.Hook.register('start', () => {
+// Capabilities
+Actinium.Hook.register('before-capability-load', () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    Actinium.Capability.register('media-ui.view');
+
+    const caps = [
+        'media-ui.view',
+        'media.addfield',
+        'media.create',
+        'media.update',
+        'media.update',
+        'media.retrieve',
+    ];
+    caps.forEach(cap => Actinium.Capability.register(cap));
 });
 
 // Activate: Blueprints
