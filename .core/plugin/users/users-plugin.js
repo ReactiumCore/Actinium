@@ -225,13 +225,6 @@ Actinium.Hook.register('before-capability-load', () => {
     Actinium.Capability.register('user-ui.view');
 });
 
-// Update routes on plugin activation
-Actinium.Hook.register('activate', async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-    Actinium.Capability.register('user-ui.view');
-    await saveRoutes();
-});
-
 // Update routes on plugin update
 Actinium.Hook.register('update', async ({ ID }) => {
     if (ID === PLUGIN.ID) {

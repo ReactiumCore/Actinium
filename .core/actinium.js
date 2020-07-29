@@ -28,7 +28,7 @@ Actinium.Plugin = require('./lib/plugable');
 Actinium.Warnings = require('./lib/warnings');
 Actinium.Middleware = require('./lib/middleware');
 Actinium.Pulse = require('./lib/pulse');
-Actinium.Capability = require('./lib/v2-capability');
+Actinium.Capability = require('./lib/capability');
 Actinium.Collection = require('./lib/collection');
 Actinium.Utils = require('./lib/utils');
 
@@ -128,7 +128,7 @@ Actinium.start = options =>
                     await Actinium.Roles.load();
 
                     // Load Capability
-                    await Actinium.Capability.load();
+                    await Actinium.Capability.load(false, false, 'boot');
 
                     // Load Collection Schemas
                     await Actinium.Collection.load();
