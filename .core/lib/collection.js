@@ -35,7 +35,8 @@ Collection.register = (
     collectionPerms[collection] = publicSetting;
 
     // Update Collection classLevelPermissions on capability updates
-    Actinium.Hook.register('capability-change', async capability => {
+    Actinium.Hook.register('capability-change', async req => {
+        const capability = req.object.get('group');
         if (
             Actinium.Collection.loaded &&
             [
