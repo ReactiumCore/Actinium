@@ -613,7 +613,7 @@ class Capability {
         return this.get(group);
     }
 
-    _mapCapabilityRelations = async cap => {
+    async _mapCapabilityRelations(cap) {
         if (!cap) return [(allowed = []), (excluded = [])];
         try {
             if (!this.roleList) this.roleList = await getRoles();
@@ -633,7 +633,7 @@ class Capability {
         } catch (error) {
             console.log({ error });
         }
-    };
+    }
 
     /**
      * @api {Async} Capability.grant(params,options) Capability.grant()

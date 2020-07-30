@@ -289,6 +289,8 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
     }
 
     await Actinium.Hook.run('capability-saved', req, item);
+
+    console.log(Actinium.Capability.get());
 });
 
 Actinium.Cloud.afterDelete(COLLECTION, async req => {
