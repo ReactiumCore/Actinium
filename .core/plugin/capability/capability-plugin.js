@@ -68,13 +68,13 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
-Actinium.Collection.register(COLLECTION, {
-    create: false,
-    retrieve: true,
-    update: false,
-    delete: false,
-    addField: false,
-});
+const PLUGIN_SCHEMA = require('./schema');
+Actinium.Collection.register(
+    COLLECTION,
+    PLUGIN_SCHEMA.actions,
+    PLUGIN_SCHEMA.schema,
+    PLUGIN_SCHEMA.indexes,
+);
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-bulk-check', async req => {
     const bulkChecks = Object.entries(op.get(req.params, 'checks', {}));

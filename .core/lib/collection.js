@@ -89,7 +89,8 @@ Collection.load = async (collection = false) => {
         BOOT(chalk.cyan('Loading collection schemas and CLPs...'));
     }
 
-    const actions = entries.reduce((actions, [collection, publicSetting]) => {
+    const actions = {};
+    for (const [collection, publicSetting] of entries) {
         if (!Collection.loaded && loading) {
             BOOT(
                 chalk.cyan('  Collection'),
@@ -98,12 +99,13 @@ Collection.load = async (collection = false) => {
             );
         }
 
-        actions[`${collection}Hook`] = () =>
+        actions[`${collection}Hook`] = async () =>
             Actinium.Hook.run(
                 'collection-before-permissions',
                 collection,
                 publicSetting,
             );
+
         actions[collection] = async () => {
             const ParseSchema = new Parse.Schema(collection);
             const schemaController = Parse.CoreManager.getSchemaController();
@@ -122,80 +124,94 @@ Collection.load = async (collection = false) => {
             // set to false. Quickest way around this is stringify and parse
             const schema = JSON.parse(JSON.stringify(loadedSchema));
 
-            const {
-                createPermission,
-                retrievePermission,
-                updatePermission,
-                deletePermission,
-                addFieldPermission,
-            } = ['create', 'retrieve', 'update', 'delete', 'addField'].reduce(
-                (classLevelPermissions, capability) => {
-                    const permLabel = `${capability}Permission`;
-                    classLevelPermissions[permLabel] = op.get(
-                        publicSetting,
-                        capability,
-                        false,
-                    )
+            const classLevelPermissions = {};
+            for (const capability of [
+                'create',
+                'retrieve',
+                'update',
+                'delete',
+                'addField',
+            ]) {
+                const capabilityName = `${collection}.${capability}`.toLowerCase();
+
+                classLevelPermissions[capabilityName] = {};
+
+                const currentCap = await Actinium.Capability.getAsync(
+                    capabilityName,
+                );
+
+                const allowed = op.get(currentCap, 'allowed', []);
+
+                allowed.forEach(role =>
+                    op.set(
+                        classLevelPermissions,
+                        [capabilityName, `role:${role}`],
+                        true,
+                    ),
+                );
+
+                classLevelPermissions[capabilityName] =
+                    op.get(publicSetting, capability, false) === true ||
+                    allowed.includes('anonymous')
                         ? { '*': true }
-                        : {};
+                        : classLevelPermissions[capabilityName];
 
-                    Actinium.Capability.granted(
-                        `${collection}.${capability}`,
-                    ).forEach(role =>
-                        op.set(
-                            classLevelPermissions,
-                            [permLabel, `role:${role}`],
-                            true,
-                        ),
-                    );
-
-                    op.set(
-                        classLevelPermissions,
-                        [permLabel, 'role:administrator'],
-                        true,
-                    );
-                    op.set(
-                        classLevelPermissions,
-                        [permLabel, 'role:super-admin'],
-                        true,
-                    );
-
-                    return classLevelPermissions;
-                },
-                {},
-            );
+                op.set(
+                    classLevelPermissions,
+                    [capabilityName, 'role:administrator'],
+                    true,
+                );
+                op.set(
+                    classLevelPermissions,
+                    [capabilityName, 'role:super-admin'],
+                    true,
+                );
+            }
 
             try {
-                op.set(
-                    schema,
-                    'classLevelPermissions.find',
-                    retrievePermission,
-                );
-                op.set(
-                    schema,
-                    'classLevelPermissions.count',
-                    retrievePermission,
-                );
-                op.set(schema, 'classLevelPermissions.get', retrievePermission);
-                op.set(
-                    schema,
-                    'classLevelPermissions.create',
-                    createPermission,
-                );
-                op.set(
-                    schema,
-                    'classLevelPermissions.update',
-                    updatePermission,
-                );
-                op.set(
-                    schema,
-                    'classLevelPermissions.delete',
-                    deletePermission,
-                );
-                op.set(
-                    schema,
-                    'classLevelPermissions.addField',
-                    addFieldPermission,
+                ['create', 'retrieve', 'update', 'delete', 'addField'].forEach(
+                    capability => {
+                        const capabilityName = `${collection}.${capability}`.toLowerCase();
+                        let permissions = [];
+                        switch (capability) {
+                            case 'create': {
+                                permissions = ['create'];
+                                break;
+                            }
+
+                            case 'retrieve': {
+                                permissions = ['find', 'count', 'get'];
+                                break;
+                            }
+
+                            case 'update': {
+                                permissions = ['update'];
+                                break;
+                            }
+
+                            case 'delete': {
+                                permissions = ['delete'];
+                                break;
+                            }
+
+                            case 'addField': {
+                                permissions = ['addField'];
+                                break;
+                            }
+                        }
+
+                        permissions.forEach(permission => {
+                            op.set(
+                                schema,
+                                `classLevelPermissions.${permission}`,
+                                op.get(
+                                    classLevelPermissions,
+                                    [capabilityName],
+                                    {},
+                                ),
+                            );
+                        });
+                    },
                 );
             } catch (error) {
                 ERROR(
@@ -206,7 +222,7 @@ Collection.load = async (collection = false) => {
                 ERROR(error);
             }
 
-            const { className, classLevelPermissions } = schema;
+            const { className } = schema;
 
             const fields = op.has(collectionSchema, collection)
                 ? collectionSchema[collection]
@@ -249,11 +265,11 @@ Collection.load = async (collection = false) => {
                     collection,
                     {
                         className: collection,
-                        classLevelPermissions,
+                        classLevelPermissions: schema.classLevelPermissions,
                         fields,
                         indexes: newIndexes,
                     },
-                    { useMasterKey: true },
+                    Actinium.Utils.MasterOptions(),
                 );
             }
 
@@ -262,16 +278,14 @@ Collection.load = async (collection = false) => {
                 collection,
                 {
                     className: collection,
-                    classLevelPermissions,
+                    classLevelPermissions: schema.classLevelPermissions,
                     fields,
                     indexes: newIndexes,
                 },
-                { useMasterKey: true },
+                Actinium.Utils.MasterOptions(),
             );
         };
-
-        return actions;
-    }, {});
+    }
 
     try {
         const results = await ActionSequence({

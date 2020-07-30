@@ -132,16 +132,7 @@ const updateCapabilityRoles = async (
     cap = await cap.save(null, options);
 
     // get the relations
-    const [allowed, excluded] = await Promise.all([
-        getRelation(cap, 'allowed', {
-            limit: roleList.length,
-            outputType: 'LIST',
-        }),
-        getRelation(cap, 'excluded', {
-            limit: roleList.length,
-            outputType: 'LIST',
-        }),
-    ]);
+    const [allowed, excluded] = await this._mapCapabilityRelations(cap);
 
     // output new object
     return normalizeCapability({
@@ -284,7 +275,11 @@ const Role = Capability => ({
 class Capability {
     constructor() {
         this.roleList = [];
-        this.Registry = new Registry('capability', 'group');
+        this.Registry = new Registry(
+            'capability',
+            'group',
+            Registry.MODES.CLEAN,
+        );
         this.Role = Role(this);
         this.User = User(this);
     }
@@ -350,8 +345,10 @@ class Capability {
         let results =
             capabilities.length > 0
                 ? _.compact(
-                      capabilities.map(group =>
-                          _.findWhere(this.list, { group }),
+                      capabilities.map(
+                          group =>
+                              _.findWhere(this.list, { group }) ||
+                              normalizeCapability({ group }),
                       ),
                   )
                 : this.list;
@@ -556,16 +553,7 @@ class Capability {
         for (const cap of results) {
             const group = cap.get('group');
 
-            const [allowed, excluded] = await Promise.all([
-                getRelation(cap, 'allowed', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-                getRelation(cap, 'excluded', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-            ]);
+            const [allowed, excluded] = await this._mapCapabilityRelations(cap);
 
             // prettier-ignore
             output.push(normalizeCapability({
@@ -593,10 +581,59 @@ class Capability {
         return capabilites;
     }
      */
-    async getAsync(capability) {
-        await this.load(true, true, 'getAsync()');
-        return this.get(capability);
+    async getAsync(group) {
+        const query = new Actinium.Query(COLLECTION);
+        query.equalTo('group', group);
+        const cap = await query.first(Actinium.Utils.MasterOptions());
+        if (cap) {
+            // const [allowed, excluded] = this._mapCapabilityRelations;
+            // For some reason there is a type error if the above is used
+            if (!this.roleList) this.roleList = await getRoles();
+            const [allowed, excluded] = await Promise.all([
+                getRelation(cap, 'allowed', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+                getRelation(cap, 'excluded', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+            ]);
+
+            const item = normalizeCapability({
+                group,
+                objectId: cap.id,
+                allowed,
+                excluded,
+            });
+
+            this.register(item.group, item);
+        }
+
+        return this.get(group);
     }
+
+    _mapCapabilityRelations = async cap => {
+        if (!cap) return [(allowed = []), (excluded = [])];
+        try {
+            if (!this.roleList) this.roleList = await getRoles();
+
+            const [allowed, excluded] = await Promise.all([
+                getRelation(cap, 'allowed', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+                getRelation(cap, 'excluded', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+            ]);
+
+            return [allowed, excluded];
+        } catch (error) {
+            console.log({ error });
+        }
+    };
 
     /**
      * @api {Async} Capability.grant(params,options) Capability.grant()
