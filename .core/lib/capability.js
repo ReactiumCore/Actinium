@@ -71,78 +71,6 @@ const normalizeCapability = (capabilityObj = {}) => {
     };
 };
 
-const updateCapabilityRoles = async (
-    params = {},
-    options = { useMasterKey: true },
-) => {
-    let { action, capability, field, role, roleList } = params;
-
-    if (!options) return new Error('Permission denied 2');
-
-    let err;
-    const requiredParams = ['action', 'capability', 'field', 'role'];
-    requiredParams.forEach(key => {
-        if (!op.get(params, key)) {
-            err = new Error(`${key} is a required parameter`);
-        }
-    });
-    if (err) return err;
-
-    action = String(action).toLowerCase();
-
-    // Get the Capability Object
-    let cap = await new Actinium.Query(COLLECTION)
-        .equalTo('group', capability)
-        .first(options);
-
-    // Create if no cap found
-    if (!cap) {
-        cap = await new Actinium.Object(COLLECTION).set('group', capability);
-    }
-
-    // Get relation
-    const rel = cap.relation(field);
-
-    // Normalize the role parameter into an array adding or removing iconic roles.
-    let roles =
-        field === 'allowed'
-            ? _.chain([role, 'super-admin', 'administrator'])
-                  .flatten()
-                  .uniq()
-                  .value()
-            : _.chain([role])
-                  .without('super-admin')
-                  .flatten()
-                  .uniq()
-                  .value();
-
-    // Add the roles to the relation
-    roles.forEach(name => {
-        let role = _.findWhere(roleList, { name });
-
-        if (!role) return;
-
-        role = new Actinium.Role().set('id', role.objectId);
-
-        if (action === 'add') rel.add(role);
-        if (action === 'remove') rel.remove(role);
-    });
-
-    // Save the capability
-    cap = await cap.save(null, options);
-
-    // get the relations
-    const [allowed, excluded] = await this._mapCapabilityRelations(cap);
-
-    // output new object
-    return normalizeCapability({
-        group: capability,
-        objectId: cap.id,
-        allowed,
-        excluded,
-    });
-};
-
 const User = Capability => ({
     /**
      * @api {Function} Capability.User.can(capability,user) Capability.User.can()
@@ -509,6 +437,80 @@ class Capability {
         return this.register(id, capability);
     }
 
+    async _updateCapabilityRoles(
+        params = {},
+        options = { useMasterKey: true },
+    ) {
+        let { action, capability, field, role, roleList } = params;
+
+        if (!options) return new Error('Permission denied 2');
+
+        let err;
+        const requiredParams = ['action', 'capability', 'field', 'role'];
+        requiredParams.forEach(key => {
+            if (!op.get(params, key)) {
+                err = new Error(`${key} is a required parameter`);
+            }
+        });
+        if (err) return err;
+
+        action = String(action).toLowerCase();
+
+        // Get the Capability Object
+        let cap = await new Actinium.Query(COLLECTION)
+            .equalTo('group', capability)
+            .first(options);
+
+        // Create if no cap found
+        if (!cap) {
+            cap = await new Actinium.Object(COLLECTION).set(
+                'group',
+                capability,
+            );
+        }
+
+        // Get relation
+        const rel = cap.relation(field);
+
+        // Normalize the role parameter into an array adding or removing iconic roles.
+        let roles =
+            field === 'allowed'
+                ? _.chain([role, 'super-admin', 'administrator'])
+                      .flatten()
+                      .uniq()
+                      .value()
+                : _.chain([role])
+                      .without('super-admin')
+                      .flatten()
+                      .uniq()
+                      .value();
+
+        // Add the roles to the relation
+        roles.forEach(name => {
+            let role = _.findWhere(roleList, { name });
+
+            if (!role) return;
+
+            role = new Actinium.Role().set('id', role.objectId);
+
+            if (action === 'add') rel.add(role);
+            if (action === 'remove') rel.remove(role);
+        });
+
+        // Save the capability
+        cap = await cap.save(null, options);
+
+        // get the relations
+        const [allowed, excluded] = await this._mapCapabilityRelations(cap);
+
+        // output new object
+        return normalizeCapability({
+            group: capability,
+            objectId: cap.id,
+            allowed,
+            excluded,
+        });
+    }
     async _ensureContentTypeCapabilities() {
         const caps = [
             'create',
@@ -653,7 +655,7 @@ class Capability {
         op.set(params, 'action', 'add');
         op.set(params, 'field', 'allowed');
         op.set(params, 'roleList', this.roleList);
-        const cap = await updateCapabilityRoles(params, options);
+        const cap = await this._updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
         return _.indexBy(this.get(), 'group');
     }
@@ -787,7 +789,7 @@ class Capability {
         op.set(params, 'action', 'add');
         op.set(params, 'field', 'excluded');
         op.set(params, 'roleList', this.roleList);
-        const cap = await updateCapabilityRoles(params, options);
+        const cap = await this._updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
         return _.indexBy(this.get(), 'group');
     }
@@ -810,7 +812,7 @@ class Capability {
         op.set(params, 'action', 'remove');
         op.set(params, 'field', 'allowed');
         op.set(params, 'roleList', this.roleList);
-        const cap = await updateCapabilityRoles(params, options);
+        const cap = await this._updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
         return _.indexBy(this.get(), 'group');
     }
@@ -833,7 +835,7 @@ class Capability {
         op.set(params, 'action', 'remove');
         op.set(params, 'field', 'excluded');
         op.set(params, 'roleList', this.roleList);
-        const cap = await updateCapabilityRoles(params, options);
+        const cap = await this._updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
         return _.indexBy(this.get(), 'group');
     }
