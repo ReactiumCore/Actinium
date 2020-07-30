@@ -258,8 +258,10 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
     op.set(item, 'allowed', relations.allowed.value);
     op.set(item, 'excluded', relations.excluded.value);
 
+    let diff = {};
+
     if (req.original) {
-        const diff = Object.keys(req.object.toJSON()).reduce((obj, key) => {
+        diff = Object.keys(req.object.toJSON()).reduce((obj, key) => {
             const origin = !relKeys.includes(key)
                 ? req.original.get(key)
                 : op.get(relations, [key, 'origin']);
@@ -276,10 +278,6 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
             }
             return obj;
         }, {});
-
-        if (Object.keys(diff).length > 0) {
-            await Actinium.Hook.run('capability-change', req, item, diff);
-        }
     }
 
     if (req.object.isNew()) {
@@ -288,9 +286,11 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
         Actinium.Capability.update(group, item);
     }
 
-    await Actinium.Hook.run('capability-saved', req, item);
+    if (Object.keys(diff).length > 0) {
+        await Actinium.Hook.run('capability-change', req, item, diff);
+    }
 
-    console.log(Actinium.Capability.get());
+    await Actinium.Hook.run('capability-saved', req, item);
 });
 
 Actinium.Cloud.afterDelete(COLLECTION, async req => {
