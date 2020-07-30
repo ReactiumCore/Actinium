@@ -73,6 +73,12 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
+Actinium.Capability.register(
+    'settings-ui.view',
+    {},
+    Actinium.Enums.priority.highest,
+);
+
 // All operations on settings are privileged
 Actinium.Collection.register(COLLECTION, {
     create: false,

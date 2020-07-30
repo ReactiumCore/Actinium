@@ -37,6 +37,11 @@ const registerBlueprints = (reg = true) => ({ ID }) => {
         PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
     else PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.unregister(bp.ID));
 };
+Actinium.Capability.register(
+    'content-ui.view',
+    {},
+    Actinium.Enums.priority.highest,
+);
 
 // Start: Blueprints
 Actinium.Hook.register('start', registerBlueprints(true));

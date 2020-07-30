@@ -98,6 +98,18 @@ Plugable.capabilities = [
         capability: 'Plugin.addField',
         roles: {},
     },
+    {
+        capability: 'plugins-ui.view',
+        roles: {
+            allowed: ['super-admin', 'administrator'],
+        },
+    },
+    {
+        capability: 'plugins.activate',
+        roles: {
+            allowed: ['super-admin', 'administrator'],
+        },
+    },
 ];
 
 Plugable.exports = key => op.get(exp, key);

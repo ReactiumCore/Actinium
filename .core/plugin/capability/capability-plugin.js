@@ -129,8 +129,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get-user', async req => {
-    if (!req.user) throw 'Permission denied';
-    const caps = await Actinium.Capability.User.get(req.user.id);
+    let user = op.get(req.params, 'user') || op.get(req.user, 'id');
+    if (!user) throw 'user is a required parameter';
+    const caps = await Actinium.Capability.User.get(user);
     return _.pluck(caps, 'group');
 });
 

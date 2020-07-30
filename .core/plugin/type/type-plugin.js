@@ -138,6 +138,12 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
+Actinium.Capability.register(
+    'type-ui.view',
+    {},
+    Actinium.Enums.priority.highest,
+);
+
 Actinium.Collection.register(
     COLLECTION,
     {

@@ -188,23 +188,28 @@ const User = Capability => ({
      */
     get: user => {
         const userRoles = Capability.User.roles(user);
-        const caps = Capability.get().filter(cap => {
-            if (userRoles.includes('super-admin')) {
-                return true;
-            }
+        const caps = _.sortBy(
+            Capability.get().filter(cap => {
+                // Super Admin bi-pass.
+                if (userRoles.includes('super-admin')) {
+                    return true;
+                }
 
-            const granted = Capability.granted(cap.group);
-            const restricted = Capability.restricted(cap.group);
+                // Administrator bi-pass
+                if (
+                    userRoles.includes('administrator') &&
+                    !Capability.restricted(cap.group, 'administrator')
+                ) {
+                    return true;
+                }
 
-            if (
-                userRoles.includes('administrator') &&
-                !restricted.includes('administrator')
-            ) {
-                return true;
-            }
+                // Intersectional match
+                const granted = Capability.granted(cap.group);
+                return _.intersection(userRoles, granted).length > 0;
+            }),
+            'group',
+        );
 
-            return _.intersection(userRoles, granted).length > 0;
-        });
         return caps;
     },
 
@@ -508,7 +513,17 @@ class Capability {
     }
 
     async _ensureContentTypeCapabilities() {
-        const caps = ['create', 'retrieve', 'update', 'delete', 'addField'];
+        const caps = [
+            'create',
+            'retrieve',
+            'retrieveany',
+            'update',
+            'updateany',
+            'delete',
+            'deleteany',
+            'addField',
+        ];
+
         const { types } = await Actinium.Type.list({}, { useMasterKey: true });
         types.forEach(({ type }) => {
             const group = `content.${String(type).toLowerCase()}`;
