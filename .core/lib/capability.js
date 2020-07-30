@@ -655,7 +655,7 @@ class Capability {
         op.set(params, 'roleList', this.roleList);
         const cap = await updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
-        return _.indexBy(this.list, 'group');
+        return _.indexBy(this.get(), 'group');
     }
 
     async load(refresh = false, flush = false, caller) {
@@ -789,7 +789,7 @@ class Capability {
         op.set(params, 'roleList', this.roleList);
         const cap = await updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
-        return _.indexBy(this.list, 'group');
+        return _.indexBy(this.get(), 'group');
     }
 
     /**
@@ -812,7 +812,7 @@ class Capability {
         op.set(params, 'roleList', this.roleList);
         const cap = await updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
-        return _.indexBy(this.list, 'group');
+        return _.indexBy(this.get(), 'group');
     }
 
     /**
@@ -835,7 +835,7 @@ class Capability {
         op.set(params, 'roleList', this.roleList);
         const cap = await updateCapabilityRoles(params, options);
         if (_.isError(cap)) throw cap;
-        return _.indexBy(this.list, 'group');
+        return _.indexBy(this.get(), 'group');
     }
 }
 
