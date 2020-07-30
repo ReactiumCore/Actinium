@@ -186,7 +186,27 @@ const User = Capability => ({
      * @apiExample Example Usage
     Actinium.Capability.User.get(req.user);
      */
-    get: user => _.intersection(Capability.User.roles(user), Capability.get()),
+    get: user => {
+        const userRoles = Capability.User.roles(user);
+        const caps = Capability.get().filter(cap => {
+            if (userRoles.includes('super-admin')) {
+                return true;
+            }
+
+            const granted = Capability.granted(cap.group);
+            const restricted = Capability.restricted(cap.group);
+
+            if (
+                userRoles.includes('administrator') &&
+                !restricted.includes('administrator')
+            ) {
+                return true;
+            }
+
+            return _.intersection(userRoles, granted).length > 0;
+        });
+        return caps;
+    },
 
     roles: user => {
         // Get the user ID

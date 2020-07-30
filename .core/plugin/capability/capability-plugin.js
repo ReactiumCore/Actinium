@@ -100,32 +100,15 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-bulk-check', async req => {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-check', async req => {
-    let caps =
-        op.has(req, 'params.capability') &&
-        typeof req.params.capability === 'string'
-            ? req.params.capability
-            : op.has(req, 'params.capabilities') &&
-              Array.isArray(req.params.capabilities)
-            ? req.params.capabilities
-            : [];
+    const strict = !!op.get(req.params, 'strict', true);
+    const caps = _.chain([op.get(req.params, 'capabilities')])
+        .flatten()
+        .uniq()
+        .compact()
+        .value()
+        .map(c => String(c).toLowerCase());
 
-    if (typeof caps === 'string') {
-        caps = [caps];
-    }
-
-    caps = caps
-        .filter(cap => typeof cap === 'string')
-        .map(cap => String(cap).toLowerCase());
-    for (let cap of caps) {
-        if (cap.length < 4) {
-            throw 'capability must be at least 4 characters.';
-        }
-    }
-
-    const strict = !!op.get(req, 'params.strict', true);
-    if (caps.length < 1) {
-        throw 'One or more capabilities required.';
-    }
+    if (caps.length < 1) throw 'One or more capabilities required.';
 
     return CloudHasCapabilities(req, caps, strict);
 });
@@ -143,6 +126,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
     const result = await Actinium.Capability.delete(capability);
     if (_.isError(result)) throw result;
     return result;
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'capability-get-user', async req => {
+    if (!req.user) throw 'Permission denied';
+    const caps = await Actinium.Capability.User.get(req.user.id);
+    return _.pluck(caps, 'group');
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {

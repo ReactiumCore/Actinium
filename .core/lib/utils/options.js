@@ -114,7 +114,7 @@ const CloudHasCapabilities = (req, capability, strict = true) => {
 
     if (master) return true;
 
-    const capabilities = Array.isArray(capability) ? capability : [capability];
+    const capabilities = _.flatten([capability]);
 
     // Check against existing capabilities
     const permitted = strict
