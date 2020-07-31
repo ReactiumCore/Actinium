@@ -433,6 +433,51 @@ class Capability {
         return this.register(id, capability);
     }
 
+    async _ensureContentTypeCapabilities() {
+        const caps = [
+            'create',
+            'retrieve',
+            'retrieveany',
+            'update',
+            'updateany',
+            'delete',
+            'deleteany',
+            'addField',
+        ];
+
+        const { types } = await Actinium.Type.list({}, { useMasterKey: true });
+        types.forEach(({ type }) => {
+            const group = `content.${String(type).toLowerCase()}`;
+            const config = normalizeCapability({ group });
+            caps.forEach(cap => {
+                if (this.get(group)) return;
+                this.register(`${group}.${cap}`, config);
+            });
+        });
+    }
+
+    async _mapCapabilityRelations(cap) {
+        if (!cap) return [(allowed = []), (excluded = [])];
+        try {
+            if (!this.roleList) this.roleList = await getRoles();
+
+            const [allowed, excluded] = await Promise.all([
+                getRelation(cap, 'allowed', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+                getRelation(cap, 'excluded', {
+                    limit: this.roleList.length,
+                    outputType: 'LIST',
+                }),
+            ]);
+
+            return [allowed, excluded];
+        } catch (error) {
+            console.log({ error });
+        }
+    }
+
     async _updateCapabilityRoles(
         params = {},
         options = { useMasterKey: true },
@@ -505,28 +550,6 @@ class Capability {
             objectId: cap.id,
             allowed,
             excluded,
-        });
-    }
-    async _ensureContentTypeCapabilities() {
-        const caps = [
-            'create',
-            'retrieve',
-            'retrieveany',
-            'update',
-            'updateany',
-            'delete',
-            'deleteany',
-            'addField',
-        ];
-
-        const { types } = await Actinium.Type.list({}, { useMasterKey: true });
-        types.forEach(({ type }) => {
-            const group = `content.${String(type).toLowerCase()}`;
-            const config = normalizeCapability({ group });
-            caps.forEach(cap => {
-                if (this.get(group)) return;
-                this.register(`${group}.${cap}`, config);
-            });
         });
     }
 
@@ -615,51 +638,6 @@ class Capability {
         return this.get(group);
     }
 
-    async _mapCapabilityRelations(cap) {
-        if (!cap) return [(allowed = []), (excluded = [])];
-        try {
-            if (!this.roleList) this.roleList = await getRoles();
-
-            const [allowed, excluded] = await Promise.all([
-                getRelation(cap, 'allowed', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-                getRelation(cap, 'excluded', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-            ]);
-
-            return [allowed, excluded];
-        } catch (error) {
-            console.log({ error });
-        }
-    }
-
-    /**
-     * @api {Async} Capability.grant(params,options) Capability.grant()
-     * @apiVersion 3.1.2
-     * @apiGroup Capability
-     * @apiName Capability.grant()
-     * @apiDescription Asynchronously grant a capability to a role.
-     * @apiParam (params) {String} capability The Capability group name.
-     * @apiParam (params) {Mixed} role String or Array of Role names.
-     * @apiExample Example Usage
-    Actinium.Capability.grant(
-        { capability: 'user.view', role: ['moderator', 'contributor'] },
-        { useMasterKey: true }
-    );
-     */
-    async grant(params = {}, options) {
-        op.set(params, 'action', 'add');
-        op.set(params, 'field', 'allowed');
-        op.set(params, 'roleList', this.roleList);
-        const cap = await this._updateCapabilityRoles(params, options);
-        if (_.isError(cap)) throw cap;
-        return _.indexBy(this.get(), 'group');
-    }
-
     async load(refresh = false, flush = false, caller) {
         // Return cached registry list
         const loaded = Actinium.Cache.get('capability.loaded');
@@ -687,7 +665,7 @@ class Capability {
 
         // Add to registry
         capabilities.forEach(cap => {
-            this.register(cap.group, cap);
+            this.update(cap.group, cap);
         });
     }
 
@@ -763,9 +741,85 @@ class Capability {
         }
 
         Actinium.Cache.del('capability.propagating');
-        Actinium.Cache.set('capability.propagated', Date.now(), 500, () =>
+        Actinium.Cache.set('capability_propagated', Date.now(), 500, () =>
             this.propagate(),
         );
+    }
+
+    /**
+     * @api {Async} Capability.grant(params,options) Capability.grant()
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.grant()
+     * @apiDescription Asynchronously grant a capability to a role.
+     * @apiParam (params) {String} capability The Capability group name.
+     * @apiParam (params) {Mixed} role String or Array of Role names.
+     * @apiExample Example Usage
+    Actinium.Capability.grant(
+        { capability: 'user.view', role: ['moderator', 'contributor'] },
+        { useMasterKey: true }
+    );
+     */
+    async grant(params = {}, options) {
+        const doUpdate = async () => {
+            op.set(params, 'action', 'add');
+            op.set(params, 'field', 'allowed');
+            op.set(params, 'roleList', this.roleList);
+            const cap = await this._updateCapabilityRoles(params, options);
+            if (_.isError(cap)) throw cap;
+            return _.indexBy(this.get(), 'group');
+        };
+
+        return new Promise(resolve => {
+            const ival = setInterval(() => {
+                // prettier-ignore
+                const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                if (isPropagating === true) {
+                    return;
+                } else {
+                    clearInterval(ival);
+                    doUpdate().then(resolve);
+                }
+            });
+        });
+    }
+
+    /**
+         * @api {Async} Capability.revoke(params,options) Capability.revoke()
+         * @apiVersion 3.1.2
+         * @apiGroup Capability
+         * @apiName Capability.revoke()
+         * @apiDescription Asynchronously revoke a capability from a role.
+         * @apiParam (params) {String} capability The Capability group name.
+         * @apiParam (params) {Mixed} role String or Array of Role names.
+         * @apiExample Example Usage
+        Actinium.Capability.revoke(
+            { capability: 'user.view', role: [''contributor'] },
+            { useMasterKey: true }
+        );
+         */
+    async revoke(params = {}, options) {
+        const doUpdate = async () => {
+            op.set(params, 'action', 'remove');
+            op.set(params, 'field', 'allowed');
+            op.set(params, 'roleList', this.roleList);
+            const cap = await this._updateCapabilityRoles(params, options);
+            if (_.isError(cap)) throw cap;
+            return _.indexBy(this.get(), 'group');
+        };
+
+        return new Promise(resolve => {
+            const ival = setInterval(() => {
+                // prettier-ignore
+                const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                if (isPropagating === true) {
+                    return;
+                } else {
+                    clearInterval(ival);
+                    doUpdate().then(resolve);
+                }
+            });
+        });
     }
 
     /**
@@ -783,35 +837,27 @@ class Capability {
     );
      */
     async restrict(params = {}, options) {
-        op.set(params, 'action', 'add');
-        op.set(params, 'field', 'excluded');
-        op.set(params, 'roleList', this.roleList);
-        const cap = await this._updateCapabilityRoles(params, options);
-        if (_.isError(cap)) throw cap;
-        return _.indexBy(this.get(), 'group');
-    }
+        const doUpdate = async () => {
+            op.set(params, 'action', 'add');
+            op.set(params, 'field', 'excluded');
+            op.set(params, 'roleList', this.roleList);
+            const cap = await this._updateCapabilityRoles(params, options);
+            if (_.isError(cap)) throw cap;
+            return _.indexBy(this.get(), 'group');
+        };
 
-    /**
-     * @api {Async} Capability.revoke(params,options) Capability.revoke()
-     * @apiVersion 3.1.2
-     * @apiGroup Capability
-     * @apiName Capability.revoke()
-     * @apiDescription Asynchronously revoke a capability from a role.
-     * @apiParam (params) {String} capability The Capability group name.
-     * @apiParam (params) {Mixed} role String or Array of Role names.
-     * @apiExample Example Usage
-    Actinium.Capability.revoke(
-        { capability: 'user.view', role: [''contributor'] },
-        { useMasterKey: true }
-    );
-     */
-    async revoke(params = {}, options) {
-        op.set(params, 'action', 'remove');
-        op.set(params, 'field', 'allowed');
-        op.set(params, 'roleList', this.roleList);
-        const cap = await this._updateCapabilityRoles(params, options);
-        if (_.isError(cap)) throw cap;
-        return _.indexBy(this.get(), 'group');
+        return new Promise(resolve => {
+            const ival = setInterval(() => {
+                // prettier-ignore
+                const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                if (isPropagating === true) {
+                    return;
+                } else {
+                    clearInterval(ival);
+                    doUpdate().then(resolve);
+                }
+            });
+        });
     }
 
     /**
@@ -829,12 +875,27 @@ class Capability {
     );
      */
     async unrestrict(params = {}, options) {
-        op.set(params, 'action', 'remove');
-        op.set(params, 'field', 'excluded');
-        op.set(params, 'roleList', this.roleList);
-        const cap = await this._updateCapabilityRoles(params, options);
-        if (_.isError(cap)) throw cap;
-        return _.indexBy(this.get(), 'group');
+        const doUpdate = async () => {
+            op.set(params, 'action', 'remove');
+            op.set(params, 'field', 'excluded');
+            op.set(params, 'roleList', this.roleList);
+            const cap = await this._updateCapabilityRoles(params, options);
+            if (_.isError(cap)) throw cap;
+            return _.indexBy(this.get(), 'group');
+        };
+
+        return new Promise(resolve => {
+            const ival = setInterval(() => {
+                // prettier-ignore
+                const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                if (isPropagating === true) {
+                    return;
+                } else {
+                    clearInterval(ival);
+                    doUpdate().then(resolve);
+                }
+            });
+        });
     }
 }
 
