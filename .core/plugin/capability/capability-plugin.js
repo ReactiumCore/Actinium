@@ -295,7 +295,7 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
 
 Actinium.Cloud.afterDelete(COLLECTION, async req => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    await Actinium.Capability.load(true, true);
+    await Actinium.Capability.load(true);
     await Actinium.Hook.run('capability-deleted', req);
     Actinium.Cache.set('capability.propagated', Date.now(), 500, () =>
         Actinium.Capability.propagate(),

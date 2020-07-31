@@ -360,7 +360,7 @@ class Capability {
         id = String(id).toLowerCase();
         id = String(id).substr(0, 1) === '_' ? id.split('_').pop() : id;
 
-        if (!this.Registry.isRegistered(id)) {
+        if (!this.isRegistered(id)) {
             capability = _.isObject(capability) ? capability : {};
             capability = normalizeCapability(capability);
             if (!op.get(capability, 'objectId')) {
@@ -628,7 +628,7 @@ class Capability {
                 excluded,
             });
 
-            if (this.Registry.isRegistered(item.group)) {
+            if (this.isRegistered(item.group)) {
                 this.update(item.group, item);
             } else {
                 this.register(item.group, item);
@@ -638,19 +638,7 @@ class Capability {
         return this.get(group);
     }
 
-    async load(refresh = false, flush = false, caller) {
-        // Return cached registry list
-        const loaded = Actinium.Cache.get('capability.loaded');
-        if (
-            loaded &&
-            flush !== true &&
-            refresh !== true &&
-            this.list.length > 0
-        ) {
-            if (caller) console.log(caller, '\n', 'cached', loaded);
-            return _.sortBy(this.list, 'group');
-        }
-
+    async load(flush = false, caller) {
         await Actinium.Hook.run('before-capability-load');
 
         // Flush registry
@@ -665,7 +653,7 @@ class Capability {
 
         // Add to registry
         capabilities.forEach(cap => {
-            if (refresh === true) {
+            if (this.isRegistered(cap.group)) {
                 this.update(cap.group, cap);
             } else {
                 this.register(cap.group, cap);
@@ -741,7 +729,7 @@ class Capability {
 
         // update registry
         if (caps.length > 0 && saves.length > 0) {
-            await this.load(true, true, 'propagate()');
+            await this.load(true, 'propagate()');
         }
 
         Actinium.Cache.del('capability.propagating');
