@@ -203,11 +203,7 @@ const Role = Capability => ({
 class Capability {
     constructor() {
         this.roleList = [];
-        this.Registry = new Registry(
-            'capability',
-            'group',
-            Registry.MODES.CLEAN,
-        );
+        this.Registry = new Registry('capability', 'group');
         this.Role = Role(this);
         this.User = User(this);
     }
@@ -609,7 +605,11 @@ class Capability {
                 excluded,
             });
 
-            this.register(item.group, item);
+            if (this.Registry.isRegistered(item.group)) {
+                this.update(item.group, item);
+            } else {
+                this.register(item.group, item);
+            }
         }
 
         return this.get(group);
@@ -751,13 +751,10 @@ class Capability {
         saves = await Actinium.Object.saveAll(saves, { useMasterKey: true });
 
         saves.forEach(obj => {
-            const group = obj.get('group');
-            const idx = _.findIndex(this.list, { group });
-            if (idx < 0) return;
-            const newObj = this.list[idx];
-            op.set(newObj, 'objectId', obj.id);
+            const { group, objectId } = obj.toJSON();
+            const newObj = { ...this.get(group), objectId };
             op.del(newObj, 'pending');
-            this.list.splice(idx, 1, newObj);
+            this.update(group, newObj);
         });
 
         // update registry
