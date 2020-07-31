@@ -729,7 +729,7 @@ class Capability {
 
         // update registry
         if (caps.length > 0 && saves.length > 0) {
-            await this.load(true, 'propagate()');
+            await this.load(false, 'propagate');
         }
 
         Actinium.Cache.del('capability.propagating');
