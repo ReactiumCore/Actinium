@@ -665,7 +665,11 @@ class Capability {
 
         // Add to registry
         capabilities.forEach(cap => {
-            this.update(cap.group, cap);
+            if (refresh === true) {
+                this.update(cap.group, cap);
+            } else {
+                this.register(cap.group, cap);
+            }
         });
     }
 
