@@ -99,7 +99,7 @@ Plugable.capabilities = [
         roles: {},
     },
     {
-        capability: 'plugins-ui.view',
+        capability: 'plugin-ui.view',
         roles: {
             allowed: ['super-admin', 'administrator'],
         },
