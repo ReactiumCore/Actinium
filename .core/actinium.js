@@ -128,7 +128,7 @@ Actinium.start = options =>
                     await Actinium.Roles.load();
 
                     // Load Capability
-                    await Actinium.Capability.load(true, false, 'boot');
+                    await Actinium.Capability.load(false, 'boot');
 
                     // Load Collection Schemas
                     await Actinium.Collection.load();
