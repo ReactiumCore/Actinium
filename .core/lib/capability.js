@@ -145,10 +145,10 @@ const User = Capability => ({
             user = _.isObject(user) ? op.get(user, 'user.id', user) : user;
         }
 
-        // Get the user roles
+        // Get the roles
         const roleObj = Actinium.Roles.User.get(user);
 
-        let roles = Object.keys(roleObj).map(role =>
+        const roles = Object.keys(roleObj).map(role =>
             String(role).toLowerCase(),
         );
 
@@ -206,6 +206,24 @@ class Capability {
         this.Registry = new Registry('capability', 'group');
         this.Role = Role(this);
         this.User = User(this);
+    }
+
+    /**
+     * @api {Array} Capability.anonymous Capability.anonymous
+     * @apiVersion 3.1.2
+     * @apiGroup Capability
+     * @apiName Capability.anonymous
+     * @apiDescription Returns an array of Capability group names where the anonymous role is allowed and not excluded.
+     * @apiExample Example Usage
+     console.log(Actinium.Capability.anonymous); 
+     */
+    get anonymous() {
+        const _granted = cap => {
+            const { allowed = [], excluded = [] } = cap;
+            return _.without(allowed, ...excluded);
+        };
+
+        return this.get().filter(cap => _granted(cap).includes('anonymous'));
     }
 
     /**
