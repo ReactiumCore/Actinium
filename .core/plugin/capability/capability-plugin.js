@@ -29,7 +29,7 @@ const canEdit = req =>
     CloudHasCapabilities(req, ['capability.create', 'capability.update'], true);
 
 const edit = async req => {
-    if (!canEdit(req)) throw new Error('Permission denied 1');
+    if (!canEdit(req)) throw new Error('Permission denied');
     const { id, capability = {} } = req.params;
     const result = await Actinium.Capability.register(id, capability);
     if (_.isError(result)) throw result;
@@ -115,6 +115,12 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-check', async req => {
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-create', edit);
 
+Actinium.Cloud.define(PLUGIN.ID, 'capability-create-all', async req => {
+    const caps = op.get(req.params, 'capabilities', []);
+    caps.forEach(group => Actinium.Capability.register(group, {}));
+    return Actinium.Capability.get();
+});
+
 Actinium.Cloud.define(PLUGIN.ID, 'capability-delete', async req => {
     if (!canEdit(req)) throw new Error('Permission denied 2');
     const capability = op.get(req.params, 'capability');
@@ -137,7 +143,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-get-user', async req => {
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
     if (!CloudHasCapabilities(req, 'Capability.retrieve')) {
-        throw new Error('Permission denied 3');
+        throw new Error('Permission denied');
     }
 
     const { capability } = req.params;
@@ -223,6 +229,7 @@ Actinium.Cloud.beforeSave(COLLECTION, async req => {
 });
 
 Actinium.Cloud.beforeDelete(COLLECTION, async req => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     Actinium.Cache.del('capability.propagated');
     Actinium.Cache.del('capability.propagating');
     await Actinium.Hook.run('before-capability-delete', req);
@@ -295,11 +302,9 @@ Actinium.Cloud.afterSave(COLLECTION, async req => {
 
 Actinium.Cloud.afterDelete(COLLECTION, async req => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    await Actinium.Capability.load(true);
+    const group = op.get(req.object.toJSON(), 'group');
+    Actinium.Capability.Registry.cleanup(group);
     await Actinium.Hook.run('capability-deleted', req);
-    Actinium.Cache.set('capability.propagated', Date.now(), 500, () =>
-        Actinium.Capability.propagate(),
-    );
 });
 
 Actinium.Hook.register(
