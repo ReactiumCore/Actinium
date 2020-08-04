@@ -31,6 +31,10 @@ const saveRoutes = async () => {
     }
 };
 
+Actinium.Capability.register('admin-ui.view', {
+    allowed: ['contributor', 'moderator', 'user'],
+});
+
 // Update routes on startup
 Actinium.Hook.register('start', async () => {
     if (Actinium.Plugin.isActive(PLUGIN.ID)) {
