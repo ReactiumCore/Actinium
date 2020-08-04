@@ -159,11 +159,77 @@ Actinium.Hook.register('setting-set', async (key, value) => {
 });
 
 Actinium.Hook.register('schema', async () => {
-    const { types = [] } = await Actinium.Type.list({}, { useMasterKey: true });
+    Actinium.Capability.register('set-content-status', {
+        allowed: ['contributor', 'moderator'],
+    });
+    Actinium.Capability.register('publish-content', {
+        allowed: ['contributor', 'moderator'],
+    });
+    Actinium.Capability.register('unpublish-content', {
+        allowed: ['contributor', 'moderator'],
+    });
+
+    const { types = [] } = await Actinium.Type.list(
+        {},
+        Actinium.Utils.MasterOptions(),
+    );
 
     for (const type of types) {
         try {
             await Actinium.Content.saveSchema(type);
+
+            // content CLP should allow broad access to retrieve content by default
+            Actinium.Capability.register(`${type.collection}.retrieve`, {
+                allowed: ['anonymous', 'user', 'contributor', 'moderator'],
+            });
+
+            // Only admins should be able to escalate permission to retrieve any content
+            Actinium.Capability.register(`${type.collection}.retrieveany`);
+
+            // Only admin should be able to escalate cloud create by default
+            Actinium.Capability.register(`${type.collection}.createany`);
+            // Content creators should be able to create content by default
+            Actinium.Capability.register(`${type.collection}.create`, {
+                allowed: ['contributor', 'moderator'],
+            });
+
+            // Only admin should be able to update collection items by REST by default
+            Actinium.Capability.register(`${type.collection}.update`);
+            // Only admin should be able to escalate cloud update by default
+            Actinium.Capability.register(`${type.collection}.updateany`);
+
+            // Only admin should be able to delete collection items by REST by default
+            Actinium.Capability.register(`${type.collection}.delete`);
+            // Only admin should be able to escalate cloud delete by default
+            Actinium.Capability.register(`${type.collection}.deleteany`);
+
+            const statuses = _.chain(
+                op
+                    .get(
+                        type,
+                        'fields.publisher.statuses',
+                        'TRASH,DRAFT,PUBLISHED',
+                    )
+                    .split(',')
+                    .concat(Object.values(ENUMS.STATUS)),
+            )
+                .uniq()
+                .compact()
+                .value()
+                .forEach(status =>
+                    Actinium.Capability.register(
+                        `${type.collection}.setstatus-${status}`,
+                        { allowed: ['contributor', 'moderator'] },
+                    ),
+                );
+
+            // Content creators should be able to publish/unpublish content by default
+            Actinium.Capability.register(`${type.collection}.publish`, {
+                allowed: ['contributor', 'moderator'],
+            });
+            Actinium.Capability.register(`${type.collection}.unpublish`, {
+                allowed: ['contributor', 'moderator'],
+            });
         } catch (error) {
             ERROR(`Error updating content schema ${type.type}`, error);
         }
@@ -380,7 +446,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-list', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.retrieveAny`,
+        `${collection}.retrieveany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -413,7 +479,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-retrieve', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.retrieveAny`,
+        `${collection}.retrieveany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -443,7 +509,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-revisions', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.retrieveAny`,
+        `${collection}.retrieveany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -492,7 +558,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-current', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -528,7 +594,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-permissions', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -599,7 +665,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-update', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -634,7 +700,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-label-branch', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -668,7 +734,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete-branch', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -703,7 +769,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-clone-branch', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -734,7 +800,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-change-slug', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.updateAny`,
+        `${collection}.updateany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -770,7 +836,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-delete', async req => {
     }
 
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.deleteAny`,
+        `${collection}.statusAny`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -807,7 +873,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-trash', async req => {
 
     const options = Actinium.Utils.CloudHasCapabilities(
         req,
-        ['set-content-status', `${collection}.deleteAny`],
+        ['set-content-status', `${collection}.updateany`],
         false,
     )
         ? Actinium.Utils.CloudMasterOptions(req)
@@ -834,7 +900,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-restore', async req => {
         op.get(req.params, 'type'),
     );
     const options = Actinium.Utils.CloudHasCapabilities(req, [
-        `${collection}.createAny`,
+        `${collection}.createany`,
     ])
         ? Actinium.Utils.CloudMasterOptions(req)
         : Actinium.Utils.CloudRunOptions(req);
@@ -920,7 +986,7 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-set-status', async req => {
 
     const canSet = Actinium.Utils.CloudHasCapabilities(
         req,
-        [`${collection}.setStatus-${status}`, 'set-content-status'],
+        [`${collection}.setstatus-${status}`, 'set-content-status'],
         false,
     );
 
@@ -1099,7 +1165,7 @@ Actinium.Utils.CloudRunOptions() or equivalent only, and let the CLP naturally f
 - By default a REST interaction retrieve/update/delete of existing content will need to first pass CLP, and then read/write ACL check.
 
 4. When we want to provide "super" retrieve, update, delete permission, we can use CloudCapOptions(), but for a different
-set of permissions (COLLECTION.createAny, COLLECTION.retrieveAny, COLLECTION.updateAny, COLLECTION.deleteAny), and only
+set of permissions (COLLECTION.createany, COLLECTION.retrieveany, COLLECTION.updateany, COLLECTION.deleteany), and only
 through cloud function. "super" operations should be impossible through ordinary Parse REST API calls.
 
 Use Cases:
@@ -1122,10 +1188,10 @@ Use Cases:
 3. Publicly readable, not writable in any way, ignore ACL.
 
   How:
-  Content-{type}.retrieveAny capability applied to anonymous role.
+  Content-{type}.retrieveany capability applied to anonymous role.
 
   Check:
-  Escalate to master read for cloud function if Content-{type}.retrieveAny using CloudCapOptions()
+  Escalate to master read for cloud function if Content-{type}.retrieveany using CloudCapOptions()
   Neither CLP nor ACL enforced on read of content type.
 
 4. Role X has one or more CRUD permission, but only RUD "own" content
@@ -1148,7 +1214,7 @@ Use Cases:
 Cloud Pseudo:
 
 # contents
-options = CloudCapOptions([Content-{type}.retrieveAny])
+options = CloudCapOptions([Content-{type}.retrieveany])
 perform fetch
 
 # content-create:
@@ -1158,17 +1224,17 @@ perform creation
 
 # content-retrieve: (1)
 
-options = CloudCapOptions([Content-{type}.retrieveAny])
+options = CloudCapOptions([Content-{type}.retrieveany])
 perform fetch
 
 # content-update: (1)
 
-options = CloudCapOptions([Content-{type}.updateAny])
+options = CloudCapOptions([Content-{type}.updateany])
 perform fetch/update
 
 # content-delete: (1)
 
-options = CloudCapOptions([Content-{type}.deleteAny])
+options = CloudCapOptions([Content-{type}.deleteany])
 perform fetch/update
 
 */
