@@ -1173,8 +1173,8 @@ Content.create = async (params, options) => {
     const permissions = op.get(params, 'permissions', []);
     const groupACL = await Actinium.Utils.CloudACL(
         permissions,
-        `${collection}.retrieveAny`, // read
-        `${collection}.updateAny`, // write
+        `${collection}.retrieve`, // read
+        `${collection}.update`, // write
     );
 
     if (op.get(params, 'user')) {
@@ -1659,8 +1659,8 @@ Content.setPermissions = async (params, options) => {
         let userId = op.get(contentObj, 'user.objectId');
         const groupACL = await Actinium.Utils.CloudACL(
             permissions,
-            `${typeObj.collection}.retrieveAny`,
-            `${typeObj.collection}.updateAny`,
+            `${typeObj.collection}.retrieve`,
+            `${typeObj.collection}.update`,
         );
 
         if (userId) {
