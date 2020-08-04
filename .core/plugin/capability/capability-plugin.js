@@ -142,10 +142,6 @@ Actinium.Cloud.define(PLUGIN.ID, 'capability-get-user', async req => {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'capability-get', async req => {
-    if (!CloudHasCapabilities(req, 'Capability.retrieve')) {
-        throw new Error('Permission denied');
-    }
-
     const { capability } = req.params;
     const capabilities = _.chain([capability])
         .flatten()
