@@ -39,7 +39,9 @@ const registerBlueprints = (reg = true) => ({ ID }) => {
 };
 Actinium.Capability.register(
     'content-ui.view',
-    {},
+    {
+        allowed: ['contributor', 'moderator'],
+    },
     Actinium.Enums.priority.highest,
 );
 
