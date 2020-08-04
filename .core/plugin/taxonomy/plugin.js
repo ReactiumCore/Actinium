@@ -14,10 +14,13 @@ const Taxonomy = require('./sdk');
 Actinium['Taxonomy'] = op.get(Actinium, 'Taxonomy', Taxonomy);
 
 const registerCaps = async PLUGIN_SCHEMA => {
+    const allowed = ['moderator', 'contributor'];
     PLUGIN_SCHEMA = PLUGIN_SCHEMA || require('./schema');
     PLUGIN_SCHEMA.forEach(({ actions = {}, collection }) =>
         Object.keys(actions).forEach(action =>
-            Actinium.Capability.register(`${collection}.${action}`),
+            Actinium.Capability.register(`${collection}.${action}`, {
+                allowed,
+            }),
         ),
     );
 };
