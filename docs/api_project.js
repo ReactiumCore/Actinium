@@ -1,6 +1,6 @@
 define({
   "name": "Actinium",
-  "version": "3.1.7",
+  "version": "3.6.1",
   "description": "Actinium Documentation",
   "title": "Actinium Documentation",
   "sampleUrl": false,
@@ -8,8 +8,8 @@ define({
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2020-08-04T14:55:45.224Z",
+    "time": "2020-08-04T21:03:40.640Z",
     "url": "http://apidocjs.com",
-    "version": "0.24.0"
+    "version": "0.17.7"
   }
 });

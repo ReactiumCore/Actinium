@@ -25,12 +25,6 @@ Actinium.Plugin.register(PLUGIN, true);
 Actinium.Hook.register('schema', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
-    Object.keys(PLUGIN_SCHEMA.ACTIONS.MEDIA).forEach(action =>
-        Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`, {
-            allowed: ['contributor', 'moderator'],
-        }),
-    );
-
     Actinium.Collection.register(
         COLLECTION.DIRECTORY,
         PLUGIN_SCHEMA.ACTIONS.DIRECTORY,
@@ -314,7 +308,7 @@ Permission: `Media.create` _(use the **media.capabilities.directory** setting to
  * @apiExample Example usage:
 Actinium.Cloud.run('directory-save', {
     directory: 'uploads',
-    capabilities: ['Media.create']
+    capabilities: ['media.create']
     permissions: [
       { objectId: "Lxank79qjx", type: "role", permission: "write", name: "super-admin" },
       { objectId: "s0UJ2Hk7XC", type: "user", permission: "write" }
@@ -324,12 +318,9 @@ Actinium.Cloud.run('directory-save', {
 });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'directory-save', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.directory', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.create'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const { capabilities, directory, objectId, permissions = [] } = req.params;
 
@@ -362,12 +353,9 @@ Permission: `Media.create` _(use the **media.capabilities.directory** setting to
 Actinium.Cloud.run('directory-delete', { directory: 'avatars' });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'directory-delete', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.directory', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.delete'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const { user } = req;
     const { directory, content = false } = req.params;
@@ -436,24 +424,18 @@ Actinium.Cloud.run('media-delete', { match: '/uploads/some-file.txt' });
 Actinium.Cloud.run('media-delete', { match: '/uploads' }, { useMasterKey: true });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'media-delete', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.delete'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const { user, master } = req;
     return Actinium.Media.fileDelete(req.params, user, master);
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'media-delete-thumbnail', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.delete'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const { user, master } = req;
     const { objectId, property } = req.params;
@@ -509,12 +491,9 @@ const updatedMediaObj = await Parse.Cloud.run('media-update', {
 });
  */
 Actinium.Cloud.define(PLUGIN.ID, 'media-update', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.update'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     delete req.params.thumbnail;
 
@@ -561,12 +540,9 @@ const upload = {
 Actinium.Cloud.run('media-upload', upload);
  */
 Actinium.Cloud.define(PLUGIN.ID, 'media-upload', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.upload', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.create'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     return Actinium.Media.upload(
         req.params.data,
@@ -589,12 +565,9 @@ Actinium.Cloud.define(PLUGIN.ID, 'media-upload', async req => {
  * @apiParam {String} [url] Retrieve a file by it's url value.
  */
 Actinium.Cloud.define(PLUGIN.ID, 'media-retrieve', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.retrieve', [
-        'Media.retrieve',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap))
+    if (!CloudHasCapabilities(req, ['media.retrieve'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
+    }
 
     const options = CloudRunOptions(req);
 
@@ -740,11 +713,7 @@ Actinium.Cloud.afterSave(COLLECTION.DIRECTORY, async req => {
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'media-create-from-url', async req => {
-    const cap = await Actinium.Setting.get('media.capabilities.create', [
-        'Media.create',
-    ]);
-
-    if (!CloudHasCapabilities(req, cap)) {
+    if (!CloudHasCapabilities(req, ['media.create'])) {
         return Promise.reject(ENUMS.ERRORS.PERMISSION);
     }
 
