@@ -178,11 +178,11 @@ const meta = {
 
 const pref = {
     update: req => {
-        const options = CloudRunOptions(req);
+        const options = MasterOptions(req);
         return Actinium.User.Pref.update(req.params, options);
     },
     delete: req => {
-        const options = CloudRunOptions(req);
+        const options = MasterOptions(req);
         return Actinium.User.Pref.delete(req.params, options);
     },
 };
