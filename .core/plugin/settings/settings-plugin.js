@@ -79,35 +79,35 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
-// All operations on settings are privileged
-Actinium.Collection.register(COLLECTION, {
-    create: false,
-    retrieve: false,
-    update: false,
-    delete: false,
-    addField: false,
+Actinium.Capability.register('setting.profile-get', {
+    allowed: ['anonymous', 'user', 'contributor', 'moderator'],
 });
+
+// All operations on settings are privileged
+Actinium.Collection.register(
+    COLLECTION,
+    {
+        create: false,
+        retrieve: false,
+        update: false,
+        delete: false,
+        addField: false,
+    },
+    {
+        key: {
+            type: 'String',
+        },
+        value: {
+            type: 'Object',
+        },
+    },
+    ['key'],
+);
 
 Actinium.Hook.register(
     'settings-acl-roles',
     async context => {
         context.roles = ['administrator', 'super-admin'];
-    },
-    Actinium.Enums.priority.highest,
-);
-
-Actinium.Hook.register(
-    'setting-set',
-    async key => {
-        const [group] = key.split('.');
-
-        const ops = ['set', 'get', 'delete'];
-        for (let op of ops) {
-            const capability = `setting.${group}-${op}`;
-            const perms = { allowed: [], excluded: [] };
-            await Actinium.Hook.run('setting-capability', perms, key, op);
-            Actinium.Capability.register(capability, perms);
-        }
     },
     Actinium.Enums.priority.highest,
 );
