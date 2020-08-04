@@ -429,10 +429,6 @@ const beforeSave = async req => {
 
     Actinium.Cache.set(`setting.${group}`, op.get(value, 'value'));
 
-    // lock down all settings, and enforce by capability
-    const acl = await settingsACL();
-    req.object.setACL(acl);
-
     if (old) {
         const { value: previous } = old.toJSON();
 
@@ -442,22 +438,6 @@ const beforeSave = async req => {
     }
 
     Actinium.Hook.run('setting-set', group, value);
-};
-
-const settingsACL = async () => {
-    const acl = new Parse.ACL();
-    const { roles = [] } = await Actinium.Hook.run('settings-acl-roles');
-
-    acl.setPublicReadAccess(false);
-    acl.setPublicWriteAccess(false);
-
-    roles.forEach(role => {
-        acl.setRoleReadAccess(role, true);
-        acl.setRoleWriteAccess(role, true);
-    });
-
-    await Actinium.Hook.run('settings-acl', acl);
-    return acl;
 };
 
 const afterDel = req => {
