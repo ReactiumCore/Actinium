@@ -26,7 +26,9 @@ Actinium.Hook.register('schema', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
 
     Object.keys(PLUGIN_SCHEMA.ACTIONS.MEDIA).forEach(action =>
-        Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`),
+        Actinium.Capability.register(`${COLLECTION.MEDIA}.${action}`, {
+            allowed: ['contributor', 'moderator'],
+        }),
     );
 
     Actinium.Collection.register(
@@ -65,7 +67,11 @@ Actinium.Hook.register('before-capability-load', () => {
         'media.update',
         'media.retrieve',
     ];
-    caps.forEach(cap => Actinium.Capability.register(cap));
+    caps.forEach(cap =>
+        Actinium.Capability.register(cap, {
+            allowed: ['contributor', 'moderator'],
+        }),
+    );
 });
 
 // Activate: Blueprints
