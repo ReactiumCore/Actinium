@@ -46,7 +46,9 @@ Actinium.Capability.register(
 
 Actinium.Capability.register(
     `${COLLECTION}.retrieve`,
-    {},
+    {
+        allowed: ['anonymous', 'contributor', 'moderator', 'user'],
+    },
     Actinium.Enums.priority.highest,
 );
 
