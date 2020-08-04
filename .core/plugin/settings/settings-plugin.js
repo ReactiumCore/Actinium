@@ -79,35 +79,35 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
-// All operations on settings are privileged
-Actinium.Collection.register(COLLECTION, {
-    create: false,
-    retrieve: false,
-    update: false,
-    delete: false,
-    addField: false,
+Actinium.Capability.register('setting.profile-get', {
+    allowed: ['anonymous', 'user', 'contributor', 'moderator'],
 });
+
+// All operations on settings are privileged
+Actinium.Collection.register(
+    COLLECTION,
+    {
+        create: false,
+        retrieve: false,
+        update: false,
+        delete: false,
+        addField: false,
+    },
+    {
+        key: {
+            type: 'String',
+        },
+        value: {
+            type: 'Object',
+        },
+    },
+    ['key'],
+);
 
 Actinium.Hook.register(
     'settings-acl-roles',
     async context => {
         context.roles = ['administrator', 'super-admin'];
-    },
-    Actinium.Enums.priority.highest,
-);
-
-Actinium.Hook.register(
-    'setting-set',
-    async key => {
-        const [group] = key.split('.');
-
-        const ops = ['set', 'get', 'delete'];
-        for (let op of ops) {
-            const capability = `setting.${group}-${op}`;
-            const perms = { allowed: [], excluded: [] };
-            await Actinium.Hook.run('setting-capability', perms, key, op);
-            Actinium.Capability.register(capability, perms);
-        }
     },
     Actinium.Enums.priority.highest,
 );
@@ -215,13 +215,14 @@ const list = async req => {
  * @apiDescription Create or update a setting object. Capabilities will be enforced.
  * @apiParam {String} key The unique setting key.
  * @apiParam {Mixed} value The setting value.
- * @apiParam {Boolean} [public] When true, the setting will be made publicly readable, otherwise reads will be restricted.
+ * @apiParam {Boolean} [permissions] List of permissions to be applied to the setting.
  * @apiPermission `Setting.create`, `Setting.update` or `setting.${key}-set` capabilities.
  * @apiExample Example Usage:
 Actinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, public: true});
  */
 const set = async req => {
-    const { key = '', value, public: publicSetting = false } = req.params;
+    const { params = {} } = req;
+    const { key = '', value, public: publicSetting = false } = params;
     const [group, ...settingPath] = key.split('.');
     if (!group) return;
 
@@ -245,17 +246,13 @@ const set = async req => {
         return Promise.reject('invalid setting type: ' + typeof value);
     }
 
-    const opts = CloudCapOptions(
-        req,
-        [`${COLLECTION}.create`, `${COLLECTION}.update`, `setting.${key}-set`],
-        strict,
-    );
+    const masterOptions = Actinium.Utils.MasterOptions();
 
     Actinium.Cache.del(`setting.${group}`);
 
     let obj = await new Parse.Query(COLLECTION)
         .equalTo('key', group)
-        .first(opts);
+        .first(masterOptions);
     obj = obj || new Parse.Object(COLLECTION);
 
     let objValue;
@@ -269,46 +266,35 @@ const set = async req => {
     obj.set('key', group);
     obj.set('value', { value: objValue });
 
-    const setting = await obj.save(null, opts);
+    const permissions = op.get(params, 'permissions', [
+        {
+            permission: 'read',
+            type: 'public',
+            allow: false,
+        },
+        {
+            permission: 'write',
+            type: 'public',
+            allow: false,
+        },
+    ]);
+
+    const groupACL = await Actinium.Utils.CloudACL(
+        permissions,
+        `setting.${group}-get`, // read
+        `setting.${group}-set`, // write
+        obj.getACL(),
+    );
+
+    obj.setACL(groupACL);
+
+    const setting = await obj.save(null, masterOptions);
 
     Actinium.Cache.set(
         `setting.${key}`,
         objValue,
         Actinium.Enums.cache.dataLoading,
     );
-
-    // Make setting publicly readable
-    if (publicSetting) {
-        await Actinium.Cloud.run(
-            'capability-edit',
-            {
-                capability: `setting.${group}-get`,
-                perms: {
-                    allowed: ['anonymous'],
-                },
-            },
-            CloudRunOptions(req),
-        );
-        // Remove public read
-    } else {
-        const { allowed = [] } = await Actinium.Cloud.run(
-            'capability-get',
-            {
-                capability: `setting.${group}-get`,
-            },
-            CloudRunOptions(req),
-        );
-        await Actinium.Cloud.run(
-            'capability-edit',
-            {
-                capability: `setting.${group}-get`,
-                perms: {
-                    allowed: allowed.filter(role => role !== 'anonymous'),
-                },
-            },
-            CloudRunOptions(req),
-        );
-    }
 
     const result = op.get(setting.get('value'), 'value');
     if (settingPath.length) {
@@ -443,10 +429,6 @@ const beforeSave = async req => {
 
     Actinium.Cache.set(`setting.${group}`, op.get(value, 'value'));
 
-    // lock down all settings, and enforce by capability
-    const acl = await settingsACL();
-    req.object.setACL(acl);
-
     if (old) {
         const { value: previous } = old.toJSON();
 
@@ -456,22 +438,6 @@ const beforeSave = async req => {
     }
 
     Actinium.Hook.run('setting-set', group, value);
-};
-
-const settingsACL = async () => {
-    const acl = new Parse.ACL();
-    const { roles = [] } = await Actinium.Hook.run('settings-acl-roles');
-
-    acl.setPublicReadAccess(false);
-    acl.setPublicWriteAccess(false);
-
-    roles.forEach(role => {
-        acl.setRoleReadAccess(role, true);
-        acl.setRoleWriteAccess(role, true);
-    });
-
-    await Actinium.Hook.run('settings-acl', acl);
-    return acl;
 };
 
 const afterDel = req => {

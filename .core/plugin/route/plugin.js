@@ -70,17 +70,16 @@ Actinium.Hook.register('schema', async ({ ID }) => {
 
     const PLUGIN_SCHEMA = require('./schema');
     PLUGIN_SCHEMA.forEach(item => {
-        const { actions = {}, collection, schema = {} } = item;
+        const { actions = {}, collection, schema = {}, indexes } = item;
         if (!collection) return;
 
-        Actinium.Collection.register(collection, actions, schema);
+        Actinium.Collection.register(collection, actions, schema, indexes);
     });
 
     Actinium.Capability.register(
         `${COLLECTION}.create`,
         {
-            allowed: ['contributor', 'administrator', 'super-admin'],
-            excluded: ['banned'],
+            allowed: ['moderator', 'contributor'],
         },
         1000,
     );
@@ -88,8 +87,7 @@ Actinium.Hook.register('schema', async ({ ID }) => {
     Actinium.Capability.register(
         `${COLLECTION}.retrieve`,
         {
-            allowed: ['contributor', 'administrator', 'super-admin'],
-            excluded: ['banned'],
+            allowed: ['moderator', 'contributor'],
         },
         1000,
     );
@@ -97,8 +95,7 @@ Actinium.Hook.register('schema', async ({ ID }) => {
     Actinium.Capability.register(
         `${COLLECTION}.update`,
         {
-            allowed: ['contributor', 'administrator', 'super-admin'],
-            excluded: ['banned'],
+            allowed: ['moderator', 'contributor'],
         },
         1000,
     );
@@ -106,20 +103,12 @@ Actinium.Hook.register('schema', async ({ ID }) => {
     Actinium.Capability.register(
         `${COLLECTION}.delete`,
         {
-            allowed: ['contributor', 'administrator', 'super-admin'],
-            excluded: ['banned'],
+            allowed: ['moderator', 'contributor'],
         },
         1000,
     );
 
-    Actinium.Capability.register(
-        `${COLLECTION}.addField`,
-        {
-            allowed: ['administrator', 'super-admin'],
-            excluded: ['banned'],
-        },
-        1000,
-    );
+    Actinium.Capability.register(`${COLLECTION}.addField`, {}, 1000);
 });
 
 /**
