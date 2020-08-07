@@ -18,8 +18,7 @@ const PLUGIN = {
     },
 };
 
-const blueprintReg = ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
+const blueprintReg = () => {
     const PLUGIN_BLUEPRINTS = require('./blueprints');
     PLUGIN_BLUEPRINTS.forEach(blueprint =>
         Actinium.Blueprint.register(blueprint.ID, blueprint),
@@ -56,12 +55,16 @@ Actinium.Hook.register('before-capability-load', () => {
  */
 
 // Start: Blueprints
-Actinium.Hook.register('start', blueprintReg);
+Actinium.Hook.register('start', () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+    blueprintReg();
+});
 
 // Activate: Register Routes & Blueprints
 Actinium.Hook.register('activate', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;
-    blueprintReg({ ID });
+
+    blueprintReg();
 
     const PLUGIN_ROUTES = require('./routes');
     await Promise.all(
