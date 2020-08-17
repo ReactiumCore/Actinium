@@ -21,6 +21,8 @@ Actinium.Hook.register(
             const { collection } = type;
             const builder = new lunr.Builder();
             builder.ref('slug');
+            builder.field('slug');
+            builder.field('title');
             Object.keys(permittedFields).forEach(field => builder.field(field));
 
             for (const item of items) {
