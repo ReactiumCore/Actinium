@@ -106,17 +106,21 @@ Search.index = async params => {
 
 /**
  * @api {Asynchronous} Search.search(request) Search.search()
+ * @apiName Search.search
+ * @apiGroup Actinium
  * @apiParam {Object} request Parse cloud request, or equivalent.
- * @apiParam (params) {String} index The index to search. By default, the name
- of the collection of the indexed content type.
+ * @apiParam (params) {String} index The index to search. By default, the name of the collection of the indexed content type.
  * @apiParam (params) {String} search The search terms
  * @apiParam (params) {Number} [page=1] Page number of results
  * @apiParam (params) {Number} [limit=1000] Limit page results
- * @apiName Search.search
- * @apiGroup Actinium
+ * @apiParam (params) {Float} [threshold=0] Minimum score value. Used to shake out lower ranking search results.
  */
 Search.search = async req => {
+    const { threshold = 0 } = req.params;
     const context = await Actinium.Hook.run('search', req);
+    let { results = [] } = op.get(context, 'results');
+    results = results.filter(({ score }) => score >= threshold);
+    op.set(context, 'results.results', results);
     return op.get(context, 'results');
 };
 
