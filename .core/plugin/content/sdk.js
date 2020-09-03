@@ -1078,13 +1078,13 @@ Content.listAll = async (params, options) => {
     const indexBy = op.get(params, 'indexBy', 'objectId');
     const { types } = await Actinium.Type.list({}, options);
     let output = {};
+    let content = [];
 
     op.del(params, 'indexBy');
     op.del(params, 'page');
 
     for (let type of types) {
         let page = 1;
-        let content = [];
         const { machineName, objectId } = type;
         const p = {
             ...params,
@@ -1094,13 +1094,14 @@ Content.listAll = async (params, options) => {
         };
         let { pages, results } = await Content.list(p, options);
 
-        content = results;
+        content = content.concat(Object.values(results));
+
         page += 1;
 
         while (page <= pages) {
             op.set(p, page, page);
             let { results } = await Content.list(p, options);
-            content = content.concat(results);
+            content = content.concat(Object.values(results));
             page += 1;
         }
 

@@ -6249,6 +6249,8 @@
     "type": "Asynchronous",
     "url": "Search.search(request)",
     "title": "Search.search()",
+    "name": "Search_search",
+    "group": "Actinium",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -6290,12 +6292,18 @@
             "field": "limit",
             "defaultValue": "1000",
             "description": "<p>Limit page results</p>"
+          },
+          {
+            "group": "params",
+            "type": "Float",
+            "optional": true,
+            "field": "threshold",
+            "defaultValue": "0",
+            "description": "<p>Minimum score value. Used to shake out lower ranking search results.</p>"
           }
         ]
       }
     },
-    "name": "Search_search",
-    "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/search/sdk.js",
     "groupTitle": "Actinium"
