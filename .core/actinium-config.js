@@ -14,8 +14,10 @@ module.exports = {
                 remove: ['@atomic-reactor/cli', 'camelcase'],
             },
             scripts: {
-                add: {},
-                remove: [],
+                add: {
+                    local: 'npm run docs && nodemon',
+                },
+                remove: ['local'],
             },
         },
         files: {
@@ -43,6 +45,12 @@ module.exports = {
                     version: '>=3.5.5',
                     destination: '/.npmrc',
                     source: '/tmp/update/.npmrc',
+                },
+                {
+                    overwrite: true,
+                    version: '>=3.6.1',
+                    destination: '/nodemon.json',
+                    source: '/tmp/update/nodemon.json',
                 },
             ],
             remove: [],
