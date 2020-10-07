@@ -3,6 +3,9 @@ const PLUGIN = require('./info');
 
 const _ = require('underscore');
 const op = require('object-path');
+const slugify = require('slugify');
+
+SDK.Blueprint = {};
 
 SDK.Helper = {};
 
@@ -33,7 +36,7 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
 
 SDK.attach = async (params, options) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return [];
-    let { content, contentId, collection, type } = params;
+    let { blueprint, content, contentId, collection, type } = params;
 
     options = options || { useMasterKey: true };
 
@@ -61,14 +64,19 @@ SDK.attach = async (params, options) => {
 
     type = op.get(content.get('type') || {}, 'machineName');
 
+    blueprint = SDK.Blueprint.slug(blueprint || collection);
+
     // Update content.meta object
+    // Update content.blueprint string
     routes = routes.map(route => {
         const meta = route.get('meta');
         op.set(meta, 'contentId', contentId);
         op.set(meta, 'collection', collection);
         op.set(meta, 'type', type);
         op.del(meta, 'blueprint');
+
         route.set('meta', meta);
+        route.set('blueprint', blueprint);
         return route;
     });
 
@@ -424,6 +432,43 @@ SDK.trash = async (params, options) => {
      * @apiDescription Triggered after a url is trashed as a result of calling Actinium.URL.trash() function.
      */
     await Actinium.Hook.run('url-trashed', urls, trash, params, options);
+};
+
+SDK.Blueprint.slug = str => {
+    str = slugify(str);
+    str = String(str).toLowerCase();
+    return str;
+};
+
+SDK.Blueprint.update = async (params, options) => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return [];
+    let { blueprint, collection, contentId } = params;
+
+    options = options || { useMasterKey: true };
+
+    blueprint = SDK.Blueprint.slug(blueprint || collection);
+
+    // Look at routes that don't have meta.contentId value set
+    const qry = new Actinium.Query('Route')
+        .equalTo('meta.contentId', contentId)
+        .notEqualTo('blueprint', blueprint);
+
+    const count = await qry.count(options);
+
+    if (count < 1) return [];
+
+    const routes = await qry
+        .skip(0)
+        .limit(count)
+        .find(options);
+
+    // Update content.blueprint string
+    routes.forEach(route => route.set('blueprint', blueprint));
+
+    const updated =
+        routes.length > 0 ? await Actinium.Object.saveAll(routes, options) : [];
+
+    return updated;
 };
 
 module.exports = SDK;

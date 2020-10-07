@@ -20,10 +20,12 @@ Actinium.Hook.register(
     async (contentObj, typeObj, isNew, params, options) => {
         if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
+        const blueprint = op.get(contentObj, 'blueprint');
         const contentId = op.get(contentObj, 'objectId');
         const collection = op.get(typeObj, 'collection');
 
-        await SDK.attach({ contentId, collection });
+        await SDK.attach({ blueprint, collection, contentId });
+        await SDK.Blueprint.update({ blueprint, collection, contentId });
     },
 );
 
