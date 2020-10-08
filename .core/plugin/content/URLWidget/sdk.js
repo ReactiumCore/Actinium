@@ -27,11 +27,21 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
     }
 
     urlObj.set('blueprint', op.get(url, 'blueprint'));
-    urlObj.set('route', op.get(url, 'route'));
+    urlObj.set('route', SDK.Helper.urlFormat(op.get(url, 'route')));
     urlObj.set('meta', op.get(url, 'meta'));
     urlObj.set('user', user);
 
     return urlObj;
+};
+
+SDK.Helper.urlFormat = url => {
+    url = String(url)
+        .toLowerCase()
+        .split('/')
+        .map(str => slugify(str))
+        .join('/');
+
+    return String(url).substr(0, 1) === '/' ? url : `/${url}`;
 };
 
 SDK.attach = async (params, options) => {
