@@ -56,7 +56,11 @@ Actinium.Hook.register('content-schema', async (schema, machineName) => {
             return;
         }
 
-        if (String(op.get(field, 'fieldType')).toLowerCase() !== 'collection') {
+        if (
+            !['collection', 'navigation'].includes(
+                String(op.get(field, 'fieldType')).toLowerCase(),
+            )
+        ) {
             return;
         }
 
