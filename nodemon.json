@@ -1,5 +1,9 @@
 {
-    "ignore": ["./docs/*", "src/env.dev.json"],
     "quiet": true,
-    "watch": ["./src", "./.core"]
+    "env": {
+        "NODE_ENV": "development"
+    },
+    "ignore": ["./.cli", "./.core/.cli", "./docs/*", "src/env.dev.json"],
+    "watch": ["./src", "./.core"],
+    "ext": "js,json"
 }

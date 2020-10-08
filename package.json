@@ -4,7 +4,7 @@
     "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
-        "local": "npm run docs && cross-env NODE_ENV=development nodemon",
+        "local": "npm run docs && nodemon",
         "docker": "npm-run-all -s docker:*",
         "docker:build": "docker image build -t atomicreactor/actinium:$npm_package_version .",
         "docker:push": "docker push atomicreactor/actinium:$npm_package_version",
@@ -65,7 +65,7 @@
         "eslint": "^5.13.0",
         "husky": "^3.0.9",
         "lint-staged": "^9.4.2",
-        "nodemon": "^1.19.4",
+        "nodemon": "^2.0.4",
         "prettier": "^1.18.2"
     },
     "repository": {
