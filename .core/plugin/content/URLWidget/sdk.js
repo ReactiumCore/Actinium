@@ -80,6 +80,9 @@ SDK.attach = async (params, options) => {
     // Update content.blueprint string
     routes = routes.map(route => {
         const meta = route.get('meta');
+
+        let app = op.get(meta, 'app', 'site');
+        op.set(meta, 'app', app);
         op.set(meta, 'contentId', contentId);
         op.set(meta, 'collection', collection);
         op.set(meta, 'type', type);
