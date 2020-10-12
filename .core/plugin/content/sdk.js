@@ -1377,7 +1377,7 @@ Content.changeSlug = async (params, options) => {
  * @apiParam (params) {String} [slug] The unique slug for the content.
  * @apiParam (params) {String} [objectId] The objectId for the content.
  * @apiParam (params) {String} [uuid] The uuid for the content.
- * @apiParam (params) {Boolean} [attach=false] boolean flag to attach Pointers and Relations.
+ * @apiParam (params) {Boolean} [resolveRelations=false] boolean flag to resolveRelations Pointers and Relations.
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -1418,7 +1418,7 @@ Content.retrieve = async (params, options) => {
         ([, fs]) => op.get(fs, 'type') === 'Relation',
     );
     // Attach Pointers
-    if (op.get(params, 'attach', false) === true) {
+    if (op.get(params, 'resolveRelations', false) === true) {
         for (const [fieldSlug, fieldSchema] of pointers) {
             query.include(fieldSlug);
         }
@@ -1426,7 +1426,8 @@ Content.retrieve = async (params, options) => {
 
     const content = await query.first(options);
 
-    if (op.get(params, 'attach', false) === true) {
+    // TODO: Add maybe recursive resolution of relations
+    if (op.get(params, 'resolveRelations', false) === true) {
         for (const [fieldSlug, fieldSchema] of pointers) {
             content &&
                 content.get(fieldSlug) &&
@@ -1442,7 +1443,7 @@ Content.retrieve = async (params, options) => {
         const contentObj = serialize(content);
 
         // Attach Relations
-        if (op.get(params, 'attach', false) === true) {
+        if (op.get(params, 'resolveRelations', false) === true) {
             for (const [fieldSlug, fieldSchema] of relations) {
                 const objs = await content
                     .relation(fieldSlug)
