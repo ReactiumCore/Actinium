@@ -26,9 +26,12 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
         urlObj.set('objectId', op.get(url, 'objectId'));
     }
 
+    const meta = op.get(url, 'meta', {});
+    if (!op.get(meta, 'app')) op.set(meta, 'app', 'site');
+
     urlObj.set('blueprint', op.get(url, 'blueprint'));
     urlObj.set('route', SDK.Helper.urlFormat(op.get(url, 'route')));
-    urlObj.set('meta', op.get(url, 'meta'));
+    urlObj.set('meta', meta);
     urlObj.set('user', user);
 
     return urlObj;
