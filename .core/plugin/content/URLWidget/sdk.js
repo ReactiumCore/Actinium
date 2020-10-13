@@ -29,7 +29,7 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
     const meta = op.get(url, 'meta', {});
     if (!op.get(meta, 'app')) op.set(meta, 'app', 'site');
 
-    urlObj.set('blueprint', op.get(url, 'blueprint'));
+    urlObj.set('blueprint', SDK.Blueprint.slug(op.get(url, 'blueprint', '')));
     urlObj.set('route', SDK.Helper.urlFormat(op.get(url, 'route')));
     urlObj.set('meta', meta);
     urlObj.set('user', user);
@@ -451,8 +451,11 @@ SDK.trash = async (params, options) => {
 };
 
 SDK.Blueprint.slug = str => {
-    str = slugify(str);
     str = String(str).toLowerCase();
+    str = String(str).replace(/[^a-z0-9\-\_\s]/gi, '');
+    str = String(str).replace(/\s+/, ' ');
+    str = slugify(str);
+
     return str;
 };
 
