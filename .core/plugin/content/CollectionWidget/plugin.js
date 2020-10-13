@@ -44,9 +44,7 @@ Actinium.Hook.register('content-schema', async (schema, machineName) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
     const type = await Actinium.Type.retrieve(
-        {
-            machineName,
-        },
+        { machineName },
         { useMasterKey: true },
     );
 
@@ -56,13 +54,8 @@ Actinium.Hook.register('content-schema', async (schema, machineName) => {
             return;
         }
 
-        if (
-            !['collection', 'navigation'].includes(
-                String(op.get(field, 'fieldType')).toLowerCase(),
-            )
-        ) {
-            return;
-        }
+        const fieldType = String(op.get(field, 'fieldType')).toLowerCase();
+        if (!['collection', 'navigation'].includes(fieldType)) return;
 
         const fieldSlug = String(
             Actinium.Utils.slugify(field.fieldName),

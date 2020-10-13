@@ -26,9 +26,12 @@ SDK.Helper.routeObject = ({ contentId, url, user }) => {
         urlObj.set('objectId', op.get(url, 'objectId'));
     }
 
-    urlObj.set('blueprint', op.get(url, 'blueprint'));
+    const meta = op.get(url, 'meta', {});
+    if (!op.get(meta, 'app')) op.set(meta, 'app', 'site');
+
+    urlObj.set('blueprint', SDK.Blueprint.slug(op.get(url, 'blueprint', '')));
     urlObj.set('route', SDK.Helper.urlFormat(op.get(url, 'route')));
-    urlObj.set('meta', op.get(url, 'meta'));
+    urlObj.set('meta', meta);
     urlObj.set('user', user);
 
     return urlObj;
@@ -80,6 +83,9 @@ SDK.attach = async (params, options) => {
     // Update content.blueprint string
     routes = routes.map(route => {
         const meta = route.get('meta');
+
+        let app = op.get(meta, 'app', 'site');
+        op.set(meta, 'app', app);
         op.set(meta, 'contentId', contentId);
         op.set(meta, 'collection', collection);
         op.set(meta, 'type', type);
@@ -445,8 +451,11 @@ SDK.trash = async (params, options) => {
 };
 
 SDK.Blueprint.slug = str => {
-    str = slugify(str);
     str = String(str).toLowerCase();
+    str = String(str).replace(/[^a-z0-9\-\_\s]/gi, '');
+    str = String(str).replace(/\s+/, ' ');
+    str = slugify(str);
+
     return str;
 };
 
