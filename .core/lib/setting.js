@@ -4,6 +4,7 @@ const _ = require('underscore');
 const semver = require('semver');
 const op = require('object-path');
 const config = require(`${BASE_DIR}/.core/actinium-config`);
+const { Registry } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = 'Setting';
 
@@ -123,5 +124,10 @@ Setting.load = async () => {
     await Setting.schema();
     return Parse.Cloud.run('settings', {}, options);
 };
+
+// Non-sensitive setting groups only!!
+Setting.anonymousGroup = new Registry('AnonymousGroup');
+Setting.anonymousGroup.register('app', { id: 'app' });
+Setting.anonymousGroup.register('profile', { id: 'profile' });
 
 module.exports = Setting;

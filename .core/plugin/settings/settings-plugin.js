@@ -380,9 +380,18 @@ Actinium.Capability.register(
     Actinium.Enums.priority.highest,
 );
 
-Actinium.Capability.register('setting.profile-get', {
-    allowed: ['anonymous', 'user', 'contributor', 'moderator'],
-});
+// Anonymous - Non Sensitive settings groups only!
+Actinium.Hook.register(
+    'before-capability-load',
+    () => {
+        Actinium.Setting.anonymousGroup.list.forEach(({ id }) =>
+            Actinium.Capability.register(`setting.${id}-get`, {
+                allowed: ['anonymous', 'user', 'contributor', 'moderator'],
+            }),
+        );
+    },
+    Actinium.Enums.priority.lowest,
+);
 
 // All operations on settings are privileged
 Actinium.Collection.register(
