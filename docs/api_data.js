@@ -1841,9 +1841,9 @@ define({ "api": [
             "group": "params",
             "type": "Boolean",
             "optional": true,
-            "field": "attach",
+            "field": "resolveRelations",
             "defaultValue": "false",
-            "description": "<p>boolean flag to attach Pointers and Relations.</p>"
+            "description": "<p>boolean flag to resolveRelations Pointers and Relations.</p>"
           }
         ],
         "type": [
