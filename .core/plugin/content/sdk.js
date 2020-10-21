@@ -1412,10 +1412,14 @@ Content.retrieve = async (params, options) => {
 
     const relationData = {};
     const pointers = Object.entries(schema).filter(
-        ([, fs]) => op.get(fs, 'type') === 'Pointer',
+        ([, fs]) =>
+            op.get(fs, 'type') === 'Pointer' &&
+            op.get(fs, 'targetClass') !== '_User',
     );
     const relations = Object.entries(schema).filter(
-        ([, fs]) => op.get(fs, 'type') === 'Relation',
+        ([, fs]) =>
+            op.get(fs, 'type') === 'Relation' &&
+            op.get(fs, 'targetClass') !== '_User',
     );
     // Attach Pointers
     if (op.get(params, 'resolveRelations', false) === true) {
