@@ -1,5 +1,33 @@
 [
   {
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "optional": false,
+            "field": "varname1",
+            "description": "<p>No type.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "varname2",
+            "description": "<p>With type.</p>"
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": ".core/middleware/docs/content/main.js",
+    "group": "/Users/johndillick/dev/atomic-reactor/actinium/.core/middleware/docs/content/main.js",
+    "groupTitle": "/Users/johndillick/dev/atomic-reactor/actinium/.core/middleware/docs/content/main.js",
+    "name": ""
+  },
+  {
     "type": "Object",
     "url": "Actinium.Cache",
     "title": "Cache",
@@ -16,7 +44,7 @@
     "title": "Cache.clear()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_clear",
+    "name": "Cache.clear",
     "description": "<p>Delete all cached values.</p>",
     "parameter": {
       "fields": {
@@ -47,7 +75,7 @@
     "title": "Cache.del()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_del",
+    "name": "Cache.del",
     "description": "<p>Delete the value for a given key. Returns <code>{Boolean}</code>.</p>",
     "parameter": {
       "fields": {
@@ -78,7 +106,7 @@
     "title": "Cache.get()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_get",
+    "name": "Cache.get",
     "description": "<p>Retrieves the value for a given key. If the value is not cached <code>null</code> is returned.</p>",
     "parameter": {
       "fields": {
@@ -116,7 +144,7 @@
     "title": "Cache.keys()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_keys",
+    "name": "Cache.keys",
     "description": "<p>Returns an array of the cached keys.</p>",
     "filename": "src/app/documentation/cache.js",
     "groupTitle": "Actinium"
@@ -127,7 +155,7 @@
     "title": "Cache.memsize()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_memsize",
+    "name": "Cache.memsize",
     "description": "<p>Returns the number of entries taking up space in the cache.</p>",
     "filename": "src/app/documentation/cache.js",
     "groupTitle": "Actinium"
@@ -138,7 +166,7 @@
     "title": "Cache.merge()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_merge",
+    "name": "Cache.merge",
     "description": "<p>Merges the supplied values object with the current cache. Any existing entries will remain in cache. Duplicates will be overwritten unless <code>option.skipDuplicates</code> is <code>true</code>. Entries that would have exipired since being merged will expire upon merge but their timeoutCallback will not be invoked. Returns the new size of the cache.</p>",
     "parameter": {
       "fields": {
@@ -169,7 +197,7 @@
     "title": "Cache.set()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_set",
+    "name": "Cache.set",
     "description": "<p>Sets the value for a given key. If the value is an <code>{Object}</code> and is already cached, you can use an object path to update a specific part of the value. Returns the cached value.</p>",
     "parameter": {
       "fields": {
@@ -221,7 +249,7 @@
     "title": "Cache.size()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Cache_size",
+    "name": "Cache.size",
     "description": "<p>Returns the current number of entries in the cache.</p>",
     "filename": "src/app/documentation/cache.js",
     "groupTitle": "Actinium"
@@ -326,7 +354,7 @@
     "title": "Collection.register()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Collection_register",
+    "name": "Collection.register",
     "description": "<p>Registers public class level permission for your collection.</p>",
     "parameter": {
       "fields": {
@@ -378,7 +406,7 @@
     "title": "Collection.unregister()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Collection_unregister",
+    "name": "Collection.unregister",
     "description": "<p>Set collection permissions to Actinium default (i.e. fully private or only administrator, super-admin, and master key use).</p>",
     "parameter": {
       "fields": {
@@ -471,7 +499,7 @@
         ]
       }
     },
-    "name": "Content_Log_add",
+    "name": "Content.Log.add",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -563,7 +591,7 @@
         ]
       }
     },
-    "name": "Content_Log_list",
+    "name": "Content.Log.list",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -638,7 +666,7 @@
         ]
       }
     },
-    "name": "Content_changeSlug",
+    "name": "Content.changeSlug",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -729,7 +757,7 @@
         ]
       }
     },
-    "name": "Content_changeSlug",
+    "name": "Content.changeSlug",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -845,7 +873,7 @@
         ]
       }
     },
-    "name": "Content_cloneBranch__",
+    "name": "Content.cloneBranch()",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -967,7 +995,7 @@
         ]
       }
     },
-    "name": "Content_create",
+    "name": "Content.create",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1013,7 +1041,7 @@
         ]
       }
     },
-    "name": "Content_createBranch",
+    "name": "Content.createBranch",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1097,7 +1125,7 @@
         ]
       }
     },
-    "name": "Content_delete",
+    "name": "Content.delete",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1206,7 +1234,7 @@
         ]
       }
     },
-    "name": "Content_deleteBranch__",
+    "name": "Content.deleteBranch()",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1237,7 +1265,7 @@
         ]
       }
     },
-    "name": "Content_diff",
+    "name": "Content.diff",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1283,7 +1311,7 @@
         ]
       }
     },
-    "name": "Content_getVersion",
+    "name": "Content.getVersion",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1399,7 +1427,7 @@
         ]
       }
     },
-    "name": "Content_labelBranch__",
+    "name": "Content.labelBranch()",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1516,7 +1544,7 @@
         ]
       }
     },
-    "name": "Content_list",
+    "name": "Content.list",
     "group": "Actinium",
     "examples": [
       {
@@ -1561,7 +1589,7 @@
         ]
       }
     },
-    "name": "Content_masterCopyProps",
+    "name": "Content.masterCopyProps",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1683,7 +1711,7 @@
         ]
       }
     },
-    "name": "Content_publish",
+    "name": "Content.publish",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1694,7 +1722,7 @@
     "url": "Content.publishScheduled()",
     "title": "Content.publishScheduled()",
     "description": "<p>Manually run content scheduler. Publishes or unpublishes any content that is scheduled.</p>",
-    "name": "Content_publishScheduled",
+    "name": "Content.publishScheduled",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1764,7 +1792,7 @@
         ]
       }
     },
-    "name": "Content_restore",
+    "name": "Content.restore",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1888,7 +1916,7 @@
         ]
       }
     },
-    "name": "Content_retrieve",
+    "name": "Content.retrieve",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1997,7 +2025,7 @@
         ]
       }
     },
-    "name": "Content_revision__",
+    "name": "Content.revision()",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2037,7 +2065,7 @@
         ]
       }
     },
-    "name": "Content_sanitize",
+    "name": "Content.sanitize",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2159,7 +2187,7 @@
         ]
       }
     },
-    "name": "Content_schedule",
+    "name": "Content.schedule",
     "group": "Actinium",
     "examples": [
       {
@@ -2274,7 +2302,7 @@
         ]
       }
     },
-    "name": "Content_setCurrent",
+    "name": "Content.setCurrent",
     "group": "Actinium",
     "examples": [
       {
@@ -2402,7 +2430,7 @@
         ]
       }
     },
-    "name": "Content_setPermissions",
+    "name": "Content.setPermissions",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2524,7 +2552,7 @@
         ]
       }
     },
-    "name": "Content_setStatus",
+    "name": "Content.setStatus",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2632,7 +2660,7 @@
         ]
       }
     },
-    "name": "Content_trash",
+    "name": "Content.trash",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -2740,7 +2768,7 @@
         ]
       }
     },
-    "name": "Content_trash",
+    "name": "Content.trash",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2751,7 +2779,7 @@
     "url": "Content.typeMaintenance()",
     "title": "Content.typeMaintenance()",
     "description": "<p>Manually run content maintenance. Primarily makes sure that the current content slugs are accounted for in the Type object, but also runs the Hook <code>type-maintenance</code> for each type, giving plugins an opportunity to do their own maintenance.</p>",
-    "name": "Content_typeMaintenance",
+    "name": "Content.typeMaintenance",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -2859,7 +2887,7 @@
         ]
       }
     },
-    "name": "Content_unpublish",
+    "name": "Content.unpublish",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -2981,7 +3009,7 @@
         ]
       }
     },
-    "name": "Content_unpublish",
+    "name": "Content.unpublish",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -3056,7 +3084,7 @@
         ]
       }
     },
-    "name": "Content_unschedule",
+    "name": "Content.unschedule",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -3147,7 +3175,7 @@
         ]
       }
     },
-    "name": "Content_unschedule",
+    "name": "Content.unschedule",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -3262,7 +3290,7 @@
         ]
       }
     },
-    "name": "Content_update",
+    "name": "Content.update",
     "group": "Actinium",
     "examples": [
       {
@@ -3281,7 +3309,7 @@
     "title": "File.create()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "File_create",
+    "name": "File.create",
     "description": "<p>Create a new parse file from disk. Returns a Parse.File object that has been saved to storage.</p>",
     "parameter": {
       "fields": {
@@ -3347,7 +3375,7 @@
     },
     "version": "3.1.6",
     "group": "Actinium",
-    "name": "FilesAdapter_register",
+    "name": "FilesAdapter.register",
     "filename": ".core/lib/files-adapter.js",
     "groupTitle": "Actinium"
   },
@@ -3357,7 +3385,7 @@
     "title": "Harness.test()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Harness_test",
+    "name": "Harness.test",
     "description": "<p>Add a local development functional test, to be run at startup of Actinium. Your test callback will be passed the node.js 'assert' object.</p>",
     "parameter": {
       "fields": {
@@ -3410,7 +3438,7 @@
     "version": "3.0.5",
     "group": "Actinium",
     "name": "Hook",
-    "description": "<p>Hooks are a way for one piece of code to interact/modify another piece of code. They make up the foundation for how plugins interact with Actinium.</p> <h2>Using Hooks</h2> <p>Simply create a callback function that returns a <code>{Promise}</code> and register it with Actinium.</p> <pre><code class=\"language-js\">Actinium.Hook.register('start', myFunction); </code></pre> <p><em>See: <a href=\"#api-Actinium-Hook_register\">Hook.register</a> for full example.</em></p> <h2>Custom Hooks</h2> <p>You can create custom hooks in your plugins so that other developers can extend and modify it. Just create a function and implement the hook using:</p> <pre><code class=\"language-js\">Hook.run('myHook', param1, param2) </code></pre> <p><em>See: <a href=\"#api-Actinium-Hook_run\">Hook.run</a> for full example.</em></p> <h2>Behavior</h2> <p>Hooks are synchronous and will execute in the order they are registered unless the <code>order</code> parameter is specified.</p>",
+    "description": "<p>Hooks are a way for one piece of code to interact/modify another piece of code. They make up the foundation for how plugins interact with Actinium.</p> <h2>Using Hooks</h2> <p>Simply create a callback function that returns a <code>{Promise}</code> and register it with Actinium.</p> <pre class=\"prettyprint lang-js\">Actinium.Hook.register('start', myFunction); </pre> <p><em>See: <a href=\"#api-Actinium-Hook_register\">Hook.register</a> for full example.</em></p> <h2>Custom Hooks</h2> <p>You can create custom hooks in your plugins so that other developers can extend and modify it. Just create a function and implement the hook using:</p> <pre class=\"prettyprint lang-js\">Hook.run('myHook', param1, param2) </pre> <p><em>See: <a href=\"#api-Actinium-Hook_run\">Hook.run</a> for full example.</em></p> <h2>Behavior</h2> <p>Hooks are synchronous and will execute in the order they are registered unless the <code>order</code> parameter is specified.</p>",
     "parameter": {
       "fields": {
         "Hooks": [
@@ -3774,7 +3802,7 @@
     "title": "Hook.flush()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Hook_flush",
+    "name": "Hook.flush",
     "description": "<p>Unregister all callback functions for the specified hook.</p>",
     "parameter": {
       "fields": {
@@ -3805,7 +3833,7 @@
     "title": "Hook.list()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Hook_list",
+    "name": "Hook.list",
     "description": "<p>Get a list of all the registered hooks.</p>",
     "examples": [
       {
@@ -3823,7 +3851,7 @@
     "title": "Hook.register()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Hook_register",
+    "name": "Hook.register",
     "description": "<p>Registering a hook queues your callback function to be executed when the hook is run.</p> <p>The callback function is passed any parameters from <code>Hook.run()</code> as well as a <code>context</code> object that can be modified between hook callbacks. The context object will be the very last parameter.</p>",
     "parameter": {
       "fields": {
@@ -3878,7 +3906,7 @@
     "title": "Hook.run()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Hook_run",
+    "name": "Hook.run",
     "description": "<p>Hook.Run is useful when implementing custom hooks in your plugins.</p> <p>Upon completion of the hook action sequence the <code>context</code> object is returned.</p>",
     "parameter": {
       "fields": {
@@ -3916,7 +3944,7 @@
     "title": "Hook.unregister()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Hook_unregister",
+    "name": "Hook.unregister",
     "description": "<p>Unregister a hook callback removing it from the Hook's action sequence.</p>",
     "examples": [
       {
@@ -3945,7 +3973,7 @@
     "title": "Media.Image",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_Image",
+    "name": "Media.Image",
     "description": "<p>Under the hood, Actinium uses <a href=\"Sharp\">https://sharp.pixelplumbing.com</a> a Node.js image processing library. You can use the API however you like in your own application.</p>",
     "filename": ".core/plugin/media/sdk.js",
     "groupTitle": "Actinium"
@@ -3956,7 +3984,7 @@
     "title": "Media.crop",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_crop",
+    "name": "Media.crop",
     "description": "<p>Generate a cropped version of the specified image from an <code>Actinium.File</code> object or image URL. Useful for creating thumbnails or responsive image sizes.</p>",
     "parameter": {
       "fields": {
@@ -4002,7 +4030,7 @@
     "title": "Media.directories",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_directories",
+    "name": "Media.directories",
     "description": "<p>Retrieves the complete list of Media directories. Runs the <code>directory-query</code> hook allowing you to change or replace the default query. The results are reduced based on the capabilities applied to each directory and the current user request.</p>",
     "parameter": {
       "fields": {
@@ -4040,7 +4068,7 @@
     "title": "Media.directoryDelete",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_directoryDelete",
+    "name": "Media.directoryDelete",
     "description": "<p>Delete a directory from the <code>MediaDirectory</code> table.</p> <p>This will NOT delete the files within the directory.</p> <p><em>Use the <code>Media.fileDelete()</code> function for deleting a directory of files.</em></p>",
     "parameter": {
       "fields": {
@@ -4078,7 +4106,7 @@
     "title": "Media.directorySave",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_directorySave",
+    "name": "Media.directorySave",
     "description": "<p>Create a new Media directory.</p>",
     "parameter": {
       "fields": {
@@ -4138,7 +4166,7 @@
     "title": "Media.fileDelete",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_fileDelete",
+    "name": "Media.fileDelete",
     "description": "<p>Delete a single file or directory containing multiple files.</p> <p>The file to search for will be matched against the following fields: <code>url, objectId, uuid, filename, directory</code></p> <p>When deleting based on <code>filename</code> or <code>directory</code> There are a couple protections built in:</p> <ol> <li>You must specify <code>useMasterKey</code> in the run <code>options</code> object.</li> <li>Only 50 files will be deleted per request.</li> </ol>",
     "parameter": {
       "fields": {
@@ -4184,7 +4212,7 @@
     "title": "Media.fileType()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Media_fileType",
+    "name": "Media.fileType",
     "description": "<p>Get the type of file the media object is. Returns one of: <code>IMAGE</code>, <code>VIDEO</code>, <code>AUDIO</code>, <code>FILE</code>.</p>",
     "parameter": {
       "fields": {
@@ -4215,7 +4243,7 @@
     "title": "Media.files",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_files",
+    "name": "Media.files",
     "description": "<p>Retrieves a paginated list of <code>Media</code> objects.</p>",
     "parameter": {
       "fields": {
@@ -4274,7 +4302,7 @@
     "title": "Media.get()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Media_get",
+    "name": "Media.get",
     "description": "<p>Retrieves a specific <code>Media</code> object.</p>",
     "parameter": {
       "fields": {
@@ -4347,7 +4375,7 @@
     "title": "Media.load",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_load",
+    "name": "Media.load",
     "description": "<p>Query the Media collection and load the results in memory.</p>",
     "examples": [
       {
@@ -4365,7 +4393,7 @@
     "title": "Media.upload",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_update",
+    "name": "Media.update",
     "description": "<p>Function that updates a Media Object.</p>",
     "parameter": {
       "fields": {
@@ -4417,7 +4445,7 @@
     "title": "Media.upload",
     "version": "3.1.3",
     "group": "Actinium",
-    "name": "Media_upload",
+    "name": "Media.upload",
     "description": "<p>Function that creates a file and adds it to the Media Library.</p> <p>Returns: <code>Actinium.Object('Media')</code></p>",
     "parameter": {
       "fields": {
@@ -4513,7 +4541,7 @@
     "title": "Middleware.register()",
     "version": "3.1.0",
     "group": "Actinium",
-    "name": "Middleware_register",
+    "name": "Middleware.register",
     "description": "<p>Register middleware to be executed when the app initializes.</p>",
     "parameter": {
       "fields": {
@@ -4559,7 +4587,7 @@
     "title": "Middleware.replace()",
     "version": "3.1.0",
     "group": "Actinium",
-    "name": "Middleware_replace",
+    "name": "Middleware.replace",
     "description": "<p>Replace exsisting middleware.</p>",
     "parameter": {
       "fields": {
@@ -4597,7 +4625,7 @@
     "title": "Middleware.unregister()",
     "version": "3.1.0",
     "group": "Actinium",
-    "name": "Middleware_unregister",
+    "name": "Middleware.unregister",
     "description": "<p>Unegister middleware. Used to disable a middleware from executing.</p>",
     "examples": [
       {
@@ -4637,7 +4665,7 @@
     "title": "Plugin.activate()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_activate",
+    "name": "Plugin.activate",
     "description": "<p>Programmatically activate a plugin.</p>",
     "parameter": {
       "fields": {
@@ -4677,7 +4705,7 @@
     "title": "Plugin.addLogo()",
     "version": "3.5.5",
     "group": "Actinium",
-    "name": "Plugin_addLogo",
+    "name": "Plugin.addLogo",
     "description": "<p>Register a logo image for your plugin at plugin activation. This calls Plugin.addMetaAsset() with assetURL of <code>logoURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load logoURLs found for active actinium plugins. This logo image will represent your plugin in the plugin manager.</p>",
     "parameter": {
       "fields": {
@@ -4716,7 +4744,7 @@
     "title": "Plugin.addMetaAsset()",
     "version": "3.5.5",
     "group": "Actinium",
-    "name": "Plugin_addMetaAsset",
+    "name": "Plugin.addMetaAsset",
     "description": "<p>Register an asset to the Parse file API and store the URL in your plugin meta object. Example usage, for providing a browser js script, a css file, or a plugin manager logo image. This is generally called after you have called <code>Actinium.Plugin.register()</code> to register your plugin, and the assets will be added to your plugin on plugin <code>activation</code> hook.</p> <p>Before your asset is stored, and the URL created, you will have an opportunity to change the targetFileName, when the <code>add-meta-asset</code> hook is called. For example the S3 file adapter plugin automatically adds the plugin version or Actinium version to asset filename (and URL) so that the correct asset is cached in your S3 bucket.</p>",
     "parameter": {
       "fields": {
@@ -4767,7 +4795,7 @@
     "title": "Plugin.addScript()",
     "version": "3.5.5",
     "group": "Actinium",
-    "name": "Plugin_addScript",
+    "name": "Plugin.addScript",
     "description": "<p>Register a front-end Reactium plugin script asset for your plugin. This calls Plugin.addMetaAsset() with assetURL of <code>scriptURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load scriptURLs found for active actinium plugins. In this way, you can publish plugin code to the Actinium admin.</p>",
     "parameter": {
       "fields": {
@@ -4806,7 +4834,7 @@
     "title": "Plugin.addStylesheet()",
     "version": "3.5.5",
     "group": "Actinium",
-    "name": "Plugin_addStylesheet",
+    "name": "Plugin.addStylesheet",
     "description": "<p>Register a front-end Reactium plugin script asset for your plugin. This calls Plugin.addMetaAsset() with assetURL of <code>styleURL</code>. See <code>Plugin.addMetaAsset()</code> for more information. Actinium admin (a Reactium instance) will automatically load styleURLs found for active actinium plugins. In this way, you can publish styles for your plugin to be used when your plugin is active in the Actinium admin.</p>",
     "parameter": {
       "fields": {
@@ -4845,7 +4873,7 @@
     "title": "Plugin.deactivate()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_deactivate",
+    "name": "Plugin.deactivate",
     "description": "<p>Programmatically deactivate a plugin.</p>",
     "parameter": {
       "fields": {
@@ -4885,7 +4913,7 @@
     "title": "Plugin.get()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_get",
+    "name": "Plugin.get",
     "description": "<p>Get the list of plugins.</p>",
     "parameter": {
       "fields": {
@@ -4921,7 +4949,7 @@
     "title": "Plugin.isActive()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_isActive",
+    "name": "Plugin.isActive",
     "description": "<p>Determine if a plugin is active.</p>",
     "parameter": {
       "fields": {
@@ -4952,7 +4980,7 @@
     "title": "Plugin.isValid()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_isValid",
+    "name": "Plugin.isValid",
     "description": "<p>Determine if a plugin is valid.</p>",
     "parameter": {
       "fields": {
@@ -4991,7 +5019,7 @@
     "title": "Plugin.register()",
     "version": "3.0.5",
     "group": "Actinium",
-    "name": "Plugin_register",
+    "name": "Plugin.register",
     "description": "<p>Register a plugin object.</p>",
     "parameter": {
       "fields": {
@@ -5093,7 +5121,7 @@
     "title": "Pulse.define()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_define",
+    "name": "Pulse.define",
     "description": "<p>Define and scheudle a Pulse cron job.</p>",
     "parameter": {
       "fields": {
@@ -5185,7 +5213,7 @@
     "title": "Pulse.definitions",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_definitions",
+    "name": "Pulse.definitions",
     "description": "<p>List of defined Pulse cron jobs.</p>",
     "filename": "src/app/documentation/pulse.js",
     "groupTitle": "Actinium"
@@ -5196,7 +5224,7 @@
     "title": "Pulse.log()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_log",
+    "name": "Pulse.log",
     "description": "<p>Manually log activity related to a job.</p>",
     "parameter": {
       "fields": {
@@ -5241,7 +5269,7 @@
     "title": "Pulse.remove()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_remove",
+    "name": "Pulse.remove",
     "description": "<p>Remove a Pulse cron job. If the task is duplicated, all instances are removed.</p>",
     "parameter": {
       "fields": {
@@ -5265,7 +5293,7 @@
     "title": "Pulse.replace()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_replace",
+    "name": "Pulse.replace",
     "description": "<p>Place a Pulse cron job. If the task is duplicated, all instances are removed and replaced with the newly defined task. See <a href=\"#api-Actinium-Pulse_define\">Pulse.define()</a> for deatils.</p>",
     "filename": "src/app/documentation/pulse.js",
     "groupTitle": "Actinium"
@@ -5276,7 +5304,7 @@
     "title": "Pulse.start()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_start",
+    "name": "Pulse.start",
     "description": "<p>Start a Pulse cron job. If the task is duplicated, all instances are started.</p>",
     "parameter": {
       "fields": {
@@ -5300,7 +5328,7 @@
     "title": "Pulse.stop()",
     "version": "3.0.3",
     "group": "Actinium",
-    "name": "Pulse_stop",
+    "name": "Pulse.stop",
     "description": "<p>Stop a Pulse cron job. If the task is duplicated, all instances are stoped.</p>",
     "parameter": {
       "fields": {
@@ -5335,7 +5363,7 @@
     "title": "Recycle.archive()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_archive",
+    "name": "Recycle.archive",
     "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as an <code>archve</code> type.</p>",
     "parameter": {
       "fields": {
@@ -5394,7 +5422,7 @@
     "title": "Recycle.purge()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_purge",
+    "name": "Recycle.purge",
     "description": "<p>Clear the <code>Recycle</code> collection.</p>",
     "parameter": {
       "fields": {
@@ -5453,7 +5481,7 @@
     "title": "Recycle.restore()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_restore",
+    "name": "Recycle.restore",
     "description": "<p>Restore a <code>Actinium.Object</code> to it's original collection.</p>",
     "parameter": {
       "fields": {
@@ -5505,7 +5533,7 @@
     "title": "Recycle.retrieve()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_retrieve",
+    "name": "Recycle.retrieve",
     "description": "<p>Retrieve a paginated list of <code>Recycle</code> objects.</p>",
     "parameter": {
       "fields": {
@@ -5580,7 +5608,7 @@
     "title": "Recycle.revision()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_revision",
+    "name": "Recycle.revision",
     "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as a <code>revision</code> type.</p>",
     "parameter": {
       "fields": {
@@ -5639,7 +5667,7 @@
     "title": "Recycle.trash()",
     "version": "3.1.7",
     "group": "Actinium",
-    "name": "Recycle_trash",
+    "name": "Recycle.trash",
     "description": "<p>Move a <code>Actinium.Object</code> to the <code>Recycle</code> collection and mark it as a <code>delete</code> type.</p>",
     "parameter": {
       "fields": {
@@ -5822,7 +5850,7 @@
     "title": "Roles.User.add()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_User_add",
+    "name": "Roles.User.add",
     "description": "<p>Add a user to a role. Returns a <code>{Promise}</code>.</p>",
     "parameter": {
       "fields": {
@@ -5884,7 +5912,7 @@
     "title": "Roles.User.get()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_User_get",
+    "name": "Roles.User.get",
     "description": "<p>Retrieves roles of the specified user.</p>",
     "parameter": {
       "fields": {
@@ -5920,7 +5948,7 @@
     "title": "Roles.User.is()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_User_is",
+    "name": "Roles.User.is",
     "description": "<p>Check if a user is a member of a specific role. Returns <code>{Boolean}</code>.</p>",
     "parameter": {
       "fields": {
@@ -5958,7 +5986,7 @@
     "title": "Roles.User.remove()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_User_remove",
+    "name": "Roles.User.remove",
     "description": "<p>Remove a user from a role. Returns a <code>{Promise}</code>.</p>",
     "parameter": {
       "fields": {
@@ -6020,7 +6048,7 @@
     "title": "Roles.capabilities()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_capabilities",
+    "name": "Roles.capabilities",
     "description": "<p><em>Alias of <a href=\"#api-Actinium-Capabilities_Role_get\">Actinium.Capabilities.Role.get()</a></em></p>",
     "parameter": {
       "fields": {
@@ -6051,7 +6079,7 @@
     "title": "Roles.create()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_create",
+    "name": "Roles.create",
     "description": "<p>Create a new <code>Parse.Role</code> object. Returns a <code>{Promise}</code>.</p>",
     "parameter": {
       "fields": {
@@ -6143,7 +6171,7 @@
     "title": "Roles.get()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_get",
+    "name": "Roles.get",
     "description": "<p>Retrieves the specified role. If no role search is specified, all roles are returned.</p>",
     "examples": [
       {
@@ -6166,7 +6194,7 @@
     "title": "Roles.remove()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "Roles_remove",
+    "name": "Roles.remove",
     "description": "<p>Remove a new <code>Parse.Role</code> object. Returns <code>{Object}</code>.</p>",
     "parameter": {
       "fields": {
@@ -6239,7 +6267,7 @@
       }
     },
     "description": "<p>Trigger index of a content type. User must have <code>Search.index</code> capability.</p>",
-    "name": "Search_index",
+    "name": "Search.index",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/search/sdk.js",
@@ -6249,7 +6277,7 @@
     "type": "Asynchronous",
     "url": "Search.search(request)",
     "title": "Search.search()",
-    "name": "Search_search",
+    "name": "Search.search",
     "group": "Actinium",
     "parameter": {
       "fields": {
@@ -6325,7 +6353,7 @@
     "title": "Setting.get()",
     "version": "3.1.1",
     "group": "Actinium",
-    "name": "Setting_get",
+    "name": "Setting.get",
     "description": "<p>Get a setting value.</p>",
     "parameter": {
       "fields": {
@@ -6363,7 +6391,7 @@
     "title": "Setting.set()",
     "version": "3.1.1",
     "group": "Actinium",
-    "name": "Setting_set",
+    "name": "Setting.set",
     "description": "<p>Create or update a setting value. Returns a <code>{Promise}</code>.</p>",
     "parameter": {
       "fields": {
@@ -6408,7 +6436,7 @@
     "title": "Setting.unset()",
     "version": "3.1.1",
     "group": "Actinium",
-    "name": "Setting_unset",
+    "name": "Setting.unset",
     "description": "<p>Unset a setting value. Returns a <code>{Promise}</code>.</p>",
     "parameter": {
       "fields": {
@@ -6437,7 +6465,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.create(req,options)",
     "title": "Syndicate.Client.create()",
-    "name": "Syndicate_Client_create",
+    "name": "Syndicate.Client.create",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6496,7 +6524,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.delete(req,options)",
     "title": "Syndicate.Client.delete()",
-    "name": "Syndicate_Client_delete",
+    "name": "Syndicate.Client.delete",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6519,7 +6547,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.list(req,options)",
     "title": "Syndicate.Client.list()",
-    "name": "Syndicate_Client_list",
+    "name": "Syndicate.Client.list",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6630,7 +6658,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.retrieve(req,options)",
     "title": "Syndicate.Client.retrieve()",
-    "name": "Syndicate_Client_retrieve",
+    "name": "Syndicate.Client.retrieve",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6653,7 +6681,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.token(req)",
     "title": "Syndicate.Client.token()",
-    "name": "Syndicate_Client_token",
+    "name": "Syndicate.Client.token",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6698,7 +6726,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Client.token(req)",
     "title": "Syndicate.Client.token()",
-    "name": "Syndicate_Client_token",
+    "name": "Syndicate.Client.token",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6743,7 +6771,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.list(req,options)",
     "title": "Syndicate.Content.list()",
-    "name": "Syndicate_Content_list",
+    "name": "Syndicate.Content.list",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6754,7 +6782,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.media(req,options)",
     "title": "Syndicate.Content.media()",
-    "name": "Syndicate_Content_media",
+    "name": "Syndicate.Content.media",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6765,7 +6793,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.mediaDirectories(req,options)",
     "title": "Syndicate.Content.mediaDirectories()",
-    "name": "Syndicate_Content_mediaDirectories",
+    "name": "Syndicate.Content.mediaDirectories",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6776,7 +6804,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.taxonomies(req,options)",
     "title": "Syndicate.Content.taxonomies()",
-    "name": "Syndicate_Content_taxonomies",
+    "name": "Syndicate.Content.taxonomies",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6787,7 +6815,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.taxonomiesAttached(req,options)",
     "title": "Syndicate.Content.taxonomiesAttached()",
-    "name": "Syndicate_Content_taxonomiesAttached",
+    "name": "Syndicate.Content.taxonomiesAttached",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6798,7 +6826,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.taxonomyTypes(req,options)",
     "title": "Syndicate.Content.taxonomyTypes()",
-    "name": "Syndicate_Content_taxonomyTypes",
+    "name": "Syndicate.Content.taxonomyTypes",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6809,7 +6837,7 @@
     "type": "Asynchronous",
     "url": "Syndicate.Content.types(req,options)",
     "title": "Syndicate.Content.types()",
-    "name": "Syndicate_Content_types",
+    "name": "Syndicate.Content.types",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate/sdk.js",
@@ -6901,7 +6929,7 @@
         ]
       }
     },
-    "name": "Type_create",
+    "name": "Type.create",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -6939,7 +6967,7 @@
         ]
       }
     },
-    "name": "Type_delete",
+    "name": "Type.delete",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -7007,7 +7035,7 @@
         ]
       }
     },
-    "name": "Type_getCollection",
+    "name": "Type.getCollection",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -7018,7 +7046,7 @@
     "url": "Type.list(params,options)",
     "title": "Type.list()",
     "description": "<p>Retrieve a list of the existing content types.</p>",
-    "name": "Type_list",
+    "name": "Type.list",
     "group": "Actinium",
     "parameter": {
       "fields": {
@@ -7106,7 +7134,7 @@
         ]
       }
     },
-    "name": "Type_retrieve",
+    "name": "Type.retrieve",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -7153,7 +7181,7 @@
         ]
       }
     },
-    "name": "Type_status",
+    "name": "Type.status",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -7258,7 +7286,7 @@
         ]
       }
     },
-    "name": "Type_update",
+    "name": "Type.update",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/type/sdk.js",
@@ -7269,7 +7297,7 @@
     "url": "Actinium.User.Meta.save(params,options)",
     "title": "User.Meta.save()",
     "group": "Actinium",
-    "name": "User_Meta_save",
+    "name": "User.Meta.save",
     "description": "<p>Mutate the Parse.User.meta object.</p>",
     "parameter": {
       "fields": {
@@ -7325,21 +7353,21 @@
             "type": "Hook",
             "optional": false,
             "field": "user-sensative-fields",
-            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-before-meta-save",
-            "description": "<p>Triggered before the user update is executed.</p> <pre><code>Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the user update is executed.</p> <pre class=\"prettyprint\">Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-meta-save-response",
-            "description": "<p>Triggered before the updated user object is returned.</p> <pre><code>Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the updated user object is returned.</p> <pre class=\"prettyprint\">Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           }
         ]
       }
@@ -7360,7 +7388,7 @@
     "url": "Actinium.User.Meta.update(params,options)",
     "title": "User.Meta.update()",
     "group": "Actinium",
-    "name": "User_Meta_update",
+    "name": "User.Meta.update",
     "description": "<p>Mutate the Parse.User.meta object.</p>",
     "parameter": {
       "fields": {
@@ -7409,21 +7437,21 @@
             "type": "Hook",
             "optional": false,
             "field": "user-sensative-fields",
-            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-before-meta-save",
-            "description": "<p>Triggered before the user update is executed.</p> <pre><code>Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the user update is executed.</p> <pre class=\"prettyprint\">Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-meta-save-response",
-            "description": "<p>Triggered before the updated user object is returned.</p> <pre><code>Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the updated user object is returned.</p> <pre class=\"prettyprint\">Arguments: meta:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           }
         ]
       }
@@ -7444,7 +7472,7 @@
     "url": "Actinium.User.Pref.save(params,options)",
     "title": "User.Pref.save()",
     "group": "Actinium",
-    "name": "User_Pref_save",
+    "name": "User.Pref.save",
     "description": "<p>Mutate the Parse.User.pref object.</p>",
     "parameter": {
       "fields": {
@@ -7500,21 +7528,21 @@
             "type": "Hook",
             "optional": false,
             "field": "user-sensative-fields",
-            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-before-pref-save",
-            "description": "<p>Triggered before the user update is executed.</p> <pre><code>Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the user update is executed.</p> <pre class=\"prettyprint\">Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-pref-save-response",
-            "description": "<p>Triggered before the updated user object is returned.</p> <pre><code>Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the updated user object is returned.</p> <pre class=\"prettyprint\">Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           }
         ]
       }
@@ -7535,7 +7563,7 @@
     "url": "Actinium.User.Pref.update(params,options)",
     "title": "User.Pref.update()",
     "group": "Actinium",
-    "name": "User_Pref_update",
+    "name": "User.Pref.update",
     "description": "<p>Mutate the Parse.User.pref object.</p>",
     "parameter": {
       "fields": {
@@ -7584,21 +7612,21 @@
             "type": "Hook",
             "optional": false,
             "field": "user-sensative-fields",
-            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the list of sensative (non-public) fields.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-before-pref-save",
-            "description": "<p>Triggered before the user update is executed.</p> <pre><code>Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the user update is executed.</p> <pre class=\"prettyprint\">Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-pref-save-response",
-            "description": "<p>Triggered before the updated user object is returned.</p> <pre><code>Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
+            "description": "<p>Triggered before the updated user object is returned.</p> <pre class=\"prettyprint\">Arguments: pref:Object, prev:Object, user:Parse.User, params, options </code></pre>"
           }
         ]
       }
@@ -7619,7 +7647,7 @@
     "url": "Actinium.User.currentUser(options)",
     "title": "User.currentUser()",
     "group": "Actinium",
-    "name": "User_currentUser",
+    "name": "User.currentUser",
     "description": "<p>Get the current user from the options object.</p>",
     "parameter": {
       "fields": {
@@ -7658,7 +7686,7 @@
     "url": "Actinium.User.init()",
     "title": "User.init()",
     "group": "Actinium",
-    "name": "User_init",
+    "name": "User.init",
     "description": "<p>Create the initial <code>Parse.User</code> object as a Super Admin if there are no users found in the User collection.</p>",
     "version": "0.0.0",
     "filename": ".core/plugin/users/sdk.js",
@@ -7670,7 +7698,7 @@
     "title": "User.isRole()",
     "version": "3.1.2",
     "group": "Actinium",
-    "name": "User_isRole",
+    "name": "User.isRole",
     "description": "<p>Check if a user is a member of a specific role. Returns <code>{Boolean}</code>.</p>",
     "parameter": {
       "fields": {
@@ -7707,7 +7735,7 @@
     "url": "Actinium.User.list(params,options)",
     "title": "User.list()",
     "group": "Actinium",
-    "name": "User_list",
+    "name": "User.list",
     "description": "<p>Retrieve a list of <code>Parse.User</code> objects.</p>",
     "parameter": {
       "fields": {
@@ -7824,21 +7852,21 @@
             "type": "Hook",
             "optional": false,
             "field": "user-list-search-fields",
-            "description": "<p>Mutate the fields used when searching or exact match lookups.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the fields used when searching or exact match lookups.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-list-query",
-            "description": "<p>Mutate the <code>Parse.Query</code> object.</p> <pre><code>Arguments: query:Parse.Query, params, options </code></pre>"
+            "description": "<p>Mutate the <code>Parse.Query</code> object.</p> <pre class=\"prettyprint\">Arguments: query:Parse.Query, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-list-response",
-            "description": "<p>Mutate the response object before it is returned.</p> <pre><code>Arguments: response:Object, params, options </code></pre>"
+            "description": "<p>Mutate the response object before it is returned.</p> <pre class=\"prettyprint\">Arguments: response:Object, params, options </code></pre>"
           }
         ]
       }
@@ -7852,7 +7880,7 @@
     "url": "Actinium.User.retrieve(params,options)",
     "title": "User.retrieve()",
     "group": "Actinium",
-    "name": "User_retrieve",
+    "name": "User.retrieve",
     "description": "<p>Retrieve a single <code>Parse.User</code> object.</p> <p>Search parameters or limited to exact match look up fields specified by the <code>user-retrieve-search-fields</code> hook. The order in which the fields are defined will also apply to their hierachy when weighting which field to search by when more than one param is supplied.</p> <p>Defaults: <code>objectId</code>, <code>username</code>, <code>email</code></p> <p><em>Note:</em> User.list() hooks will be run with the exception of <code>user-retrieve-search-fields</code> running in place of <code>user-list-search-fields</code>.</p>",
     "parameter": {
       "fields": {
@@ -7901,14 +7929,14 @@
             "type": "Hook",
             "optional": false,
             "field": "user-retrieve-search-fields",
-            "description": "<p>Mutate the search fields.</p> <pre><code>Arguments: fields:Array, params, options </code></pre>"
+            "description": "<p>Mutate the search fields.</p> <pre class=\"prettyprint\">Arguments: fields:Array, params, options </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-retrieve-response",
-            "description": "<p>Mutate the <code>Parse.User</code> object before it is returned.</p> <pre><code>Arguments: user:Object, params, options </code></pre>"
+            "description": "<p>Mutate the <code>Parse.User</code> object before it is returned.</p> <pre class=\"prettyprint\">Arguments: user:Object, params, options </code></pre>"
           }
         ]
       }
@@ -7922,7 +7950,7 @@
     "url": "Actinium.User.save(params,options)",
     "title": "User.save()",
     "group": "Actinium",
-    "name": "User_save",
+    "name": "User.save",
     "description": "<p>Save a <code>Parse.User</code> object.</p>",
     "parameter": {
       "fields": {
@@ -7978,14 +8006,14 @@
             "type": "Hook",
             "optional": false,
             "field": "user-before-save",
-            "description": "<p>Mutate the <code>Parse.User</code> object before save is complete.</p> <pre><code>Arguments:  req:Object:Parse.User </code></pre>"
+            "description": "<p>Mutate the <code>Parse.User</code> object before save is complete.</p> <pre class=\"prettyprint\">Arguments:  req:Object:Parse.User </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-after-save",
-            "description": "<p>Take action after the <code>Parse.User</code> object has been saved.</p> <pre><code>Arguments: req:Object:Parse.User </code></pre>"
+            "description": "<p>Take action after the <code>Parse.User</code> object has been saved.</p> <pre class=\"prettyprint\">Arguments: req:Object:Parse.User </code></pre>"
           }
         ]
       }
@@ -7999,7 +8027,7 @@
     "url": "Actinium.User.trash(params,options)",
     "title": "User.trash()",
     "group": "Actinium",
-    "name": "User_trash",
+    "name": "User.trash",
     "description": "<p>Send a single <code>Parse.User</code> object to the recycle bin.</p>",
     "parameter": {
       "fields": {
@@ -8034,14 +8062,14 @@
             "type": "Hook",
             "optional": false,
             "field": "user-before-delete",
-            "description": "<p>Triggered before the <code>Parse.User</code> object is deleted.</p> <pre><code>Arguments: req:Object:Parse.User </code></pre>"
+            "description": "<p>Triggered before the <code>Parse.User</code> object is deleted.</p> <pre class=\"prettyprint\">Arguments: req:Object:Parse.User </code></pre>"
           },
           {
             "group": "hooks",
             "type": "Hook",
             "optional": false,
             "field": "user-after-delete",
-            "description": "<p>Triggered after the <code>Parse.User</code> object is deleted.</p> <pre><code>Arguments: req:Object:Parse.User </code></pre>"
+            "description": "<p>Triggered after the <code>Parse.User</code> object is deleted.</p> <pre class=\"prettyprint\">Arguments: req:Object:Parse.User </code></pre>"
           }
         ]
       }
@@ -8090,7 +8118,7 @@
         ]
       }
     },
-    "name": "Utils_CloudCapOptions",
+    "name": "Utils.CloudCapOptions",
     "group": "Actinium",
     "examples": [
       {
@@ -8136,7 +8164,7 @@
         ]
       }
     },
-    "name": "Utils_CloudHasCapabilities",
+    "name": "Utils.CloudHasCapabilities",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/lib/utils/options.js",
@@ -8160,7 +8188,7 @@
         ]
       }
     },
-    "name": "Utils_CloudMasterOptions",
+    "name": "Utils.CloudMasterOptions",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/lib/utils/options.js",
@@ -8191,7 +8219,7 @@
         ]
       }
     },
-    "name": "Utils_CloudRunOptions",
+    "name": "Utils.CloudRunOptions",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/lib/utils/options.js",
@@ -8215,7 +8243,7 @@
         ]
       }
     },
-    "name": "Utils_MasterOptions",
+    "name": "Utils.MasterOptions",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/lib/utils/options.js",
@@ -8239,7 +8267,7 @@
         ]
       }
     },
-    "name": "Utils_UserFromSession",
+    "name": "Utils.UserFromSession",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/lib/utils/options.js",
@@ -8262,7 +8290,7 @@
         ]
       }
     },
-    "name": "Utils_serialize",
+    "name": "Utils.serialize",
     "group": "Actinium",
     "examples": [
       {
@@ -8438,7 +8466,7 @@
         ]
       }
     },
-    "name": "content_list",
+    "name": "content-list",
     "group": "Actinium",
     "examples": [
       {
@@ -8537,7 +8565,7 @@
         ]
       }
     },
-    "name": "content_publish",
+    "name": "content-publish",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -8643,7 +8671,7 @@
         ]
       }
     },
-    "name": "content_set_status",
+    "name": "content-set-status",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -8655,7 +8683,7 @@
     "title": "Capability.Role.can()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_Role_can__",
+    "name": "Capability.Role.can()",
     "description": "<p>Synchronously evaluate if a role has the specified capability.</p>",
     "parameter": {
       "fields": {
@@ -8693,7 +8721,7 @@
     "title": "Capability.Role.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_Role_get__",
+    "name": "Capability.Role.get()",
     "description": "<p>Synchronously retrieve a Role object capabilites.</p>",
     "parameter": {
       "fields": {
@@ -8724,7 +8752,7 @@
     "title": "Capability.User.can()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_User_can__",
+    "name": "Capability.User.can()",
     "description": "<p>Synchronously evaluate if a user has the specified capability.</p>",
     "parameter": {
       "fields": {
@@ -8762,7 +8790,7 @@
     "title": "Capability.User.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_User_get__",
+    "name": "Capability.User.get()",
     "description": "<p>Synchronously retrieve a user's capabilites.</p>",
     "parameter": {
       "fields": {
@@ -8793,7 +8821,7 @@
     "title": "Capability.anonymous",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_anonymous",
+    "name": "Capability.anonymous",
     "description": "<p>Returns an array of Capability group names where the anonymous role is allowed and not excluded.</p>",
     "examples": [
       {
@@ -8811,7 +8839,7 @@
     "title": "Capability.delete()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_delete__",
+    "name": "Capability.delete()",
     "description": "<p>Delete a single or multiple Capability objects. Returns an Actinium.Object array of the deleted Capability objects. Triggers the <code>before-capability-delete</code> and <code>capability-deleted</code> hooks.</p>",
     "parameter": {
       "fields": {
@@ -8837,43 +8865,12 @@
     "groupTitle": "Capability"
   },
   {
-    "type": "Async",
-    "url": "Capability.getAsync(capability)",
-    "title": "Capability.getAsync()",
-    "version": "3.1.2",
-    "group": "Capability",
-    "name": "Capability_getAsync__",
-    "description": "<p>Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Mixed",
-            "optional": true,
-            "field": "capability",
-            "description": "<p>String or Array of capability group names.</p>"
-          }
-        ]
-      }
-    },
-    "examples": [
-      {
-        "title": "Example Usage",
-        "content": "const MyFunction = async () => {\n    const capabilites = await Actinium.Capability.getSync();\n    console.log(capabilites);\n    return capabilites;\n}",
-        "type": "json"
-      }
-    ],
-    "filename": ".core/lib/capability.js",
-    "groupTitle": "Capability"
-  },
-  {
     "type": "Function",
     "url": "Capability.get(capability)",
     "title": "Capability.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_get__",
+    "name": "Capability.get()",
     "description": "<p>Synchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
     "parameter": {
       "fields": {
@@ -8900,11 +8897,42 @@
   },
   {
     "type": "Async",
+    "url": "Capability.getAsync(capability)",
+    "title": "Capability.getAsync()",
+    "version": "3.1.2",
+    "group": "Capability",
+    "name": "Capability.getAsync()",
+    "description": "<p>Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": true,
+            "field": "capability",
+            "description": "<p>String or Array of capability group names.</p>"
+          }
+        ]
+      }
+    },
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "const MyFunction = async () => {\n    const capabilites = await Actinium.Capability.getSync();\n    console.log(capabilites);\n    return capabilites;\n}",
+        "type": "json"
+      }
+    ],
+    "filename": ".core/lib/capability.js",
+    "groupTitle": "Capability"
+  },
+  {
+    "type": "Async",
     "url": "Capability.grant(params,options)",
     "title": "Capability.grant()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_grant__",
+    "name": "Capability.grant()",
     "description": "<p>Asynchronously grant a capability to a role.</p>",
     "parameter": {
       "fields": {
@@ -8942,7 +8970,7 @@
     "title": "Capability.granted()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_granted__",
+    "name": "Capability.granted()",
     "description": "<p>Synchronously returns an Array of Actinium.Role names granted the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
     "parameter": {
       "fields": {
@@ -8980,7 +9008,7 @@
     "title": "Capability.isRegistered()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_isRegistered__",
+    "name": "Capability.isRegistered()",
     "description": "<p>Synchronously check if a capability has been registered.</p>",
     "parameter": {
       "fields": {
@@ -9011,7 +9039,7 @@
     "title": "Capability.list",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_list",
+    "name": "Capability.list",
     "description": "<p>Immutable array of registered capabilites.</p>",
     "examples": [
       {
@@ -9029,7 +9057,7 @@
     "title": "Capability.register()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_register__",
+    "name": "Capability.register()",
     "description": "<p>Synchronously register a new Capability object. If the capability exists this is a noop. Returns the results of <code>Capability.get()</code>.</p>",
     "parameter": {
       "fields": {
@@ -9075,7 +9103,7 @@
     "title": "Capability.restrict()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_restrict__",
+    "name": "Capability.restrict()",
     "description": "<p>Asynchronously restrict a role from a capability.</p>",
     "parameter": {
       "fields": {
@@ -9113,7 +9141,7 @@
     "title": "Capability.restricted()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_restricted__",
+    "name": "Capability.restricted()",
     "description": "<p>Synchronously returns an Array of Actinium.Role names restricted from the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
     "parameter": {
       "fields": {
@@ -9151,7 +9179,7 @@
     "title": "Capability.revoke()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_revoke__",
+    "name": "Capability.revoke()",
     "description": "<p>Asynchronously revoke a capability from a role.</p>",
     "parameter": {
       "fields": {
@@ -9189,7 +9217,7 @@
     "title": "Capability.unrestrict()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_unrestrict__",
+    "name": "Capability.unrestrict()",
     "description": "<p>Asynchronously unrestrict a role from a capability.</p>",
     "parameter": {
       "fields": {
@@ -9227,7 +9255,7 @@
     "title": "Capability.update()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability_update__",
+    "name": "Capability.update()",
     "description": "<p>Synchronously update a new Capability object. Returns the results of <code>Capability.get()</code>.</p>",
     "parameter": {
       "fields": {
@@ -9265,7 +9293,7 @@
     "title": "acl-targets",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "acl_targets",
+    "name": "acl-targets",
     "description": "<p>Get a list of roles and users that can be used for deriving an ACL object.</p>",
     "parameter": {
       "fields": {
@@ -9328,7 +9356,7 @@
     "title": "capability-bulk-check",
     "version": "3.5.0",
     "group": "Cloud",
-    "name": "capability_bulk_check",
+    "name": "capability-bulk-check",
     "description": "<p>Check groups of capabilities in bulk.</p>",
     "parameter": {
       "fields": {
@@ -9388,7 +9416,7 @@
     "title": "capability-check",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_check",
+    "name": "capability-check",
     "description": "<p>Check one or more capabilities for the request user.</p>",
     "parameter": {
       "fields": {
@@ -9447,7 +9475,7 @@
     "title": "capability-create",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_create",
+    "name": "capability-create",
     "description": "<p>Create new capability or edit an existing one.</p>",
     "parameter": {
       "fields": {
@@ -9485,7 +9513,7 @@
     "title": "capability-delete",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_delete",
+    "name": "capability-delete",
     "description": "<p>Delete a capability.</p>",
     "parameter": {
       "fields": {
@@ -9516,7 +9544,7 @@
     "title": "capability-get",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_get",
+    "name": "capability-get",
     "description": "<p>Get list of registered capabilities.</p>",
     "parameter": {
       "fields": {
@@ -9562,7 +9590,7 @@
     "title": "capability-grant",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_grant",
+    "name": "capability-grant",
     "description": "<p>Add a role(s) from the Capability object allowed list.</p>",
     "parameter": {
       "fields": {
@@ -9600,7 +9628,7 @@
     "title": "capability-restrict",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_restrict",
+    "name": "capability-restrict",
     "description": "<p>Add a role(s) from the Capability object excluded list.</p>",
     "parameter": {
       "fields": {
@@ -9638,7 +9666,7 @@
     "title": "capability-revoke",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_revoke",
+    "name": "capability-revoke",
     "description": "<p>Remove a role(s) from the Capability object allowed list.</p>",
     "parameter": {
       "fields": {
@@ -9676,7 +9704,7 @@
     "title": "capability-unrestrict",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "capability_unrestrict",
+    "name": "capability-unrestrict",
     "description": "<p>Remove a role(s) from the Capability object excluded list.</p>",
     "parameter": {
       "fields": {
@@ -9802,7 +9830,7 @@
         ]
       }
     },
-    "name": "content_clone_branch",
+    "name": "content-clone-branch",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -9894,7 +9922,7 @@
         ]
       }
     },
-    "name": "content_create",
+    "name": "content-create",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -9962,7 +9990,7 @@
         ]
       }
     },
-    "name": "content_delete",
+    "name": "content-delete",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10055,7 +10083,7 @@
         ]
       }
     },
-    "name": "content_delete_branch",
+    "name": "content-delete-branch",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10155,7 +10183,7 @@
         ]
       }
     },
-    "name": "content_label_branch",
+    "name": "content-label-branch",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10260,7 +10288,7 @@
         ]
       }
     },
-    "name": "content_permissions",
+    "name": "content-permissions",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10314,7 +10342,7 @@
         ]
       }
     },
-    "name": "content_restore",
+    "name": "content-restore",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10422,7 +10450,7 @@
         ]
       }
     },
-    "name": "content_retrieve",
+    "name": "content-retrieve",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10515,7 +10543,7 @@
         ]
       }
     },
-    "name": "content_revisions",
+    "name": "content-revisions",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -10621,7 +10649,7 @@
         ]
       }
     },
-    "name": "content_schedule",
+    "name": "content-schedule",
     "group": "Cloud",
     "examples": [
       {
@@ -10720,7 +10748,7 @@
         ]
       }
     },
-    "name": "content_set_current",
+    "name": "content-set-current",
     "group": "Cloud",
     "examples": [
       {
@@ -10819,7 +10847,7 @@
         ]
       }
     },
-    "name": "content_update",
+    "name": "content-update",
     "group": "Cloud",
     "examples": [
       {
@@ -10876,7 +10904,7 @@
     "title": "directory-delete",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "directory_delete",
+    "name": "directory-delete",
     "description": "<p>Delete a directory from the <code>MediaDirectory</code> table.</p> <p>This will NOT delete the files within the directory.</p> <p><em>Use the <code>media-delete</code> function for deleting a directory of files.</em></p> <p>Permission: <code>Media.create</code> <em>(use the <strong>media.capabilities.directory</strong> setting to change)</em></p>",
     "parameter": {
       "fields": {
@@ -10907,7 +10935,7 @@
     "title": "directory-save",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "directory_save",
+    "name": "directory-save",
     "description": "<p>Create or update a new Media directory.</p> <p>Permission: <code>Media.create</code> <em>(use the <strong>media.capabilities.directory</strong> setting to change)</em>.</p>",
     "parameter": {
       "fields": {
@@ -11019,7 +11047,7 @@
     "title": "media-delete",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "media_delete",
+    "name": "media-delete",
     "description": "<p>Delete a single file or directory containing multiple files.</p> <p>The file to search for will be matched against the following fields: <code>url, objectId, uuid, filename, directory</code></p> <p>When deleting based on <code>filename</code> or <code>directory</code> There are a couple protections built in:</p> <ol> <li>You must specify <code>useMasterKey</code> in the run <code>options</code> object.</li> <li>Only 50 files will be deleted per request.</li> </ol> <p>Permission: <code>Media.create</code> <em>(use the <strong>media.capabilities.upload</strong> setting to change)</em></p>",
     "parameter": {
       "fields": {
@@ -11050,7 +11078,7 @@
     "title": "media-image-crop",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "media_image_crop",
+    "name": "media-image-crop",
     "description": "<p>Generate a cropped version of the specified image from an <code>Actinium.File</code> object or image URL. Useful for creating thumbnails or responsive image sizes. Returns: <code>Actinium.File</code> object.</p>",
     "parameter": {
       "fields": {
@@ -11103,7 +11131,7 @@
     "title": "media-retrieve",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "media_retrieve",
+    "name": "media-retrieve",
     "description": "<p>Retrieves a specific <code>Media</code> object.</p>",
     "parameter": {
       "fields": {
@@ -11155,7 +11183,7 @@
     "title": "media-update",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "media_update",
+    "name": "media-update",
     "description": "<p>Function that updates a Media Object.</p>",
     "parameter": {
       "fields": {
@@ -11207,7 +11235,7 @@
     "title": "media-upload",
     "version": "3.1.3",
     "group": "Cloud",
-    "name": "media_upload",
+    "name": "media-upload",
     "description": "<p>Cloud function that creates a file and adds it to the Media Library.</p> <p>Permission: <code>Media.create</code> <em>(use the <strong>media.capabilities.upload</strong> setting to change)</em></p> <p>Returns: <code>Parse.Object('Media')</code></p>",
     "parameter": {
       "fields": {
@@ -11278,7 +11306,7 @@
     "title": "plugin-activate",
     "version": "3.0.5",
     "group": "Cloud",
-    "name": "plugin_activate",
+    "name": "plugin-activate",
     "description": "<p>Activate a plugin</p> <p>The <code>activate</code> hook will be run when a plugin is activated.</p>",
     "parameter": {
       "fields": {
@@ -11309,7 +11337,7 @@
     "title": "plugin-deactivate",
     "version": "3.0.5",
     "group": "Cloud",
-    "name": "plugin_deactivate",
+    "name": "plugin-deactivate",
     "description": "<p>Deactivate a plugin.</p> <p>The <code>deactivate</code> hook will be run when a plugin is deactivated.</p>",
     "parameter": {
       "fields": {
@@ -11340,7 +11368,7 @@
     "title": "plugin-uninstall",
     "version": "3.0.5",
     "group": "Cloud",
-    "name": "plugin_uninstall",
+    "name": "plugin-uninstall",
     "description": "<p>Uninstall a plugin.</p> <p>The <code>deactivate</code> and <code>uninstall</code> hooks will be run when a plugin is uninstalled.</p> <p><em>If the server restarts, the plugin will be installed again unless you remove it from the server by either.</em></p>",
     "parameter": {
       "fields": {
@@ -11434,7 +11462,7 @@
     "title": "recycle-archive",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_archive",
+    "name": "recycle-archive",
     "description": "<p>Move a <code>Parse.Object</code> to the <code>Recycle</code> collection and mark it as an <code>archve</code> type.</p>",
     "parameter": {
       "fields": {
@@ -11479,7 +11507,7 @@
     "title": "recycle-archived",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_archived",
+    "name": "recycle-archived",
     "description": "<p>Retrieve a paginated list of archived <code>Recycle</code> objects.</p>",
     "parameter": {
       "fields": {
@@ -11526,7 +11554,7 @@
     "title": "recycle-purge",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_purge",
+    "name": "recycle-purge",
     "description": "<p>Clear the <code>Recycle</code> collection.</p>",
     "parameter": {
       "fields": {
@@ -11571,7 +11599,7 @@
     "title": "recycle-restore",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_restore",
+    "name": "recycle-restore",
     "description": "<p>Restore a <code>Parse.Object</code> to it's original collection.</p>",
     "parameter": {
       "fields": {
@@ -11609,7 +11637,7 @@
     "title": "recycle-revision",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_revision",
+    "name": "recycle-revision",
     "description": "<p>Move a <code>Parse.Object</code> to the <code>Recycle</code> collection and mark it as a <code>revision</code> type.</p>",
     "parameter": {
       "fields": {
@@ -11654,7 +11682,7 @@
     "title": "recycle-revisions",
     "version": "3.1.7",
     "group": "Cloud",
-    "name": "recycle_revisions",
+    "name": "recycle-revisions",
     "description": "<p>Retrieve a paginated list of revision <code>Recycle</code> objects.</p>",
     "parameter": {
       "fields": {
@@ -11902,7 +11930,7 @@
     "title": "route-delete",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "route_delete",
+    "name": "route-delete",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -11940,7 +11968,7 @@
     "title": "route-retrieve",
     "version": "3.1.2",
     "group": "Cloud",
-    "name": "route_retrieve",
+    "name": "route-retrieve",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -11971,7 +11999,7 @@
     "title": "route-save",
     "version": "3.5.5",
     "group": "Cloud",
-    "name": "route_save",
+    "name": "route-save",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -12070,7 +12098,7 @@
     "url": "search-index",
     "title": "search-index",
     "description": "<p>Trigger index of a content type. User must have <code>Search.index</code> capability.</p>",
-    "name": "search_index",
+    "name": "search-index",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -12095,7 +12123,7 @@
     "title": "setting-get",
     "version": "3.1.1",
     "group": "Cloud",
-    "name": "setting_get",
+    "name": "setting-get",
     "description": "<p>Retrieves a specifc setting object. Capabilities will be enforced.</p>",
     "parameter": {
       "fields": {
@@ -12131,7 +12159,7 @@
     "title": "setting-set",
     "version": "3.1.1",
     "group": "Cloud",
-    "name": "setting_set",
+    "name": "setting-set",
     "description": "<p>Create or update a setting object. Capabilities will be enforced.</p>",
     "parameter": {
       "fields": {
@@ -12181,7 +12209,7 @@
     "title": "setting-unset",
     "version": "3.1.1",
     "group": "Cloud",
-    "name": "setting_unset",
+    "name": "setting-unset",
     "description": "<p>Unsets a setting value. Capabilities will be enforced.</p>",
     "parameter": {
       "fields": {
@@ -12245,7 +12273,7 @@
       }
     ],
     "group": "Cloud",
-    "name": "syndicate_satellite_sync",
+    "name": "syndicate-satellite-sync",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate-client/plugin.js",
     "groupTitle": "Cloud"
@@ -12261,7 +12289,7 @@
       }
     ],
     "group": "Cloud",
-    "name": "syndicate_satellite_sync_reset",
+    "name": "syndicate-satellite-sync-reset",
     "version": "0.0.0",
     "filename": ".core/plugin/syndicate-client/plugin.js",
     "groupTitle": "Cloud"
@@ -12312,7 +12340,7 @@
         ]
       }
     },
-    "name": "type_create",
+    "name": "type-create",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/type/type-plugin.js",
@@ -12350,7 +12378,7 @@
         ]
       }
     },
-    "name": "type_delete",
+    "name": "type-delete",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/type/type-plugin.js",
@@ -12416,7 +12444,7 @@
         ]
       }
     },
-    "name": "type_retrieve",
+    "name": "type-retrieve",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/type/type-plugin.js",
@@ -12454,7 +12482,7 @@
         ]
       }
     },
-    "name": "type_status",
+    "name": "type-status",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/type/type-plugin.js",
@@ -12520,7 +12548,7 @@
         ]
       }
     },
-    "name": "type_update",
+    "name": "type-update",
     "group": "Cloud",
     "version": "0.0.0",
     "filename": ".core/plugin/type/type-plugin.js",
@@ -12543,7 +12571,7 @@
     "title": "user-find",
     "version": "3.0.5",
     "group": "Cloud",
-    "name": "user_find",
+    "name": "user-find",
     "description": "<p>Find a user. Triggers the <code>user-before-find</code> hook.</p>",
     "parameter": {
       "fields": {
@@ -12604,7 +12632,7 @@
     "title": "user-save",
     "version": "3.0.5",
     "group": "Cloud",
-    "name": "user_save",
+    "name": "user-save",
     "description": "<p>Save a <code>Parse.User</code> object. If the user does not exist, it will be created. The following parameters are default. You can supply additional parameters that will alter the User collection. Triggers the <code>user-before-save</code> and <code>user-after-save</code> hooks.</p>",
     "parameter": {
       "fields": {
@@ -12684,7 +12712,7 @@
     "title": "before-capability-delete",
     "version": "3.1.2",
     "group": "Hooks",
-    "name": "before_capability_delete",
+    "name": "before-capability-delete",
     "description": "<p>Triggered before a Capability object is deleted.</p>",
     "parameter": {
       "fields": {
@@ -12708,7 +12736,7 @@
     "title": "before-capability-save",
     "version": "3.1.2",
     "group": "Hooks",
-    "name": "before_capability_save",
+    "name": "before-capability-save",
     "description": "<p>Triggered before a Capability object is saved.</p>",
     "parameter": {
       "fields": {
@@ -12732,7 +12760,7 @@
     "title": "capability-change",
     "version": "3.1.2",
     "group": "Hooks",
-    "name": "capability_change",
+    "name": "capability-change",
     "description": "<p>Triggered when a Capability object is changed.</p>",
     "parameter": {
       "fields": {
@@ -12756,7 +12784,7 @@
     "title": "capability-deleted",
     "version": "3.1.2",
     "group": "Hooks",
-    "name": "capability_deleted",
+    "name": "capability-deleted",
     "description": "<p>Triggered after a Capability object is deleted.</p>",
     "parameter": {
       "fields": {
@@ -12780,7 +12808,7 @@
     "title": "capability-saved",
     "version": "3.1.2",
     "group": "Hooks",
-    "name": "capability_saved",
+    "name": "capability-saved",
     "description": "<p>Triggered after a Capability object is saved.</p>",
     "parameter": {
       "fields": {
@@ -12837,7 +12865,7 @@
         ]
       }
     },
-    "name": "content_before_save",
+    "name": "content-before-save",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -12861,7 +12889,7 @@
         ]
       }
     },
-    "name": "content_default_change_types",
+    "name": "content-default-change-types",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -12885,7 +12913,7 @@
         ]
       }
     },
-    "name": "content_default_statuses",
+    "name": "content-default-statuses",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/content-plugin.js",
@@ -12937,7 +12965,7 @@
         ]
       }
     },
-    "name": "content_deleted",
+    "name": "content-deleted",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13019,7 +13047,7 @@
         ]
       }
     },
-    "name": "content_field_sanitize",
+    "name": "content-field-sanitize",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13057,7 +13085,7 @@
         ]
       }
     },
-    "name": "content_list",
+    "name": "content-list",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13088,7 +13116,7 @@
         ]
       }
     },
-    "name": "content_published",
+    "name": "content-published",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13126,7 +13154,7 @@
         ]
       }
     },
-    "name": "content_query",
+    "name": "content-query",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13164,7 +13192,7 @@
         ]
       }
     },
-    "name": "content_query_results",
+    "name": "content-query-results",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13175,7 +13203,7 @@
     "url": "content-restored",
     "title": "content-restored",
     "group": "Hooks",
-    "name": "content_restored",
+    "name": "content-restored",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13254,7 +13282,7 @@
         ]
       }
     },
-    "name": "content_retrieve",
+    "name": "content-retrieve",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13299,7 +13327,7 @@
         ]
       }
     },
-    "name": "content_saved",
+    "name": "content-saved",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13330,7 +13358,7 @@
         ]
       }
     },
-    "name": "content_schema",
+    "name": "content-schema",
     "group": "Hooks",
     "examples": [
       {
@@ -13361,7 +13389,7 @@
         ]
       }
     },
-    "name": "content_schema_field_types",
+    "name": "content-schema-field-types",
     "group": "Hooks",
     "examples": [
       {
@@ -13399,7 +13427,7 @@
         ]
       }
     },
-    "name": "content_schema_field_types",
+    "name": "content-schema-field-types",
     "group": "Hooks",
     "examples": [
       {
@@ -13437,7 +13465,7 @@
         ]
       }
     },
-    "name": "content_schema_permissions",
+    "name": "content-schema-permissions",
     "group": "Hooks",
     "examples": [
       {
@@ -13475,7 +13503,7 @@
         ]
       }
     },
-    "name": "content_slug_changed",
+    "name": "content-slug-changed",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13520,7 +13548,7 @@
         ]
       }
     },
-    "name": "content_status_changed",
+    "name": "content-status-changed",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13551,7 +13579,7 @@
         ]
       }
     },
-    "name": "content_trashed",
+    "name": "content-trashed",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13582,7 +13610,7 @@
         ]
       }
     },
-    "name": "content_unpublished",
+    "name": "content-unpublished",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13593,7 +13621,7 @@
     "url": "recycle-query",
     "title": "recycle-query",
     "group": "Hooks",
-    "name": "recycle_query",
+    "name": "recycle-query",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13672,7 +13700,7 @@
         ]
       }
     },
-    "name": "search_index",
+    "name": "search-index",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/search/sdk.js",
@@ -13721,7 +13749,7 @@
         ]
       }
     },
-    "name": "search_index_config",
+    "name": "search-index-config",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/search/sdk.js",
@@ -13773,7 +13801,7 @@
         ]
       }
     },
-    "name": "search_index_item_normalize",
+    "name": "search-index-item-normalize",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/search/sdk.js",
@@ -13797,7 +13825,7 @@
         ]
       }
     },
-    "name": "type_maintenance",
+    "name": "type-maintenance",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -13808,7 +13836,7 @@
     "url": "url-attached",
     "title": "url-attached",
     "group": "Hooks",
-    "name": "url_attached",
+    "name": "url-attached",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13846,7 +13874,7 @@
     "url": "url-before-delete",
     "title": "url-before-delete",
     "group": "Hooks",
-    "name": "url_before_delete",
+    "name": "url-before-delete",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13884,7 +13912,7 @@
     "url": "url-before-trashed",
     "title": "url-before-trashed",
     "group": "Hooks",
-    "name": "url_before_trashed",
+    "name": "url-before-trashed",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13922,7 +13950,7 @@
     "url": "url-created",
     "title": "url-created",
     "group": "Hooks",
-    "name": "url_created",
+    "name": "url-created",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13953,7 +13981,7 @@
     "url": "url-deleted",
     "title": "url-deleted",
     "group": "Hooks",
-    "name": "url_deleted",
+    "name": "url-deleted",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -13998,7 +14026,7 @@
     "url": "url-query",
     "title": "url-query",
     "group": "Hooks",
-    "name": "url_query",
+    "name": "url-query",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -14036,7 +14064,7 @@
     "url": "url-retrieved",
     "title": "url-retrieved",
     "group": "Hooks",
-    "name": "url_retrieved",
+    "name": "url-retrieved",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -14074,7 +14102,7 @@
     "url": "url-trashed",
     "title": "url-trashed",
     "group": "Hooks",
-    "name": "url_trashed",
+    "name": "url-trashed",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -14184,7 +14212,7 @@
         ]
       }
     },
-    "name": "urls_query",
+    "name": "urls-query",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": ".core/plugin/content/URLWidget/sdk.js",
@@ -14195,7 +14223,7 @@
     "url": "urls-restored",
     "title": "urls-restored",
     "group": "Hooks",
-    "name": "urls_restored",
+    "name": "urls-restored",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -14623,6 +14651,24 @@
   },
   {
     "type": "ReactHook",
+    "url": "useRefs()",
+    "title": "useRefs()",
+    "group": "ReactHook",
+    "name": "useRefs",
+    "description": "<p>Creates a single reference object that can be managed using the <code>get</code>/<code>set</code>/<code>del</code>/<code>clear</code> functions.</p>",
+    "examples": [
+      {
+        "title": "Usage",
+        "content": "import React, { useEffect, useState } from 'react';\nimport { useRefs } from '@atomic-reactor/reactium-sdk-core';\n\nconst MyComponent = () => {\n    const refs = useRefs();\n    const [state, setState] = useState({ input: null });\n\n    const onClick = () => {\n        const inputElm = refs.get('input');\n        setState({ ...state, input: inputElm.value });\n        inputElm.value = '';\n    };\n\n    return (\n        <div ref={elm => refs.set('container', elm)}>\n            {state.input && <div>{state.input}</div>}\n            <input type='text' ref={elm => refs.set('input', elm)} />\n            <button onClick={onClick}>Update</button>\n        </div>\n    );\n};",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/named-exports/useRefs.js",
+    "groupTitle": "ReactHook"
+  },
+  {
+    "type": "ReactHook",
     "url": "useRegisterHandle(id,cb,deps)",
     "title": "useRegisterHandle()",
     "description": "<p>React hook to create a new imperative handle reference, similar to <code>useImperativeHandle()</code> except that instead of using <code>React.forwardRef()</code> to attach the handle to a parent compenent ref. A ref is generated for you and is assigned the current value of the callback <code>cb</code>, is registered with <code>Reactium.Handle</code>, and made available to all other components at the object path <code>id</code>.</p>",
@@ -14711,6 +14757,31 @@
   },
   {
     "type": "ReactHook",
+    "url": "useStatus(initialStatus)",
+    "title": "useStatus()",
+    "group": "ReactHook",
+    "name": "useStatus",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "initialStatus",
+            "defaultValue": "pending",
+            "description": "<p>The initial status of the hook.</p>"
+          }
+        ]
+      }
+    },
+    "description": "<p>Synchronously set a status value that can be checked within a function scope without updating the state of the component. Useful when doing asynchronous activities and the next activity depends on a status of some sort from the previous activity.</p> <p>Returns [status:String, setStatus:Function, isStatus:Function]</p> <h3>status</h3> <p>The current status value.</p> <h3>setStatus(status:String, forceRender:Boolean = false)</h3> <p>Set the status value. If forceRender is true, a rerender will be triggered. <em><strong>Beware:</strong></em> forceRender may have unintended consequence and should be used in last status before re-rendering situations only.</p> <h3>isStatus(statuses:Array)</h3> <p>Check if the current status matches the statuses passed.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/named-exports/useStatus.js",
+    "groupTitle": "ReactHook"
+  },
+  {
+    "type": "ReactHook",
     "url": "useStore()",
     "title": "useStore()",
     "description": "<p>Just gimme the store damnit! This React hook provides the Redux store when used on a component declared within the Store Provider.</p>",
@@ -14750,7 +14821,7 @@
     "examples": [
       {
         "title": "Example",
-        "content": "import React from 'react';\nimport { useZoneComponents } from 'reactium-core/sdk';\n export props => {\n    const zoneComponents = useZoneComponents('my-zone');\n     return (\n        <div>\n            Components in Zone: {zoneComponents.length}\n        </div>\n    );\n};",
+        "content": "import React from 'react';\nimport { useZoneComponents } from 'reactium-core/sdk';\n\nexport props => {\n    const zoneComponents = useZoneComponents('my-zone');\n\n    return (\n        <div>\n            Components in Zone: {zoneComponents.length}\n        </div>\n    );\n};",
         "type": "json"
       }
     ],
@@ -14760,129 +14831,22 @@
   },
   {
     "type": "Object",
-    "url": "Registry",
-    "title": "Registry",
-    "group": "Reactium",
-    "name": "Registry",
-    "description": "<p>Reactium uses a number of registry objects used to registering all sorts of objects that will be used elsewhere in the framework. New registry objects are generally instanciated as singletons on the overall SDK.</p> <p>There are many registry objects attached by default to the SDK, and developers can create new ones using <code>Utils.registryFactory()</code>.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "list",
-            "description": "<p>{Getter} get list of most recent (or highest order) registered objects, filtering out unregistered or banned objects.</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "registered",
-            "description": "<p>{Getter} get list of all historically registrated objects, even duplicates, ordered by order property of object (defaults to 100).</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "protected",
-            "description": "<p>{Getter} get list of protected registrations ids</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "unregistered",
-            "description": "<p>{Getter} get list of all existing registered objects ids that have been subsequently unregistered.</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "banned",
-            "description": "<p>{Getter} get list of all banned objects ids.</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "mode",
-            "description": "<p>{Getter} get current mode (Default Utils.Registry.MODES.HISTORY)</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "isProtected",
-            "description": "<p>{Method} pass the identifier of an object to see if it has been protected</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "isRegistered",
-            "description": "<p>{Method} pass the identifier of an object to see if it has been registered</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "isBanned",
-            "description": "<p>{Method} pass the identifier of an object to see if it has been banned</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "ban",
-            "description": "<p>{Method} pass the identifier of an object to ban. Banned objects can not be registered and will not be show in list. Useful when you have code that needs to preempt the registration of an object from code you do not control. E.g. a plugin is introducing undesireable or disabled functionality</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "cleanup",
-            "description": "<p>{Method} pass the identifier of an object to be purged from historical registrations (i.e. free up memory) Automatically performed in mode Utils.Registry.CLEAN</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "protect",
-            "description": "<p>{Method} pass the identifier of an object to protect. Protected objects can not be overridden or cleaned up.</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "register",
-            "description": "<p>{Method} pass an identifier and a data object to register the object. The identifier will be added if it is not already registered (but protected) and not banned.</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "unprotect",
-            "description": "<p>{Method} pass an identifier to unprotect an object</p>"
-          },
-          {
-            "group": "Parameter",
-            "optional": false,
-            "field": "unregister",
-            "description": "<p>{Method} pass an identifier to unregister an object. When in HISTORY mode (default), previous registration will be retained, but the object will not be listed. In CLEAN mode, the previous registrations will be removed, unless protected.</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/registry.js",
-    "groupTitle": "Reactium"
-  },
-  {
-    "type": "Object",
     "url": "Cache",
     "title": "Cache",
     "version": "3.0.3",
     "name": "Cache",
-    "group": "Reactium_Cache",
+    "group": "Reactium.Cache",
     "description": "<p>Cache allows you to easily store application data in memory.</p>",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.clear()",
     "title": "Cache.clear()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_clear",
+    "group": "Reactium.Cache",
+    "name": "Cache.clear",
     "description": "<p>Delete all cached values.</p>",
     "parameter": {
       "fields": {
@@ -14905,15 +14869,15 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.del(key)",
     "title": "Cache.del()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_del",
+    "group": "Reactium.Cache",
+    "name": "Cache.del",
     "description": "<p>Delete the value for a given key. Returns <code>{Boolean}</code>.</p>",
     "parameter": {
       "fields": {
@@ -14936,15 +14900,15 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.get(key)",
     "title": "Cache.get()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_get",
+    "group": "Reactium.Cache",
+    "name": "Cache.get",
     "description": "<p>Retrieves the value for a given key. If the value is not cached <code>null</code> is returned.</p>",
     "parameter": {
       "fields": {
@@ -14974,37 +14938,37 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.keys()",
     "title": "Cache.keys()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_keys",
+    "group": "Reactium.Cache",
+    "name": "Cache.keys",
     "description": "<p>Returns an array of the cached keys.</p>",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.memsize()",
     "title": "Cache.memsize()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_memsize",
+    "group": "Reactium.Cache",
+    "name": "Cache.memsize",
     "description": "<p>Returns the number of entries taking up space in the cache.</p>",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.merge(values)",
     "title": "Cache.merge()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_merge",
+    "group": "Reactium.Cache",
+    "name": "Cache.merge",
     "description": "<p>Merges the supplied values object with the current cache. Any existing entries will remain in cache. Duplicates will be overwritten unless <code>option.skipDuplicates</code> is <code>true</code>. Entries that would have exipired since being merged will expire upon merge but their timeoutCallback will not be invoked. Returns the new size of the cache.</p>",
     "parameter": {
       "fields": {
@@ -15027,15 +14991,15 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.set(key,value,timeout,timeoutCallback)",
     "title": "Cache.set()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_set",
+    "group": "Reactium.Cache",
+    "name": "Cache.set",
     "description": "<p>Sets the value for a given key. If the value is an <code>{Object}</code> and is already cached, you can use an object path to update a specific part of the value. Returns the cached value.</p>",
     "parameter": {
       "fields": {
@@ -15079,25 +15043,25 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.size()",
     "title": "Cache.size()",
     "version": "3.0.3",
-    "group": "Reactium_Cache",
-    "name": "Cache_size",
+    "group": "Reactium.Cache",
+    "name": "Cache.size",
     "description": "<p>Returns the current number of entries in the cache.</p>",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
   },
   {
     "type": "Function",
     "url": "Cache.subscribe(key,cb)",
     "title": "Cache.subscribe()",
-    "group": "Reactium_Cache",
-    "name": "Cache_subscribe",
+    "group": "Reactium.Cache",
+    "name": "Cache.subscribe",
     "description": "<p>Subscribe to cache changes that impact a particular key. Returns an unsubscribe function.</p>",
     "parameter": {
       "fields": {
@@ -15128,14 +15092,45 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/cache/index.js",
-    "groupTitle": "Reactium_Cache"
+    "groupTitle": "Reactium.Cache"
+  },
+  {
+    "type": "Function",
+    "url": "Component.get(hook,defaultComponent)",
+    "title": "Component.get()",
+    "group": "Reactium.Component",
+    "name": "Component.get",
+    "description": "<p>Call the hook and obtain the registered component. Get the defaultComponent if no hook component was registered.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "hook",
+            "description": "<p>The hook name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Mixed",
+            "optional": true,
+            "field": "defaultComponent",
+            "description": "<p>the default component if no component is provided</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/component/index.js",
+    "groupTitle": "Reactium.Component"
   },
   {
     "type": "Function",
     "url": "Component.register(hook,component,order,capabilities,strict)",
     "title": "Component.register()",
-    "group": "Reactium_Component",
-    "name": "Component_register",
+    "group": "Reactium.Component",
+    "name": "Component.register",
     "description": "<p>Register a React component to be used with a specific useHookComponent hook. This must be called before the useHookComponent that defines the hook.</p>",
     "parameter": {
       "fields": {
@@ -15178,14 +15173,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/component/index.js",
-    "groupTitle": "Reactium_Component"
+    "groupTitle": "Reactium.Component"
   },
   {
     "type": "Function",
     "url": "Component.unregister(uuid)",
     "title": "Component.unregister()",
-    "group": "Reactium_Component",
-    "name": "Component_unregister",
+    "group": "Reactium.Component",
+    "name": "Component.unregister",
     "description": "<p>Unregister a component used in useHookComponent. This must be performed before useHookComponent is called. Alias for Reactium.Hook.unregister. See Hook.unregister()</p>",
     "parameter": {
       "fields": {
@@ -15202,7 +15197,7 @@
     },
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/component/index.js",
-    "groupTitle": "Reactium_Component"
+    "groupTitle": "Reactium.Component"
   },
   {
     "type": "Function",
@@ -15222,8 +15217,8 @@
         ]
       }
     },
-    "name": "Handle_get",
-    "group": "Reactium_Handle",
+    "name": "Handle.get",
+    "group": "Reactium.Handle",
     "examples": [
       {
         "title": "CountList.js",
@@ -15243,18 +15238,18 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Function",
     "url": "Handle.list()",
     "title": "Handle.list()",
     "description": "<p>Get full object containing all current reference handles.</p>",
-    "name": "Handle_list",
-    "group": "Reactium_Handle",
+    "name": "Handle.list",
+    "group": "Reactium.Handle",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Function",
@@ -15276,7 +15271,7 @@
             "type": "Ref",
             "optional": false,
             "field": "ref",
-            "description": "<p>React reference created with <code>React.createRef()`` or</code>React.useRef()`.</p>"
+            "description": "<p>React reference created with <code>React.createRef()`` or </code>React.useRef()`.</p>"
           },
           {
             "group": "Parameter",
@@ -15289,8 +15284,8 @@
         ]
       }
     },
-    "name": "Handle_register",
-    "group": "Reactium_Handle",
+    "name": "Handle.register",
+    "group": "Reactium.Handle",
     "examples": [
       {
         "title": "MyControllableComponent.js",
@@ -15300,7 +15295,7 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Function",
@@ -15320,8 +15315,8 @@
         ]
       }
     },
-    "name": "Handle_subscribe",
-    "group": "Reactium_Handle",
+    "name": "Handle.subscribe",
+    "group": "Reactium.Handle",
     "examples": [
       {
         "title": "MyComponent.js",
@@ -15331,7 +15326,7 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Function",
@@ -15351,28 +15346,28 @@
         ]
       }
     },
-    "name": "Handle_unregister",
-    "group": "Reactium_Handle",
+    "name": "Handle.unregister",
+    "group": "Reactium.Handle",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Objectt",
     "url": "Reactium.Handle",
     "title": "Handle",
-    "name": "Reactium_Handle",
+    "name": "Reactium.Handle",
     "description": "<p>Similar concept to an imperative handle created when using <code>React.forwardRef()</code> and the <code>useImperativeHandle()</code> React hook. Reactium provides the <code>Reactium.Handle</code> object to manage references created in your components to allow imperative control of your component from outside the component. This is used when you wish to change the internal state of your component from outside using a technique other than changing the component <code>props</code> (i.e. declarative control).</p> <p>This technique makes use of references created with <code>React.createRef()</code> or the <code>useRef()</code> hook for functional components. The developer can then assign the <code>current</code> property of this reference to be an object containing methods or callbacks (i.e. methods that can invoke <code>this.setState()</code> or the update callback returned by <code>useState()</code> hook) that will cause the state of the component to change (and rerender).</p> <p>By registering this &quot;handle reference&quot; on the <code>Reactium.Handle</code> singleton, other distant components can exercise imperative control over your component.</p> <p>For developers that prefer the use of React hooks, Reactium provides two hooks for your use: <code>useRegisterHandle()</code> and <code>useHandle()</code> to register and use these handles respectively.</p>",
-    "group": "Reactium_Handle",
+    "group": "Reactium.Handle",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/handle/index.js",
-    "groupTitle": "Reactium_Handle"
+    "groupTitle": "Reactium.Handle"
   },
   {
     "type": "Function",
     "url": "Hook.flush(name)",
     "title": "Hook.flush()",
-    "name": "Hook_flush",
+    "name": "Hook.flush",
     "description": "<p>Clear all registered callbacks for a hook.</p>",
     "parameter": {
       "fields": {
@@ -15383,31 +15378,39 @@
             "optional": false,
             "field": "name",
             "description": "<p>the hook name</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "type",
+            "defaultValue": "async",
+            "description": "<p>'async' or 'sync' hooks</p>"
           }
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.list()",
     "title": "Hook.list()",
-    "name": "Hook_list",
+    "name": "Hook.list",
     "description": "<p>Register a hook callback.</p>",
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.register(name,callback,order,id)",
     "title": "Hook.register()",
-    "name": "Hook_register",
+    "name": "Hook.register",
     "description": "<p>Register a hook callback.</p>",
     "parameter": {
       "fields": {
@@ -15444,7 +15447,7 @@
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "examples": [
       {
         "title": "Example Usage",
@@ -15454,13 +15457,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.registerSync(name,callback,order,id)",
     "title": "Hook.registerSync()",
-    "name": "Hook_registerSync",
+    "name": "Hook.registerSync",
     "description": "<p>Register a sync hook callback.</p>",
     "parameter": {
       "fields": {
@@ -15497,7 +15500,7 @@
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "examples": [
       {
         "title": "Example Usage",
@@ -15507,13 +15510,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.run(name,...params)",
     "title": "Hook.run()",
-    "name": "Hook_run",
+    "name": "Hook.run",
     "description": "<p>Run hook callbacks.</p>",
     "parameter": {
       "fields": {
@@ -15548,16 +15551,16 @@
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.runSync(name,...params)",
     "title": "Hook.runSync()",
-    "name": "Hook_runSync",
+    "name": "Hook.runSync",
     "description": "<p>Run hook callbacks sychronously.</p>",
     "parameter": {
       "fields": {
@@ -15592,17 +15595,17 @@
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Hook.unregister(id)",
     "title": "Hook.unregister()",
-    "name": "Hook_unregister",
-    "description": "<p>Unregister a registered callback by id.</p>",
+    "name": "Hook.unregister",
+    "description": "<p>Unregister a registered hook callback by id.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -15616,16 +15619,16 @@
         ]
       }
     },
-    "group": "Reactium_Hook",
+    "group": "Reactium.Hook",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/hook/index.js",
-    "groupTitle": "Reactium_Hook"
+    "groupTitle": "Reactium.Hook"
   },
   {
     "type": "Function",
     "url": "Plugin.register(ID,order)",
     "title": "Plugin.register()",
-    "name": "Plugin_register",
+    "name": "Plugin.register",
     "description": "<p>Register a Reactium plugin.</p>",
     "parameter": {
       "fields": {
@@ -15648,7 +15651,7 @@
         ]
       }
     },
-    "group": "Reactium_Plugin",
+    "group": "Reactium.Plugin",
     "examples": [
       {
         "title": "Example Usage:",
@@ -15658,13 +15661,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/plugin/index.js",
-    "groupTitle": "Reactium_Plugin"
+    "groupTitle": "Reactium.Plugin"
   },
   {
     "type": "Function",
     "url": "Plugin.unregister(ID)",
     "title": "Plugin.unregister()",
-    "name": "Plugin_unregister",
+    "name": "Plugin.unregister",
     "description": "<p>Unregister a Reactium plugin by unique id. This can only be called prior to the <code>plugin-dependencies</code> hook, or <code>Reactium.Plugin.ready === true</code>.</p>",
     "parameter": {
       "fields": {
@@ -15679,7 +15682,7 @@
         ]
       }
     },
-    "group": "Reactium_Plugin",
+    "group": "Reactium.Plugin",
     "examples": [
       {
         "title": "Example Usage:",
@@ -15689,7 +15692,7 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/plugin/index.js",
-    "groupTitle": "Reactium_Plugin"
+    "groupTitle": "Reactium.Plugin"
   },
   {
     "type": "Function",
@@ -15710,8 +15713,8 @@
         ]
       }
     },
-    "name": "Prefs_clear",
-    "group": "Reactium_Prefs",
+    "name": "Prefs.clear",
+    "group": "Reactium.Prefs",
     "examples": [
       {
         "title": "Example",
@@ -15720,7 +15723,7 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/prefs/index.js",
-    "groupTitle": "Reactium_Prefs"
+    "groupTitle": "Reactium.Prefs"
   },
   {
     "type": "Function",
@@ -15748,8 +15751,8 @@
         ]
       }
     },
-    "name": "Prefs_get",
-    "group": "Reactium_Prefs",
+    "name": "Prefs.get",
+    "group": "Reactium.Prefs",
     "examples": [
       {
         "title": "Example",
@@ -15758,7 +15761,7 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/prefs/index.js",
-    "groupTitle": "Reactium_Prefs"
+    "groupTitle": "Reactium.Prefs"
   },
   {
     "type": "Function",
@@ -15786,8 +15789,8 @@
         ]
       }
     },
-    "name": "Prefs_set",
-    "group": "Reactium_Prefs",
+    "name": "Prefs.set",
+    "group": "Reactium.Prefs",
     "examples": [
       {
         "title": "Example",
@@ -15796,14 +15799,219 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/prefs/index.js",
-    "groupTitle": "Reactium_Prefs"
+    "groupTitle": "Reactium.Prefs"
+  },
+  {
+    "type": "Object",
+    "url": "Reactium.Pulse.Task",
+    "title": "Pulse.Task",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task",
+    "description": "<p>Pulse Task object that performs the heavy lifting for the Pulse API.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.ID",
+    "title": "Pulse.Task.ID",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.ID",
+    "description": "<p>[read-only] The unique ID of the task. Returns: <code>String</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.attempt",
+    "title": "Pulse.Task.attempt",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.attempt",
+    "description": "<p>[read-only] The current attempt for the active task. Returns: <code>Number</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.delay",
+    "title": "Pulse.Task.delay",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.attempt",
+    "description": "<p>The current attempt for the active task. Returns: <code>Number</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.attempts",
+    "title": "Pulse.Task.attempts",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.attempts",
+    "description": "<p>The number of times a task will retry before it fails. Default: <code>-1</code>. You can set this value after the task has started.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.autostart",
+    "title": "Pulse.Task.autostart",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.autostart",
+    "description": "<p>[read-only] If the task autastarted upon creation. Default: <code>true</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.complete",
+    "title": "Pulse.Task.complete",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.complete",
+    "description": "<p>[read-only] Relevant only when the <code>repeat</code> property is higher than 1. Returns: <code>Boolean</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.count",
+    "title": "Pulse.Task.count",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.count",
+    "description": "<p>[read-only] The current number of times the task has succeeded. Returns: <code>Number</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.error",
+    "title": "Pulse.Task.error",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.error",
+    "description": "<p>[read-only] The current error message if applicable. Returns: <code>string</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.failed",
+    "title": "Pulse.Task.failed",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.failed",
+    "description": "<p>[read-only] Expresses if the current task has reached the maximum attempts. Returns: <code>Boolean</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.now()",
+    "title": "Pulse.Task.now()",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.now",
+    "description": "<p>Force run the task without waiting for it's delay. If the task is running this is a <code>noop</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.progress",
+    "title": "Pulse.Task.progress",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.progress",
+    "description": "<p>[read-only] The current amount of the repeat that has been completed. Relevant only when <code>repeat</code> is higher than 1. Returns: <code>0-1</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.repeat",
+    "title": "Pulse.Task.repeat",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.repeat",
+    "description": "<p>The current number of times to run the task. Returns: <code>Number</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.retry()",
+    "title": "Pulse.Task.retry()",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.retry",
+    "description": "<p>Force a retry of the task. Useful for when you want to manually handle retries within your callback function.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.start()",
+    "title": "Pulse.Task.start()",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.start",
+    "description": "<p>Start the task. Useful for when you want manually start a task in your callback function.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.status",
+    "title": "Pulse.Task.status",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.status",
+    "description": "<p>[read-only] The current status of the task. For comparing the status use the Pulse.ENUMS.STATUS values</p>",
+    "examples": [
+      {
+        "title": "Example usage:",
+        "content": "const task = Pulse.get('MyTask');\nif (task.status === Pulse.ENUMS.STATUS.STOPPED) {\ntask.start();\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.stop()",
+    "title": "Pulse.Task.stop()",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.stop",
+    "description": "<p>Stop the task</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
+  },
+  {
+    "type": "Property",
+    "url": "Reactium.Pulse.Task.timer",
+    "title": "Pulse.Task.timer",
+    "group": "Reactium.Pulse.Task",
+    "name": "Reactium.Pulse.Task.timer",
+    "description": "<p>[read-only] The reference to the current setTimeout. This value will change for each task run. Returns: <code>Number</code>.</p>",
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
+    "groupTitle": "Reactium.Pulse.Task"
   },
   {
     "type": "Function",
     "url": "Pulse.get(ID)",
     "title": "Pulse.get()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_get",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.get",
     "description": "<p>Retrieve a registered task. Returns a <code>Pulse.Task</code> object.</p>",
     "parameter": {
       "fields": {
@@ -15827,14 +16035,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.register(ID,callback,options,params)",
     "title": "Pulse.register()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_register",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.register",
     "description": "<p>Register a new task. The callback function can be any function and supports returning a <code>Promise</code> from the function. If a <code>Promise</code> is rejected, or the callback function returns an <code>Error</code> object or <code>false</code>, a retry will be triggered if possible. In cases where no more retries can be executed, the task will fail.</p>",
     "parameter": {
       "fields": {
@@ -15916,14 +16124,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.start(ID)",
     "title": "Pulse.start()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_start",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.start",
     "description": "<p>Start a registered task if it is stopped.</p>",
     "parameter": {
       "fields": {
@@ -15947,14 +16155,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.startAll()",
     "title": "Pulse.startAll()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_startAll",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.startAll",
     "description": "<p>Start all stopped tasks.</p>",
     "examples": [
       {
@@ -15965,14 +16173,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.stop(ID)",
     "title": "Pulse.stop()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_stop",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.stop",
     "description": "<p>Stop a registered task if it is running.</p>",
     "parameter": {
       "fields": {
@@ -15996,14 +16204,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.stopAll()",
     "title": "Pulse.stopAll()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_stopAll",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.stopAll",
     "description": "<p>Stop all running registered tasks.</p>",
     "examples": [
       {
@@ -16014,14 +16222,14 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Function",
     "url": "Pulse.unregister(ID)",
     "title": "Pulse.unregister()",
-    "group": "Reactium_Pulse",
-    "name": "Pulse_unregister",
+    "group": "Reactium.Pulse",
+    "name": "Pulse.unregister",
     "description": "<p>Stop and unregister a task. If the task is running, it's current attempt will resolve before the task is removed.</p>",
     "parameter": {
       "fields": {
@@ -16045,250 +16253,35 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Object",
     "url": "Reactium.Pulse",
     "title": "Pulse",
-    "group": "Reactium_Pulse",
-    "name": "Reactium_Pulse",
+    "group": "Reactium.Pulse",
+    "name": "Reactium.Pulse",
     "description": "<p>Simple interface for creating long or short polls.</p> <h3>Motivation</h3> <p>Often is the case where you find yourself sprinkling <code>setTimeout</code> or <code>setInterval</code> all over your code and before you know it, you have so many or rewrite the same structures over and over with a slight twist here and there. The Pulse API is designed to lighten the load on those situations and give a clean interface to easily create and manage polls.</p>",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Property",
     "url": "Reactium.Pulse.Task.reset()",
     "title": "Pulse.Task.reset()",
-    "group": "Reactium_Pulse",
-    "name": "Reactium_Pulse_Task_reset",
+    "group": "Reactium.Pulse",
+    "name": "Reactium.Pulse.Task.reset",
     "description": "<p>Resets the task's attempt count and run count. Useful for catastrophic failures in your callback function.</p>",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse"
-  },
-  {
-    "type": "Object",
-    "url": "Reactium.Pulse.Task",
-    "title": "Pulse.Task",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task",
-    "description": "<p>Pulse Task object that performs the heavy lifting for the Pulse API.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.ID",
-    "title": "Pulse.Task.ID",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_ID",
-    "description": "<p>[read-only] The unique ID of the task. Returns: <code>String</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.attempt",
-    "title": "Pulse.Task.attempt",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_attempt",
-    "description": "<p>[read-only] The current attempt for the active task. Returns: <code>Number</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.delay",
-    "title": "Pulse.Task.delay",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_attempt",
-    "description": "<p>The current attempt for the active task. Returns: <code>Number</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.attempts",
-    "title": "Pulse.Task.attempts",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_attempts",
-    "description": "<p>The number of times a task will retry before it fails. Default: <code>-1</code>. You can set this value after the task has started.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.autostart",
-    "title": "Pulse.Task.autostart",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_autostart",
-    "description": "<p>[read-only] If the task autastarted upon creation. Default: <code>true</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.complete",
-    "title": "Pulse.Task.complete",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_complete",
-    "description": "<p>[read-only] Relevant only when the <code>repeat</code> property is higher than 1. Returns: <code>Boolean</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.count",
-    "title": "Pulse.Task.count",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_count",
-    "description": "<p>[read-only] The current number of times the task has succeeded. Returns: <code>Number</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.error",
-    "title": "Pulse.Task.error",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_error",
-    "description": "<p>[read-only] The current error message if applicable. Returns: <code>string</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.failed",
-    "title": "Pulse.Task.failed",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_failed",
-    "description": "<p>[read-only] Expresses if the current task has reached the maximum attempts. Returns: <code>Boolean</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.now()",
-    "title": "Pulse.Task.now()",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_now",
-    "description": "<p>Force run the task without waiting for it's delay. If the task is running this is a <code>noop</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.progress",
-    "title": "Pulse.Task.progress",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_progress",
-    "description": "<p>[read-only] The current amount of the repeat that has been completed. Relevant only when <code>repeat</code> is higher than 1. Returns: <code>0-1</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.repeat",
-    "title": "Pulse.Task.repeat",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_repeat",
-    "description": "<p>The current number of times to run the task. Returns: <code>Number</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.retry()",
-    "title": "Pulse.Task.retry()",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_retry",
-    "description": "<p>Force a retry of the task. Useful for when you want to manually handle retries within your callback function.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.start()",
-    "title": "Pulse.Task.start()",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_start",
-    "description": "<p>Start the task. Useful for when you want manually start a task in your callback function.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.status",
-    "title": "Pulse.Task.status",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_status",
-    "description": "<p>[read-only] The current status of the task. For comparing the status use the Pulse.ENUMS.STATUS values</p>",
-    "examples": [
-      {
-        "title": "Example usage:",
-        "content": "const task = Pulse.get('MyTask');\nif (task.status === Pulse.ENUMS.STATUS.STOPPED) {\ntask.start();\n}",
-        "type": "json"
-      }
-    ],
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.stop()",
-    "title": "Pulse.Task.stop()",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_stop",
-    "description": "<p>Stop the task</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Property",
-    "url": "Reactium.Pulse.Task.timer",
-    "title": "Pulse.Task.timer",
-    "group": "Reactium_Pulse_Task",
-    "name": "Reactium_Pulse_Task_timer",
-    "description": "<p>[read-only] The reference to the current setTimeout. This value will change for each task run. Returns: <code>Number</code>.</p>",
-    "version": "0.0.0",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/pulse/index.js",
-    "groupTitle": "Reactium_Pulse_Task"
-  },
-  {
-    "type": "Registry",
-    "url": "Middleware",
-    "title": "Middleware",
-    "version": "0.0.0",
-    "name": "Server_Middleware",
-    "group": "Reactium_Server",
-    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/server/index.js",
-    "groupTitle": "Reactium_Server"
+    "groupTitle": "Reactium.Pulse"
   },
   {
     "type": "Class",
     "url": "Fullscreen",
     "title": "Fullscreen",
-    "group": "Reactium_Utilities",
+    "group": "Reactium.Utilities",
     "name": "Fullscreen",
     "description": "<p>Cross browser utility for toggling fullscreen mode.</p>",
     "parameter": {
@@ -16313,15 +16306,15 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/named-exports/fullscreen.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
     "url": "Reactium.Utils.abbreviatedNumber(number)",
     "title": "Utils.abbreviatedNumber()",
     "version": "3.1.14",
-    "group": "Reactium_Utilities",
-    "name": "Utils_abbreviatedNumber",
+    "group": "Reactium.Utilities",
+    "name": "Utils.abbreviatedNumber",
     "description": "<p>Abbreviate a long number to a string.</p>",
     "parameter": {
       "fields": {
@@ -16344,15 +16337,15 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
     "url": "Reactium.Utils.breakpoint(width)",
     "title": "Utils.breakpoint()",
     "version": "3.1.14",
-    "group": "Reactium_Utilities",
-    "name": "Utils_breakpoint",
+    "group": "Reactium.Utilities",
+    "name": "Utils.breakpoint",
     "description": "<p>Get the breakpoint of a window width.</p>",
     "parameter": {
       "fields": {
@@ -16369,26 +16362,26 @@
       }
     },
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
     "url": "Reactium.Utils.breakpoints()",
     "title": "Utils.breakpoints",
     "version": "3.1.14",
-    "group": "Reactium_Utilities",
-    "name": "Utils_breakpoints",
+    "group": "Reactium.Utilities",
+    "name": "Utils.breakpoints",
     "description": "<p>Get breakpoints from browser body:after psuedo element or <code>Utils.BREAKPOINTS_DEFAULT</code> if unset or node.</p> <table> <thead> <tr> <th>Breakpoint</th> <th>Range</th> </tr> </thead> <tbody> <tr> <td>xs</td> <td>0 - 640</td> </tr> <tr> <td>sm</td> <td>641 - 990</td> </tr> <tr> <td>md</td> <td>991 - 1280</td> </tr> <tr> <td>lg</td> <td>1281 - 1440</td> </tr> <tr> <td>xl</td> <td>1600+</td> </tr> </tbody> </table>",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
     "url": "Reactium.Utils.isElectron(iframeWindow)",
     "title": "Utils.isElectron()",
     "version": "3.1.14",
-    "group": "Reactium_Utilities",
-    "name": "Utils_isElectron",
+    "group": "Reactium.Utilities",
+    "name": "Utils.isElectron",
     "description": "<p>Determine if window is an electron window. Useful for detecting electron usage.</p>",
     "parameter": {
       "fields": {
@@ -16411,15 +16404,15 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
     "url": "Reactium.Utils.isWindow(iframeWindow)",
     "title": "Utils.isWindow()",
     "version": "3.1.14",
-    "group": "Reactium_Utilities",
-    "name": "Utils_isWindow",
+    "group": "Reactium.Utilities",
+    "name": "Utils.isWindow",
     "description": "<p>Determine if the window object has been set. Useful when developing for server side rendering.</p>",
     "parameter": {
       "fields": {
@@ -16442,7 +16435,7 @@
       }
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Function",
@@ -16470,7 +16463,7 @@
         ]
       }
     },
-    "group": "Reactium_Utilities",
+    "group": "Reactium.Utilities",
     "examples": [
       {
         "title": "MyComponent/index.js",
@@ -16485,7 +16478,7 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/named-exports/redux.js",
-    "groupTitle": "Reactium_Utilities"
+    "groupTitle": "Reactium.Utilities"
   },
   {
     "type": "Utils.cxFactory",
@@ -16505,8 +16498,8 @@
         ]
       }
     },
-    "name": "Utils_cxFactory",
-    "group": "Reactium_Utils",
+    "name": "Utils.cxFactory",
+    "group": "Reactium.Utils",
     "examples": [
       {
         "title": "Usage:",
@@ -16516,15 +16509,15 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utils"
+    "groupTitle": "Reactium.Utils"
   },
   {
     "type": "Function",
     "url": "Utils.registryFactory(name,idField)",
     "title": "Utils.registryFactory()",
     "description": "<p>Creates a new instance of a simple registry object. Useful for creating an SDK registry for allowing plugins to register &quot;things&quot;. e.g. components that will render inside a component, callbacks that will run.</p> <p>More documentation needed:</p> <ul> <li>register method: used to register an object on registry</li> <li>unregister method: used to unregister an object on registry</li> <li>list property: getter for list of registered objects</li> <li>protect method: called to prevent overwriting an id on registry</li> <li>unprotect method: called to again allow overwriting on id</li> </ul>",
-    "name": "Utils_registryFactory",
-    "group": "Reactium_Utils",
+    "name": "Utils.registryFactory",
+    "group": "Reactium.Utils",
     "examples": [
       {
         "title": "Basic Reactium Usage",
@@ -16539,7 +16532,7 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utils"
+    "groupTitle": "Reactium.Utils"
   },
   {
     "type": "Function",
@@ -16591,8 +16584,8 @@
         ]
       }
     },
-    "name": "Utils_splitParts",
-    "group": "Reactium_Utils",
+    "name": "Utils.splitParts",
+    "group": "Reactium.Utils",
     "examples": [
       {
         "title": "Usage",
@@ -16602,13 +16595,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/index.js",
-    "groupTitle": "Reactium_Utils"
+    "groupTitle": "Reactium.Utils"
   },
   {
     "type": "Function",
     "url": "Zone.addComponent(component,capabilities,strict)",
     "title": "Zone.addComponent()",
-    "name": "Zone_addComponent",
+    "name": "Zone.addComponent",
     "description": "<p>Register a component to a component zone.</p>",
     "parameter": {
       "fields": {
@@ -16638,7 +16631,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "plugin-example.js",
@@ -16648,13 +16641,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.addFilter(zone,filter,order)",
     "title": "Zone.addFilter()",
-    "name": "Zone_addFilter",
+    "name": "Zone.addFilter",
     "description": "<p>Add a component zone filter function, used to filter which components will appear in <code>&lt;Zone /&gt;</code> Returns unique id.</p>",
     "parameter": {
       "fields": {
@@ -16684,7 +16677,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "reactium-hooks.js",
@@ -16694,13 +16687,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.addMapper(zone,mapper,order)",
     "title": "Zone.addMapper()",
-    "name": "Zone_addMapper",
+    "name": "Zone.addMapper",
     "description": "<p>Add a component zone mapping function, used to augment the zone component object before passed to <code>&lt;Zone /&gt;</code>. Returns unique id.</p>",
     "parameter": {
       "fields": {
@@ -16730,7 +16723,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "Example Usage",
@@ -16740,13 +16733,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.addSort(zone,sortBy,reverse,order)",
     "title": "Zone.addSort()",
-    "name": "Zone_addSort",
+    "name": "Zone.addSort",
     "description": "<p>Add a component zone sort critera, used to augment the zone component object before passed to <code>&lt;Zone /&gt;</code></p>",
     "parameter": {
       "fields": {
@@ -16785,7 +16778,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "Example Usage",
@@ -16795,13 +16788,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.removeComponent(ID)",
     "title": "Zone.removeComponent()",
-    "name": "Zone_removeComponent",
+    "name": "Zone.removeComponent",
     "description": "<p>Removes a component added by <code>Zone.addComponent()</code> from a component zone by id.</p>",
     "parameter": {
       "fields": {
@@ -16816,16 +16809,16 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.removeFilter(id)",
     "title": "Zone.removeFilter()",
-    "name": "Zone_removeFilter",
+    "name": "Zone.removeFilter",
     "description": "<p>Remove filter functions for a component zone for this component.</p>",
     "parameter": {
       "fields": {
@@ -16840,7 +16833,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "Example Usage",
@@ -16850,13 +16843,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.removeMapper(id)",
     "title": "Zone.removeMapper()",
-    "name": "Zone_removeMapper",
+    "name": "Zone.removeMapper",
     "description": "<p>Remove mapping functions for a zone..</p>",
     "parameter": {
       "fields": {
@@ -16871,7 +16864,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "Example Usage",
@@ -16881,15 +16874,15 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.removeSort(componentName,zone)",
     "title": "Zone.removeSort()",
-    "name": "Zone_removeSort",
+    "name": "Zone.removeSort",
     "description": "<p>Remove sort critera for a component zone for this component. This should be called only: //   * @apiParam {String} zone the zone to remove this sort from</p>",
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "Example Usage",
@@ -16899,13 +16892,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.subscribe(zone,cb)",
     "title": "Zone.subscribe()",
-    "name": "Zone_subscribe",
+    "name": "Zone.subscribe",
     "description": "<p>Subscribe to components added, removed, or updated in a particular rendering zone. Returns an unsubscribe function. Call this function to unsubscribe from changes.</p>",
     "parameter": {
       "fields": {
@@ -16927,7 +16920,7 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "examples": [
       {
         "title": "useZoneComponents.js",
@@ -16937,13 +16930,13 @@
     ],
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
   },
   {
     "type": "Function",
     "url": "Zone.updateComponent(id,updatedComponent)",
     "title": "Zone.updateComponent()",
-    "name": "Zone_updateComponent",
+    "name": "Zone.updateComponent",
     "description": "<p>Register a component to a component zone.</p>",
     "parameter": {
       "fields": {
@@ -16965,10 +16958,222 @@
         ]
       }
     },
-    "group": "Reactium_Zone",
+    "group": "Reactium.Zone",
     "version": "0.0.0",
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/index.js",
-    "groupTitle": "Reactium_Zone"
+    "groupTitle": "Reactium.Zone"
+  },
+  {
+    "type": "Object",
+    "url": "Registry",
+    "title": "Registry",
+    "group": "Reactium",
+    "name": "Registry",
+    "description": "<p>Reactium uses a number of registry objects used to registering all sorts of objects that will be used elsewhere in the framework. New registry objects are generally instanciated as singletons on the overall SDK.</p> <p>There are many registry objects attached by default to the SDK, and developers can create new ones using <code>Utils.registryFactory()</code>.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "listById",
+            "description": "<p>get Object keyed by id of most recent (or highest order) registered objects, filtering out unregistered or banned objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "list",
+            "description": "<p>get list of most recent (or highest order) registered objects, filtering out unregistered or banned objects.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "registered",
+            "description": "<p>get list of all historically registrated objects, even duplicates, ordered by order property of object (defaults to 100).</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "protected",
+            "description": "<p>get list of protected registrations ids</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "unregistered",
+            "description": "<p>get list of all existing registered objects ids that have been subsequently unregistered.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "banned",
+            "description": "<p>get list of all banned objects ids.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Getter",
+            "optional": false,
+            "field": "mode",
+            "description": "<p>get current mode (Default Utils.Registry.MODES.HISTORY)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "get",
+            "description": "<p><code>reg.get(id)</code> pass the identifier of an object get that object from the registry</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "isProtected",
+            "description": "<p>pass the identifier of an object to see if it has been protected</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "isRegistered",
+            "description": "<p>pass the identifier of an object to see if it has been registered</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "isUnRegistered",
+            "description": "<p>pass the identifier of an object to see is NOT registered.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "isBanned",
+            "description": "<p>pass the identifier of an object to see if it has been banned</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "ban",
+            "description": "<p><code>reg.ban(id)</code> pass the identifier of an object to ban. Banned objects can not be registered and will not be show in list. Useful when you have code that needs to preempt the registration of an object from code you do not control. E.g. a plugin is introducing undesireable or disabled functionality</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "cleanup",
+            "description": "<p><code>reg.cleanup(id)</code> pass the identifier of an object to be purged from historical registrations (i.e. free up memory) Automatically performed in mode Utils.Registry.CLEAN</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "protect",
+            "description": "<p><code>reg.protect(id)</code> pass the identifier of an object to protect. Protected objects can not be overridden or cleaned up.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "register",
+            "description": "<p><code>reg.register(id,data)</code> pass an identifier and a data object to register the object. The identifier will be added if it is not already registered (but protected) and not banned.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "unprotect",
+            "description": "<p><code>reg.unprotect(id)</code> pass an identifier to unprotect an object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "unregister",
+            "description": "<p><code>reg.unregister(id)</code> pass an identifier to unregister an object. When in HISTORY mode (default), previous registration will be retained, but the object will not be listed. In CLEAN mode, the previous registrations will be removed, unless protected.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "flush",
+            "description": "<p><code>reg.flush()</code> clear all registrations. Resets registry to newly constructed state.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "subscribe",
+            "description": "<p><code>reg.subscribe(cb,id)</code> Adds a callback to indicate changes to the registry. Callback is called on register, unregister, protect, unprotect, ban, cleanup, and flush. Returns unsubscribe function.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "unsubscribe",
+            "description": "<p><code>reg.unsubscribe(id)</code> unsubscribe a subscriber by id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Method",
+            "optional": false,
+            "field": "unsubscribeAll",
+            "description": "<p><code>reg.unsubscribeAll()</code> unsubscribe all subscribers to changes made on the registry</p>"
+          }
+        ],
+        "register": [
+          {
+            "group": "register",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>the id of the data object to be registered</p>"
+          },
+          {
+            "group": "register",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>the object to be registered</p>"
+          }
+        ],
+        "subscribe": [
+          {
+            "group": "subscribe",
+            "type": "Function",
+            "optional": false,
+            "field": "cb",
+            "description": "<p>Callback to be invoked on changes to the registry.</p>"
+          },
+          {
+            "group": "subscribe",
+            "type": "String",
+            "optional": true,
+            "field": "id",
+            "description": "<p>optional id of the callback, if you want to invoke unsubscribe manually by id, instead of the callback returned from subscribe method</p>"
+          }
+        ],
+        "unsubscribe": [
+          {
+            "group": "unsubscribe",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>the id of the subscriber to unsubscribe</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/utils/registry.js",
+    "groupTitle": "Reactium"
   },
   {
     "type": "RegisteredComponent",
@@ -17025,33 +17230,5 @@
     ],
     "filename": "node_modules/@atomic-reactor/reactium-sdk-core/lib/zone/Zone.js",
     "groupTitle": "Registered_Component"
-  },
-  {
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "optional": false,
-            "field": "varname1",
-            "description": "<p>No type.</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "varname2",
-            "description": "<p>With type.</p>"
-          }
-        ]
-      }
-    },
-    "type": "",
-    "url": "",
-    "version": "0.0.0",
-    "filename": ".core/middleware/docs/content/main.js",
-    "group": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
-    "groupTitle": "_Development_Atomic_Reactor_Actinium__core_middleware_docs_content_main_js",
-    "name": ""
   }
 ]
