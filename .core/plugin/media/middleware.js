@@ -7,6 +7,13 @@ Actinium.Middleware.register(
     'media',
     app => {
         const router = express.Router();
+        router.use('/media/all', (req, res) => {
+            res.json(
+                Object.values(Actinium.Cache.get('Media.files', {})).map(
+                    ({ url }) => url,
+                ),
+            );
+        });
 
         router.use('/media/*', (req, res) => {
             const files = Object.values(Actinium.Cache.get('Media.files', {}));
