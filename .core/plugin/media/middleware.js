@@ -3,19 +3,23 @@ const request = require('request');
 const op = require('object-path');
 const _ = require('underscore');
 
+const conditionalLoad = async () => {
+    if (
+        Actinium.started &&
+        !Actinium.Media.LOADED &&
+        !Actinium.Cache.get('Media')
+    ) {
+        await Actinium.Media.load();
+    }
+};
+
 Actinium.Middleware.register(
     'media',
     app => {
         const router = express.Router();
-        router.use('/media/all', (req, res) => {
-            res.json(
-                Object.values(Actinium.Cache.get('Media.files', {})).map(
-                    ({ url }) => url,
-                ),
-            );
-        });
+        router.use('/media/*', async (req, res) => {
+            await conditionalLoad();
 
-        router.use('/media/*', (req, res) => {
             const files = Object.values(Actinium.Cache.get('Media.files', {}));
             const rec = _.findWhere(files, { url: req.baseUrl });
 

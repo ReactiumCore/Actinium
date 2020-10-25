@@ -674,6 +674,8 @@ Media.fileType = filename => {
     return type;
 };
 
+Media.LOADING = false;
+
 /**
  * @api {Asynchronous} Media.load() Media.load
  * @apiVersion 3.1.3
@@ -686,10 +688,12 @@ await Actinium.Media.load();
 ...
  */
 Media.load = async () => {
+    Media.LOADING = true;
     const [directories, files] = await Promise.all([
         getDirectories(),
         getMedia(),
     ]);
+    Media.LOADING = false;
 
     Actinium.Cache.set('Media', {
         directories,
