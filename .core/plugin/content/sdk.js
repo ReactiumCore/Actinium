@@ -947,7 +947,8 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiParam (params) {Boolean} [refresh=false] skip cache check when true
  * @apiParam (params) {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
- * @apiParam (params) {String} [status] "PUBLISHED" or "DRAFT", or other custom status of the content
+ * @apiParam (params) {Boolean} [resolveRelations=false] boolean flag to resolveRelations Pointers and Relations.
+ * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT", or other custom status of the content
  * @apiParam (params) {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam (params) {String} [order=descending] Order "descending" or "ascending"
  * @apiParam (params) {String} [indexBy] Out put the results as an {Object} indexed by the specified collection field.
@@ -970,15 +971,14 @@ Actinium.Content.list({
  */
 Content.list = async (params, options) => {
     const masterOptions = Actinium.Utils.MasterOptions(options);
-    const collection = await Actinium.Type.getCollection(
-        params.type,
-        masterOptions,
-    );
+    const typeObj = await Actinium.Type.retrieve(params.type, masterOptions);
+    const collection = typeObj.collection;
 
     let page = Math.max(op.get(params, 'page', 1), 1);
     let limit = Math.min(op.get(params, 'limit', 20), 1000);
-    const optimize = op.get(params, 'optimize', false);
-    const refresh = op.get(params, 'refresh', false);
+    const optimize = op.get(params, 'optimize', false) === true;
+    const refresh = op.get(params, 'refresh', false) === true;
+    const resolveRelations = op.get(params, 'resolveRelations', false) === true;
     const indexBy = op.get(params, 'indexBy');
     const orderBy = op.get(params, 'orderBy', 'updatedAt');
     const orders = ['ascending', 'descending'];
@@ -990,7 +990,7 @@ Content.list = async (params, options) => {
     order = !orders.includes(order) ? 'descending' : order;
 
     const qry = new Parse.Query(collection);
-    const status = op.get(params, 'status');
+    const status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
     if (status) qry.equalTo('status', status);
     else qry.notEqualTo('status', ENUMS.STATUS.TRASH);
 
@@ -1002,13 +1002,41 @@ Content.list = async (params, options) => {
 
     const cacheKey = [
         `content-${collection}`,
-        _.compact([limit, page, order, orderBy, status]).join('_'),
+        _.compact([
+            limit,
+            page,
+            order,
+            orderBy,
+            status,
+            resolveRelations ? 'resolve' : 'dontresolve',
+            count,
+        ]).join('_'),
     ];
 
     let response = Actinium.Cache.get(cacheKey);
     if (response && !refresh) return response;
 
+    const { schema } = await Actinium.Content.getSchema(typeObj);
     const skip = page * limit - limit;
+
+    // Resolve Relations
+    const pointers = Object.entries(schema).filter(
+        ([, fs]) =>
+            op.get(fs, 'type') === 'Pointer' &&
+            op.get(fs, 'targetClass') !== '_User',
+    );
+    const relations = Object.entries(schema).filter(
+        ([, fs]) =>
+            op.get(fs, 'type') === 'Relation' &&
+            op.get(fs, 'targetClass') !== '_User',
+    );
+
+    // Attach Relations
+    if (resolveRelations) {
+        for (const [fieldSlug, fieldSchema] of pointers) {
+            qry.include(fieldSlug);
+        }
+    }
 
     qry[order](orderBy)
         .limit(limit)
@@ -1041,6 +1069,56 @@ Content.list = async (params, options) => {
      */
     await Actinium.Hook.run('content-query-results', results, params, options);
 
+    // Attach Relations
+    const relationQueries = {
+        all: [],
+        queries: {},
+    };
+
+    const attachments = {};
+    if (resolveRelations) {
+        for (const content of results) {
+            for (const [fieldSlug, fieldSchema] of relations) {
+                const qry = content.relation(fieldSlug).query();
+                const qPath = [content.id, fieldSlug];
+                op.set(relationQueries.queries, qPath, qry);
+                relationQueries.all.push(qPath);
+            }
+        }
+
+        // chunk queries to keep stuff reasonable
+        for (const chunk of _.chunk(relationQueries.all, limit)) {
+            const relationResultsChunk = await Promise.all(
+                chunk.map(async ([id, fieldSlug]) => {
+                    return {
+                        id,
+                        fieldSlug,
+                        fieldData: await op
+                            .get(relationQueries.queries, [id, fieldSlug])
+                            .find(options),
+                    };
+                }),
+            );
+
+            relationResultsChunk.forEach(({ id, fieldSlug, fieldData }) =>
+                op.set(
+                    attachments,
+                    [id, fieldSlug],
+                    fieldData.map(Actinium.Utils.serialize),
+                ),
+            );
+        }
+    }
+
+    const serializedResults = results
+        .map(Actinium.Utils.serialize)
+        .map(content => {
+            return {
+                ...content,
+                ...op.get(attachments, content.objectId, {}),
+            };
+        });
+
     response = {
         count,
         next,
@@ -1051,7 +1129,7 @@ Content.list = async (params, options) => {
         order,
         orderBy,
         indexBy,
-        results: results.map(item => serialize(item)),
+        results: serializedResults,
     };
 
     if (indexBy) {

@@ -421,7 +421,8 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
  * @apiParam {Boolean} [refresh=false] skip cache check when true
  * @apiParam {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
- * @apiParam {String} [status] "PUBLISHED" or "DRAFT", or other custom status of the content
+ * @apiParam {Boolean} [resolveRelations=false] boolean flag to resolveRelations Pointers and Relations.
+ * @apiParam {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT", or other custom status of the content
  * @apiParam {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam {Number} [limit=20] Limit page results

@@ -1482,9 +1482,18 @@ define({ "api": [
           },
           {
             "group": "params",
+            "type": "Boolean",
+            "optional": true,
+            "field": "resolveRelations",
+            "defaultValue": "false",
+            "description": "<p>boolean flag to resolveRelations Pointers and Relations.</p>"
+          },
+          {
+            "group": "params",
             "type": "String",
             "optional": true,
             "field": "status",
+            "defaultValue": "PUBLISHED",
             "description": "<p>&quot;PUBLISHED&quot; or &quot;DRAFT&quot;, or other custom status of the content</p>"
           },
           {
@@ -8411,9 +8420,18 @@ define({ "api": [
           },
           {
             "group": "Parameter",
+            "type": "Boolean",
+            "optional": true,
+            "field": "resolveRelations",
+            "defaultValue": "false",
+            "description": "<p>boolean flag to resolveRelations Pointers and Relations.</p>"
+          },
+          {
+            "group": "Parameter",
             "type": "String",
             "optional": true,
             "field": "status",
+            "defaultValue": "PUBLISHED",
             "description": "<p>&quot;PUBLISHED&quot; or &quot;DRAFT&quot;, or other custom status of the content</p>"
           },
           {

@@ -3,8 +3,6 @@ const request = require('request');
 const op = require('object-path');
 const _ = require('underscore');
 
-console.log('registering content routes');
-
 /**
  * Simple no-privilege express routes for content
  */
