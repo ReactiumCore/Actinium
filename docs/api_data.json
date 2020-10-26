@@ -1526,6 +1526,13 @@
             "field": "limit",
             "defaultValue": "20",
             "description": "<p>Limit page results</p>"
+          },
+          {
+            "group": "params",
+            "type": "String[]",
+            "optional": true,
+            "field": "ids",
+            "description": "<p>Optional list of object ids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried</p>"
           }
         ],
         "type": [
@@ -8457,6 +8464,13 @@
             "field": "limit",
             "defaultValue": "20",
             "description": "<p>Limit page results</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String[]",
+            "optional": true,
+            "field": "ids",
+            "description": "<p>Optional list of object ids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried</p>"
           }
         ],
         "type": [

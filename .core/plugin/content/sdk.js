@@ -953,6 +953,7 @@ less than 1000 records, the entire set will be delivered in one page for applica
  * @apiParam (params) {String} [order=descending] Order "descending" or "ascending"
  * @apiParam (params) {String} [indexBy] Out put the results as an {Object} indexed by the specified collection field.
  * @apiParam (params) {Number} [limit=20] Limit page results
+ * @apiParam (params) {String[]} [ids] Optional list of object ids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -978,6 +979,9 @@ Content.list = async (params, options) => {
     let limit = Math.min(op.get(params, 'limit', 20), 1000);
     const optimize = op.get(params, 'optimize', false) === true;
     const refresh = op.get(params, 'refresh', false) === true;
+    const ids = _.flatten([op.get(params, 'ids')]).filter(
+        id => typeof id === 'string' && id.length > 0,
+    );
     const resolveRelations = op.get(params, 'resolveRelations', false) === true;
     const indexBy = op.get(params, 'indexBy');
     const orderBy = op.get(params, 'orderBy', 'updatedAt');
@@ -993,6 +997,10 @@ Content.list = async (params, options) => {
     const status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
     if (status) qry.equalTo('status', status);
     else qry.notEqualTo('status', ENUMS.STATUS.TRASH);
+
+    if (ids.length > 0) {
+        qry.containedIn('objectId', ids);
+    }
 
     const count = await qry.count(options);
     if (optimize && count <= 1000) {
