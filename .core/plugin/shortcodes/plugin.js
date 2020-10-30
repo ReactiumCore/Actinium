@@ -37,9 +37,11 @@ Actinium.Hook.register('before-capability-load', () => {
     Actinium.Capability.register('shortcodes.retrieve', { allowed });
     Actinium.Capability.register('shortcodes.update', { allowed });
     Actinium.Capability.register('shortcodes.delete', { allowed });
-    Actinium.Capability.register('setting.shortcodes-get', { allowed });
     Actinium.Capability.register('setting.shortcodes-set', { allowed });
     Actinium.Capability.register('setting.shortcodes-delete', { allowed });
+    Actinium.Setting.anonymousGroup.register('shortcodes', {
+        id: 'shortcodes',
+    });
 });
 
 /**
