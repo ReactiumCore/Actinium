@@ -435,6 +435,8 @@ less than 1000 records, the entire set will be delivered in one page for applica
  * @apiParam {String} [direction=descending] Order "descending" or "ascending"
  * @apiParam {Number} [limit=20] Limit page results
  * @apiParam {String[]} [ids] Optional list of object ids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
+ * @apiParam {String[]} [uuids] Optional list of object uuids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
+ * @apiParam {String[]} [slugs] Optional list of object slugs for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
