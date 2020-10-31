@@ -4,6 +4,6 @@
         "NODE_ENV": "development"
     },
     "ignore": ["./.cli", "./.core/.cli", "./docs/*", "src/env.dev.json"],
-    "watch": ["./src", "./.core"],
+    "watch": ["./src", "./.core", "./actinium_modules"],
     "ext": "js,json"
 }
