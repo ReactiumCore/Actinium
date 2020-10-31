@@ -1143,6 +1143,9 @@ Content.list = async (params, options) => {
             return {
                 ...content,
                 ...op.get(attachments, content.objectId, {}),
+                // these are added by content-retrieve, so we will do here too
+                type: typeObj,
+                schema,
             };
         });
 
