@@ -245,6 +245,14 @@ Actinium.Hook.register('type-saved', async contentType => {
     }
 });
 
+const clearListCache = (contentObj, typeObj) => {
+    const collection = op.get(typeObj, 'collection');
+    Actinium.Cache.del(`content-${collection}`);
+};
+
+Actinium.Hook.register('content-published', clearListCache);
+Actinium.Hook.register('content-status-changed', clearListCache);
+
 Actinium.Hook.register(
     'content-field-sanitize',
     async ({ field, fieldConfig, fieldData }) => {
