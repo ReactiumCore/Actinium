@@ -954,6 +954,8 @@ less than 1000 records, the entire set will be delivered in one page for applica
  * @apiParam (params) {String} [indexBy] Out put the results as an {Object} indexed by the specified collection field.
  * @apiParam (params) {Number} [limit=20] Limit page results
  * @apiParam (params) {String[]} [ids] Optional list of object ids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
+ * @apiParam (params) {String[]} [uuids] Optional list of object uuids for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
+ * @apiParam (params) {String[]} [slugs] Optional list of object slugs for the content to fetch. (must all be the same content type) If not specified, all content in the type will be queried
  * @apiParam (type) {String} [objectId] Parse objectId of content type
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
@@ -979,9 +981,21 @@ Content.list = async (params, options) => {
     let limit = Math.min(op.get(params, 'limit', 20), 1000);
     const optimize = op.get(params, 'optimize', false) === true;
     const refresh = op.get(params, 'refresh', false) === true;
-    const ids = _.flatten([op.get(params, 'ids')]).filter(
-        id => typeof id === 'string' && id.length > 0,
-    );
+    const { ids = [], uuids = [], slugs = [] } = [
+        'ids',
+        'uuids',
+        'slugs',
+    ].reduce((idParams, t) => {
+        op.set(
+            idParams,
+            [t],
+            _.flatten([op.get(params, [t])]).filter(
+                id => typeof id === 'string' && id.length > 0,
+            ),
+        );
+        return idParams;
+    }, {});
+
     const resolveRelations = op.get(params, 'resolveRelations', false) === true;
     const indexBy = op.get(params, 'indexBy');
     const orderBy = op.get(params, 'orderBy', 'updatedAt');
@@ -998,8 +1012,13 @@ Content.list = async (params, options) => {
     if (status) qry.equalTo('status', status);
     else qry.notEqualTo('status', ENUMS.STATUS.TRASH);
 
+    // get list from id list params if found
     if (ids.length > 0) {
         qry.containedIn('objectId', ids);
+    } else if (uuids.length > 0) {
+        qry.containedIn('uuid', uuids);
+    } else if (slugs.length > 0) {
+        qry.containedIn('slug', slugs);
     }
 
     const count = await qry.count(options);

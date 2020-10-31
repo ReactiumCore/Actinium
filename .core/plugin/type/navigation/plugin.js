@@ -44,20 +44,6 @@ const ensureNavigationType = async ({ ID }) => {
     INFO('Ensuring Navigation content type.');
 
     const options = Actinium.Utils.MasterOptions();
-    // let collection;
-    // try {
-    //     const type = await Actinium.Type.retrieve(
-    //         { machineName: 'test_content' },
-    //         options,
-    //     );
-    //     const typeObj = new Actinium.Object('Type');
-    //     typeObj.id = type.objectId;
-    //     typeObj.fetch(options);
-    //     typeObj.set('slugs', []);
-    //     typeObj.save(null, options);
-    //
-    //     collection = type.collection;
-    // } catch (error) {}
 
     const navigationTypeTemplate = {
         type: 'Navigation',
