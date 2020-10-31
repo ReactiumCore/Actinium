@@ -49,7 +49,14 @@ SDK.Helper.urlFormat = url => {
 
 SDK.attach = async (params, options) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return [];
-    let { blueprint, content, contentId, collection, type } = params;
+    let {
+        blueprint,
+        content,
+        contentId,
+        contentUUID,
+        collection,
+        type,
+    } = params;
 
     options = options || { useMasterKey: true };
 
@@ -87,6 +94,7 @@ SDK.attach = async (params, options) => {
         let app = op.get(meta, 'app', 'site');
         op.set(meta, 'app', app);
         op.set(meta, 'contentId', contentId);
+        op.set(meta, 'contentUUID', contentUUID);
         op.set(meta, 'collection', collection);
         op.set(meta, 'type', type);
         op.del(meta, 'blueprint');

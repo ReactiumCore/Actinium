@@ -22,9 +22,10 @@ Actinium.Hook.register(
 
         const blueprint = op.get(contentObj, 'blueprint');
         const contentId = op.get(contentObj, 'objectId');
+        const contentUUID = op.get(contentObj, 'uuid');
         const collection = op.get(typeObj, 'collection');
 
-        await SDK.attach({ blueprint, collection, contentId });
+        await SDK.attach({ blueprint, collection, contentId, contentUUID });
         await SDK.Blueprint.update({ blueprint, collection, contentId });
     },
 );
@@ -109,3 +110,5 @@ Actinium.Cloud.define(PLUGIN.ID, 'url-retrieve', req =>
 Actinium.Cloud.define(PLUGIN.ID, 'urls', req =>
     SDK.list(req.params, Actinium.Utils.CloudMasterOptions(req)),
 );
+
+require('./updateHooks');
