@@ -13,7 +13,7 @@
     "dependencies": {
         "@atomic-reactor/actinium-auth": "^1.0.5",
         "action-sequence": "^1.1.1",
-        "apidoc": "^0.24.0",
+        "apidoc": "^0.25.0",
         "axios": "^0.19.2",
         "body-parser": "*",
         "camelcase": "^5.3.1",

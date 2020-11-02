@@ -31,6 +31,7 @@ module.exports = spinner => {
                             `${globRoot}/**/lib/*.js`,
                             `!${globRoot}/**/node_modules/**/*`,
                             `!${globRoot}/cli/**/*`,
+                            `!${globRoot}/reactium-sdk-core/**/*`
                         ];
 
                         return _.uniq(

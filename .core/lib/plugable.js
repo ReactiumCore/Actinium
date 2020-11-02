@@ -364,48 +364,6 @@ Plugable.deactivate = ID =>
 Plugable.activate = ID =>
     Parse.Cloud.run('plugin-activate', { plugin: ID }, { useMasterKey: true });
 
-/**
- * @api {Function} Actinium.Plugin.updateHookHelper(ID,migrations) Actinium.Plugin.updateHookHelper
- * @apiVersion 3.6.2
- * @apiDescription Helper for creating multiple update scripts and walking through
- * version appropriate updates for your plugin. For example, if you are running a
- * plugin Foo version 3.1.0, and startup Actinium with new plugin version 3.1.7, it
- * will be possible to run multiple update scripts in order appropriate for the new
- * version. By default, all the scripts will run that are newer than the old version
- * of the plugin, but you can specify your own test callback for abolute control.
- * @apiParam {String} ID the plugin id.
- * @apiParam {Object} migrations object with key matching one version and value with an object containing a migration object
- * @apiParam (migration) {Asynchronous} [test] optional test function that will return a promise resolving to true or false, whether the migration function should be run or not respectively. By default it will run if the version of the migration script is newer than the old version of the plugin.
- * @apiParam (migration) {Asynchronous} migration migration function, given the same parameters as the update hook (plugin, request, oldPlugin)
- * @apiExample plugin.js
- const semver = require('semver');
- // if new version is 1.0.6 and old was 1.0.3, both 1.0.4, 1.0.5, and 1.0.6 updates will run by default
- // if new version is 1.0.6 and old was 1.0.5, only the 1.0.5 and 1.0.6 updates will run
- const migrations = {
-     '1.0.6': {
-         migration: async (plugin, req, oldPlugin) => {
-             console.log('do things appropriate for upgrade from <1.0.6')
-         }
-     },
-     '1.0.5': {
-         migration: async (plugin, req, oldPlugin) => {
-             console.log('do things appropriate for upgrade from <1.0.5')
-         }
-     },
-    '1.0.4': {
-        migration: async (plugin, req, oldPlugin) => {
-            console.log('do things appropriate for upgrade from <1.0.4')
-        }
-    },
-    // this will only run for version 1.0.3, and only if upgrading from 1.0.1 or 1.0.2
-    '1.0.3': {
-        test: (version, oldVersion) => version === '1.0.3' && semver.gt(oldVersion, '>=1.0.1'),
-    },
- };
-
- Actinium.Hook.register('update', Actinium.Plugin.updateHookHelper('MY_PLUGIN', migrations));
- *
- */
 Plugable.updateHookHelper = (pluginId, migrations = {}) => {
     const versions = Object.keys(migrations).sort((a, b) => {
         if (semver.gt(semver.coerce(a), semver.coerce(b))) return 1;
@@ -706,3 +664,50 @@ const myFunction = async () => {
     }
 };
  */
+
+/**
+  * @api {Function} Actinium.Plugin.updateHookHelper(ID,migrations) Plugin.updateHookHelper()
+  * @apiVersion 3.6.2
+  * @apiGroup Actinium
+  * @apiDescription Helper for creating multiple update scripts and walking through
+  * version appropriate updates for your plugin. For example, if you are running a
+  * plugin Foo version 3.1.0, and startup Actinium with new plugin version 3.1.7, it
+  * will be possible to run multiple update scripts in order appropriate for the new
+  * version. By default, all the scripts will run that are newer than the old version
+  * of the plugin, but you can specify your own test callback for abolute control.
+  * @apiName Plugin.updateHookHelper
+  * @apiParam {String} ID the plugin id.
+  * @apiParam {Object} migrations object with key matching one version and value with an object containing a migration object
+  * @apiParam (migration) {Asynchronous} [test] optional test function that will return a promise resolving to true or false, whether the migration function should be run or not respectively. By default it will run if the version of the migration script is newer than the old version of the plugin.
+  * @apiParam (migration) {Asynchronous} migration migration function, given the same parameters as the update hook (plugin, request, oldPlugin)
+  * @apiExample plugin.js
+  const semver = require('semver');
+  // if new version is 1.0.6 and old was 1.0.3, both 1.0.4, 1.0.5, and 1.0.6 updates will run by default
+  // if new version is 1.0.6 and old was 1.0.5, only the 1.0.5 and 1.0.6 updates will run
+  const migrations = {
+      '1.0.6': {
+          migration: async (plugin, req, oldPlugin) => {
+              console.log('do things appropriate for upgrade from <1.0.6')
+          }
+      },
+      '1.0.5': {
+          migration: async (plugin, req, oldPlugin) => {
+              console.log('do things appropriate for upgrade from <1.0.5')
+          }
+      },
+     '1.0.4': {
+         migration: async (plugin, req, oldPlugin) => {
+             console.log('do things appropriate for upgrade from <1.0.4')
+         }
+     },
+     '1.0.3': {
+         test: (version, oldVersion) => version === '1.0.3' && semver.gt(oldVersion, '>=1.0.1'),
+         migration: async (plugin, req, oldPlugin) => {
+            console.log('this will only run for version 1.0.3, and only if upgrading from 1.0.1 or 1.0.2')
+         }
+     },
+  };
+
+  Actinium.Hook.register('update', Actinium.Plugin.updateHookHelper('MY_PLUGIN', migrations));
+  *
+  */
