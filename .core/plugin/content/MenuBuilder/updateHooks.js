@@ -42,7 +42,7 @@ const conditionallyMigratePre362Content = async type => {
 
             if (item.type === 'ContentType') {
                 const options = Actinium.Utils.MasterOptions();
-                console.log({ lookup: op.get(item, 'item') });
+                DEBUG('convertMenuItem', { lookup: op.get(item, 'item') });
                 const context = await Actinium.Content.retrieve(
                     {
                         ...op.get(item, 'item'),
