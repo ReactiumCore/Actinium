@@ -18,10 +18,11 @@ SDK.Helper.validate = (url, requiredParams) => {
     return requiredParams.filter(key => op.has(url, key)).length === count;
 };
 
-SDK.Helper.routeObject = ({ contentId, url, user }) => {
+SDK.Helper.routeObject = ({ contentId, contentUUID, url, user }) => {
     const urlObj = new Actinium.Object('Route');
 
     if (contentId) op.set(url, 'meta.contentId', contentId);
+    if (contentUUID) op.set(url, 'meta.contentUUID', contentUUID);
     if (isNaN(op.get(url, 'objectId'))) {
         urlObj.set('objectId', op.get(url, 'objectId'));
     }
@@ -131,6 +132,7 @@ SDK.create = async ({ content = {}, urls, user, ...params }, options) => {
         .map(url =>
             SDK.Helper.routeObject({
                 contentId: op.get(content, 'id'),
+                contentUUID: op.get(content, 'uuid'),
                 url,
                 user,
             }),
@@ -364,6 +366,7 @@ SDK.retrieve = async (params, options) => {
 
     let {
         contentId,
+        contentUUID,
         objectId,
         order = 'descending',
         orderBy = 'route',
@@ -382,6 +385,8 @@ SDK.retrieve = async (params, options) => {
         qry.equalTo('objectId', objectId);
     } else if (contentId) {
         qry.equalTo('meta.contentId', contentId);
+    } else if (contentUUID) {
+        qry.equalTo('meta.contentUUID', contentUUID);
     }
     /**
      * @api {Hook} url-query url-query
