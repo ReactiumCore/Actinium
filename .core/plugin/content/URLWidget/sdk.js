@@ -73,7 +73,7 @@ SDK.attach = async (params, options) => {
 
     // Look at routes that don't have meta.contentId value set
     const rel = content.relation('urls');
-    const qry = rel.query().notEqualTo('meta.contentId', contentId);
+    const qry = rel.query();
     const count = await qry.count(options);
 
     if (count < 1) return [];
