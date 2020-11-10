@@ -50,28 +50,6 @@ Actinium.Plugin.register(PLUGIN, false);
  * Hook registration
  * ----------------------------------------------------------------------------
  */
-
-// Actinium.Hook.register('schema', async () => {
-//     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-//     const options = Actinium.Utils.MasterOptions();
-//
-//     const { Syndicate } = require('./schema');
-//     const { actions = {}, collection, schema = {} } = Syndicate;
-//     if (!collection) return;
-//
-//     const { types = [] } = await Actinium.Type.list({}, options);
-//
-//     // Automatically Add Each Content Type Pointer
-//     types.forEach(type => {
-//         schema[type.machineName] = {
-//             type: 'Pointer',
-//             targetClass: type.collection,
-//         };
-//     });
-//
-//     Actinium.Collection.register(collection, actions, schema);
-// });
-
 Actinium.Hook.register('schema', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
     const options = Actinium.Utils.MasterOptions();
@@ -81,6 +59,28 @@ Actinium.Hook.register('schema', async () => {
 
     if (!collection) return;
     Actinium.Collection.register(collection, actions, schema);
+});
+
+Actinium.Hook.register('before-capability-load', async () => {
+    // CLP Perms
+    Actinium.Capability.register('SyndicateClient.addField', {});
+    Actinium.Capability.register('SyndicateClient.create', {});
+    Actinium.Capability.register('SyndicateClient.delete', {});
+    Actinium.Capability.register('SyndicateClient.retrieve', {});
+    Actinium.Capability.register('SyndicateClient.update', {});
+
+    // setting caps
+    Actinium.Capability.register('setting.Syndicate-get', {});
+    Actinium.Capability.register('setting.Syndicate-set', {});
+    Actinium.Capability.register('setting.Syndicate-delete', {});
+
+    // client override
+    Actinium.Capability.register('Syndicate.Client', {});
+
+    // Client CRUD
+    Actinium.Capability.register('SyndicateClient.create', {});
+    Actinium.Capability.register('SyndicateClient.retrieve', {});
+    Actinium.Capability.register('SyndicateClient.delete', {});
 });
 
 Actinium.Hook.register('warning', () => {
@@ -154,6 +154,6 @@ const cloudAPIs = [
 ].forEach(({ name, sdk }) =>
     Actinium.Cloud.define(PLUGIN.ID, name, async req => {
         const cloudFunc = op.get(Actinium, sdk, Promise.resolve);
-        return cloudFunc(req);
+        return cloudFunc(req, Actinium.Utils.CloudRunOptions(req));
     }),
 );

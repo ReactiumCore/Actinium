@@ -74,3 +74,5 @@ files
 .tmp
 src/env.dev.json
 src/env.local.json
+src/env.client.json
+src/env.server.json
