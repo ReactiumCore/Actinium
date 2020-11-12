@@ -23,11 +23,15 @@ const PLUGIN = {
 Actinium.Plugin.addScript(
     PLUGIN.ID,
     path.resolve(__dirname, 'plugin-assets/syndicate-client.js'),
+    'admin',
 );
-Actinium.Plugin.addStylesheet(
-    PLUGIN.ID,
-    path.resolve(__dirname, 'plugin-assets/syndicate-client-plugin.css'),
-);
+
+// Currently no styles, so don't bother trying to upload
+// Actinium.Plugin.addStylesheet(
+//     PLUGIN.ID,
+//     path.resolve(__dirname, 'plugin-assets/syndicate-client-plugin.css'),
+//     'admin',
+// );
 
 /**
  * ----------------------------------------------------------------------------
@@ -49,6 +53,14 @@ Actinium.Plugin.register(PLUGIN, false);
  * Hook registration
  * ----------------------------------------------------------------------------
  */
+
+Actinium.Hook.register('before-capability-load', async () => {
+    // setting caps
+    Actinium.Capability.register('setting.SyndicateClient-get', {});
+    Actinium.Capability.register('setting.SyndicateClient-set', {});
+    Actinium.Capability.register('setting.SyndicateClient-delete', {});
+});
+
 Actinium.Hook.register('warning', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 

@@ -231,7 +231,7 @@ SyndicateClient.syncMedia = async () => {
             createdAt,
             updatedAt,
             objectId,
-            meta,
+            meta = {},
             redirect = {},
             ...result
         } of results) {
@@ -308,7 +308,7 @@ const simplifyURLS = (urls = {}, type = {}) =>
         'route',
     );
 
-SyndicateClient.syncContent = async remoteTypes => {
+SyndicateClient.syncContent = async (remoteTypes = []) => {
     const masterOptions = Actinium.Utils.MasterOptions();
     for (const type of remoteTypes) {
         let page = 1;
