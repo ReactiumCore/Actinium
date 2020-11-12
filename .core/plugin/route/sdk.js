@@ -39,6 +39,7 @@ Route.save = async (params, opts, req) => {
         blueprint,
         capabilities = [],
         meta = {},
+        order = 100,
     } = params;
 
     if (!routePath) throw 'route required in route-create';
@@ -51,6 +52,7 @@ Route.save = async (params, opts, req) => {
     route.set('blueprint', blueprint);
     route.set('capabilities', capabilities);
     route.set('meta', meta);
+    route.set('order', order);
 
     await Actinium.Hook.run('route-before-save', route, params, options);
     await route.save(null, options);

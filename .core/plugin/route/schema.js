@@ -18,6 +18,9 @@ module.exports = [
             meta: {
                 type: 'Object',
             },
+            order: {
+                type: 'Number',
+            },
         },
         indexes: ['route'],
     },

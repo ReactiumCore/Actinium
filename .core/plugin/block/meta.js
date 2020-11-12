@@ -1,7 +1,8 @@
 module.exports = {
-    ID: 'Wizard',
-    description: 'Plugin for creating guided walk-throughs.',
-    name: 'Wizard Plugin',
+    ID: 'Block',
+    collection: 'Block',
+    description: 'Plugin for creating content fragments.',
+    name: 'Block Plugin',
     order: 100,
     version: {
         actinium: '>=3.2.6',

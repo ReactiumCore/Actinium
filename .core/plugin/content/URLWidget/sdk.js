@@ -10,9 +10,6 @@ SDK.Blueprint = {};
 SDK.Helper = {};
 
 SDK.Helper.validate = (url, requiredParams) => {
-    // if (op.get(url, 'pending') !== true) return false;
-    // if (op.get(url, 'delete') === true) return false;
-
     requiredParams = requiredParams || ['blueprint', 'meta.type', 'route'];
     const count = requiredParams.length;
     return requiredParams.filter(key => op.has(url, key)).length === count;
@@ -224,15 +221,15 @@ SDK.list = async (params, options) => {
     let {
         contentId,
         limit = 100,
-        order = 'descending',
-        orderBy = 'route',
+        order = 'ascending',
+        orderBy = 'order',
         page = -1,
         route,
         collection,
         type,
     } = params;
 
-    order = ['ascending', 'descending'].includes(order) ? order : 'descending';
+    order = ['ascending', 'descending'].includes(order) ? order : 'ascending';
 
     const defResponse = { count: 0, page: 1, pages: 1, limit, results: {} };
 
@@ -368,12 +365,12 @@ SDK.retrieve = async (params, options) => {
         contentId,
         contentUUID,
         objectId,
-        order = 'descending',
-        orderBy = 'route',
+        order = 'ascending',
+        orderBy = 'order',
         route,
     } = params;
 
-    order = ['ascending', 'descending'].includes(order) ? order : 'descending';
+    order = ['ascending', 'descending'].includes(order) ? order : 'ascending';
 
     const qry = new Actinium.Query('Route');
 
