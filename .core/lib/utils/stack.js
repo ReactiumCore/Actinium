@@ -8,7 +8,7 @@ function getCallStack() {
 
 function getCallerFile() {
     const stack = getCallStack();
-    return stack[2] ? stack[2].getFileName() : undefined;
+    return stack[3] ? stack[3].getFileName() : undefined;
 }
 
 module.exports = {
