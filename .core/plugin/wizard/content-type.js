@@ -59,7 +59,7 @@ const ensureContentType = async ({ ID }) => {
     let ContentType;
     try {
         ContentType = await Actinium.Type.retrieve(
-            { machineName: PLUGIN.COLLECTION },
+            { machineName: String(PLUGIN.COLLECTION).toLowerCase() },
             options,
         );
     } catch (error) {}
