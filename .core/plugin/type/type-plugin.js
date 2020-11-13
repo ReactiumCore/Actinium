@@ -18,6 +18,7 @@ const {
     PLUGIN_BLUEPRINTS,
     PLUGIN_ROUTES,
     PLUGIN,
+    DEFAULT_TYPE_REGISTRY,
 } = require('./enums');
 
 Actinium.Type = SDK;
@@ -349,3 +350,67 @@ Actinium.Cloud.define(PLUGIN.ID, 'type-update', async req => {
 Actinium.Cloud.define(PLUGIN.ID, 'type-delete', async req => {
     return Actinium.Type.delete(req.params, CloudRunOptions(req));
 });
+
+Actinium.Hook.register(
+    'collection-before-load',
+    async collection => {
+        const options = Actinium.Utils.MasterOptions();
+
+        // only on actinium load
+        if (!collection) {
+            if (Actinium.Type[DEFAULT_TYPE_REGISTRY].list.length > 0) {
+                BOOT(' ');
+                BOOT(chalk.cyan('Adding Built-in Content Types...'));
+                await Promise.all(
+                    Actinium.Type[DEFAULT_TYPE_REGISTRY].list.map(
+                        async template => {
+                            BOOT(
+                                chalk.cyan('  Type'),
+                                chalk.cyan('→'),
+                                chalk.magenta(template.type),
+                                chalk.cyan(`(${template.machineName})`),
+                            );
+
+                            let contentType;
+                            try {
+                                contentType = await Actinium.Type.retrieve(
+                                    { machineName: template.machineName },
+                                    options,
+                                );
+                            } catch (error) {}
+
+                            if (!contentType) {
+                                contentType = await Actinium.Type.create(
+                                    template,
+                                    options,
+                                );
+                            } else {
+                                const updatedContentType = {
+                                    ...contentType,
+                                };
+
+                                // ensure contentType base fields exist
+                                op.set(updatedContentType, 'fields', {
+                                    ...template.fields,
+                                    ...contentType.fields,
+                                });
+
+                                // ensure contentType base fields exist
+                                op.set(updatedContentType, 'region', {
+                                    ...template.region,
+                                    ...contentType.region,
+                                });
+
+                                contentType = await Actinium.Type.update(
+                                    updatedContentType,
+                                    options,
+                                );
+                            }
+                        },
+                    ),
+                );
+            }
+        }
+    },
+    Actinium.Enums.priority.lowest,
+);

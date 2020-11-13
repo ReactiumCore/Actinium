@@ -4,11 +4,11 @@
     "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
-        "local": "npm run docs && nodemon",
         "docker": "npm-run-all -s docker:*",
         "docker:build": "docker image build -t atomicreactor/actinium:$npm_package_version .",
         "docker:push": "docker push atomicreactor/actinium:$npm_package_version",
-        "docs": "arcli docs -s .core,src/app,node_modules/@atomic-reactor -d docs"
+        "docs": "arcli docs -s .core,src/app,node_modules/@atomic-reactor -d docs",
+        "local": "npm run docs && nodemon"
     },
     "dependencies": {
         "@atomic-reactor/actinium-auth": "^1.0.5",

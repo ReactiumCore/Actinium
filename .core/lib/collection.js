@@ -74,6 +74,8 @@ Collection.unregister = collection => {
 };
 
 Collection.load = async (collection = false) => {
+    await Actinium.Hook.run('collection-before-load', collection);
+
     // initial load
     const loading = !Collection.loaded && !collection;
 

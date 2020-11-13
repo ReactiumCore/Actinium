@@ -38,14 +38,8 @@ Actinium.Hook.register('warning', () => {
     // WARN(chalk.cyan.bold('Warning:'), 'about something');
 });
 
-const ensureNavigationType = async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-
-    INFO('Ensuring Navigation content type.');
-
-    const options = Actinium.Utils.MasterOptions();
-
-    const navigationTypeTemplate = {
+Actinium.Hook.register('collection-before-load', async () => {
+    Actinium.Type.register({
         type: 'Navigation',
         machineName: 'navigation',
         fields: {
@@ -92,39 +86,8 @@ const ensureNavigationType = async ({ ID }) => {
             label: 'Navigation',
             icon: 'Linear.Menu3',
         },
-    };
-
-    let navigation;
-    try {
-        navigation = await Actinium.Type.retrieve(
-            { machineName: 'navigation' },
-            options,
-        );
-    } catch (error) {}
-
-    if (!navigation) {
-        navigation = await Actinium.Type.create(
-            navigationTypeTemplate,
-            options,
-        );
-    } else {
-        const updatedNavigationType = {
-            ...navigation,
-        };
-
-        // ensure navigation base fields exist
-        op.set(updatedNavigationType, 'fields', {
-            ...navigation.fields,
-            ...navigationTypeTemplate.fields,
-        });
-
-        navigation = await Actinium.Type.update(updatedNavigationType, options);
-    }
-};
-
-Actinium.Hook.register('activate', ensureNavigationType);
-Actinium.Hook.register('install', ensureNavigationType);
-Actinium.Hook.register('update', ensureNavigationType);
+    });
+});
 
 Actinium.Hook.register('uninstall', async ({ ID }) => {
     if (ID !== PLUGIN.ID) return;

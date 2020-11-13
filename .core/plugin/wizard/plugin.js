@@ -1,5 +1,4 @@
 const PLUGIN = require('./meta');
-const { ensureContentType } = require('./content-type');
 
 Actinium.Plugin.register(PLUGIN, true);
 
@@ -15,7 +14,4 @@ Actinium.Hook.register('content-schema-field-types', async fieldTypes => {
     fieldTypes['Wizard'] = { type: 'Array' };
 });
 
-// content-type
-Actinium.Hook.register('activate', ensureContentType);
-Actinium.Hook.register('install', ensureContentType);
-Actinium.Hook.register('update', ensureContentType);
+require('./content-type');

@@ -1,6 +1,6 @@
 module.exports = {
     ID: 'Block',
-    collection: 'Block',
+    COLLECTION: 'Block',
     description: 'Plugin for creating content fragments.',
     name: 'Block Plugin',
     order: 100,

@@ -1,6 +1,6 @@
 module.exports = {
     ID: 'Wizard',
-    collection: 'Wizard',
+    COLLECTION: 'Wizard',
     description: 'Plugin for creating guided walk-throughs.',
     name: 'Wizard Plugin',
     order: 100,

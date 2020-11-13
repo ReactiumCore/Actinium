@@ -5,7 +5,11 @@ const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
 const chalk = require('chalk');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 
-const { UNINSTALLED_NAMESPACE, PLUGIN } = require('./enums');
+const {
+    UNINSTALLED_NAMESPACE,
+    PLUGIN,
+    DEFAULT_TYPE_REGISTRY,
+} = require('./enums');
 
 const COLLECTION = PLUGIN.ID;
 
@@ -398,6 +402,97 @@ Type.list = async (params = {}, options) => {
     await Actinium.Hook.run('type-list', list);
 
     return Promise.resolve(list);
+};
+
+/**
+ * @api {Asynchronous} Type.register(template) Type.register()
+ * @apiDescription Utility for plugin developers to programattically ensure a content type
+ definition exists. WARNING: do not use or expose this function to the CLOUD/REST API. Has similar
+ object argument to Type.create or Type.update, however type label and machineName are required parameters, and type uuid is not allowed.
+ *
+ * @apiParam (template) {String} type String label of the content type to programmatically maintain.
+ * @apiParam (template) {String} machineName the machine name of the existing content type
+ * @apiParam (template) {String} [namespace] optional namespace. Will be used to derive the
+  uuid from the machine name. By default, the current
+  APIs content namespace will be used, and this will not be needed.
+ * @apiParam (template) {Object} regions indexed by region id, this object contains multiple region objects,
+ each with the same id ('default' by default), a label, and a slug. Each field
+ in the `fields` has a `region` property with the id of the region to which it belongs.
+ * @apiParam (template) {Object} fields indexed by fieldId (an uuid), a `field` object. Except for required `fieldId`,
+ `fieldName`, `fieldType` and `region` properties, each field object may contain free-form variants
+ that aid in the presentation of the editor/configuration of Content Editor.
+ e.g. fieldType "Text" has a "defaultValue" property which is used for the Content Editor to display the default value
+ in the field editor. fieldType "Publisher" has a boolean "simple" property that changes the behavior of the publishing
+ feature in the Content Editor.
+ * @apiParam (template) {Object} [meta] largely free-form metadata object associated with this content type.
+ Actinium will use this to store the current label of the type.
+ * @apiUse FieldType
+ *
+ * @apiName Type.register
+ * @apiGroup Actinium
+ * @apiExample [{type]} title example
+ */
+
+Type.validateFields = (fields = {}, regions = {}) => {
+    return Object.entries(fields).reduce((valid, [fieldId, field]) => {
+        if (!op.has(field, 'fieldId') || fieldId !== field.fieldId) {
+            WARN(`Mismatch defining content type fieldId`, { field });
+            return valid && false;
+        }
+        if (!op.has(field, 'fieldType')) {
+            WARN(`Missing fieldType defining content type field.`, { field });
+            return valid && false;
+        }
+        if (!op.has(field, 'fieldName') || String(field.fieldName).length < 1) {
+            WARN(`Missing or invalid fieldName defining content type field.`, {
+                field,
+            });
+            return valid && false;
+        }
+        if (
+            !op.has(field, 'region') ||
+            _.where(Object.values(regions), { slug: field.region }).length !== 1
+        ) {
+            WARN(`Missing or invalid region defining content type field.`, {
+                field,
+            });
+            return valid && false;
+        }
+
+        return valid;
+    }, true);
+};
+
+Type[DEFAULT_TYPE_REGISTRY] = new Actinium.Utils.Registry('machineName');
+Type.register = async (typeTemplate = {}) => {
+    const type = op.get(typeTemplate, 'type');
+    const machineName = op.get(typeTemplate, 'machineName');
+    if (!type || !machineName)
+        throw new Error(
+            'type label and machineName required for type registration',
+            { typeTemplate },
+        );
+
+    const regions = op.get(typeTemplate, 'regions', {
+        default: {
+            id: 'default',
+            label: 'Default',
+            slug: 'default',
+        },
+    });
+
+    const fields = op.get(typeTemplate, 'fields', {});
+    if (!Type.validateFields(fields, regions))
+        throw new Error('Invalid fields for type registration');
+
+    const meta = op.get(typeTemplate, 'meta', {});
+    Type[DEFAULT_TYPE_REGISTRY].register(machineName, {
+        type,
+        machineName,
+        regions,
+        fields,
+        meta,
+    });
 };
 
 const ensurePublisher = async typeObj => {

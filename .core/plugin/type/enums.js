@@ -13,6 +13,8 @@ const PLUGIN = {
     },
 };
 
+const DEFAULT_TYPE_REGISTRY = Symbol('DEFAULT_TYPE_REGISTRY');
+
 module.exports = {
     UNINSTALLED_NAMESPACE,
     PLUGIN_BLUEPRINTS,

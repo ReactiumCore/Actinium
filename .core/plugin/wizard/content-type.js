@@ -1,20 +1,9 @@
 const PLUGIN = require('./meta');
 const op = require('object-path');
 
-/**
- * ----------------------------------------------------------------------------
- * Content Type generator
- * ----------------------------------------------------------------------------
- */
-const ensureContentType = async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
-
-    INFO(`Ensuring ${PLUGIN.COLLECTION} content type.`);
-
-    const options = Actinium.Utils.MasterOptions();
-
-    const ContentTypeTemplate = {
-        type: String(PLUGIN.COLLECTION).toLowerCase(),
+Actinium.Hook.register('collection-before-load', async () => {
+    Actinium.Type.register({
+        type: PLUGIN.COLLECTION,
         machineName: String(PLUGIN.COLLECTION).toLowerCase(),
         regions: {
             default: {
@@ -54,31 +43,5 @@ const ensureContentType = async ({ ID }) => {
                 region: 'sidebar',
             },
         },
-    };
-
-    let ContentType;
-    try {
-        ContentType = await Actinium.Type.retrieve(
-            { machineName: String(PLUGIN.COLLECTION).toLowerCase() },
-            options,
-        );
-    } catch (error) {}
-
-    if (!ContentType) {
-        ContentType = await Actinium.Type.create(ContentTypeTemplate, options);
-    } else {
-        const updatedContentType = {
-            ...ContentType,
-        };
-
-        // ensure ContentType base fields exist
-        op.set(updatedContentType, 'fields', {
-            ...ContentType.fields,
-            ...ContentTypeTemplate.fields,
-        });
-
-        ContentType = await Actinium.Type.update(updatedContentType, options);
-    }
-};
-
-module.exports = { ensureContentType };
+    });
+});
