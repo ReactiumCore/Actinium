@@ -314,7 +314,7 @@ SyndicateClient.syncContent = async (remoteTypes = []) => {
         let page = 1;
         let response = await SyndicateClient.runRemote(
             'syndicate-content-list',
-            { type, limit: 10, page: page++ },
+            { type, resolveRelations: true, limit: 10, page: page++ },
         );
         let results = op.get(response, 'data.result.results', []);
         let theCount = [0, op.get(response, 'data.result.count')];
