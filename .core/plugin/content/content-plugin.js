@@ -158,83 +158,37 @@ Actinium.Hook.register('setting-set', async (key, value) => {
     }
 });
 
-Actinium.Hook.register('schema', async () => {
-    Actinium.Capability.register('set-content-status', {
-        allowed: ['contributor', 'moderator'],
-    });
-    Actinium.Capability.register('publish-content', {
-        allowed: ['contributor', 'moderator'],
-    });
-    Actinium.Capability.register('unpublish-content', {
-        allowed: ['contributor', 'moderator'],
-    });
+Actinium.Hook.register(
+    'schema',
+    async ({ ID }) => {
+        // ignore plugin installs
+        if (ID) return;
 
-    const { types = [] } = await Actinium.Type.list(
-        {},
-        Actinium.Utils.MasterOptions(),
-    );
+        Actinium.Capability.register('set-content-status', {
+            allowed: ['contributor', 'moderator'],
+        });
+        Actinium.Capability.register('publish-content', {
+            allowed: ['contributor', 'moderator'],
+        });
+        Actinium.Capability.register('unpublish-content', {
+            allowed: ['contributor', 'moderator'],
+        });
 
-    for (const type of types) {
-        try {
-            await Actinium.Content.saveSchema(type);
+        const { types = [] } = await Actinium.Type.list(
+            {},
+            Actinium.Utils.MasterOptions(),
+        );
 
-            // content CLP should allow broad access to retrieve content by default
-            Actinium.Capability.register(`${type.collection}.retrieve`, {
-                allowed: ['anonymous', 'user', 'contributor', 'moderator'],
-            });
-
-            // Only admins should be able to escalate permission to retrieve any content
-            Actinium.Capability.register(`${type.collection}.retrieveany`);
-
-            // Only admin should be able to escalate cloud create by default
-            Actinium.Capability.register(`${type.collection}.createany`);
-            // Content creators should be able to create content by default
-            Actinium.Capability.register(`${type.collection}.create`, {
-                allowed: ['contributor', 'moderator'],
-            });
-
-            // Only admin should be able to update collection items by REST by default
-            Actinium.Capability.register(`${type.collection}.update`);
-            // Only admin should be able to escalate cloud update by default
-            Actinium.Capability.register(`${type.collection}.updateany`);
-
-            // Only admin should be able to delete collection items by REST by default
-            Actinium.Capability.register(`${type.collection}.delete`);
-            // Only admin should be able to escalate cloud delete by default
-            Actinium.Capability.register(`${type.collection}.deleteany`);
-
-            const statuses = _.chain(
-                op
-                    .get(
-                        type,
-                        'fields.publisher.statuses',
-                        'TRASH,DRAFT,PUBLISHED',
-                    )
-                    .split(',')
-                    .concat(Object.values(ENUMS.STATUS)),
-            )
-                .uniq()
-                .compact()
-                .value()
-                .forEach(status =>
-                    Actinium.Capability.register(
-                        `${type.collection}.setstatus-${status}`,
-                        { allowed: ['contributor', 'moderator'] },
-                    ),
-                );
-
-            // Content creators should be able to publish/unpublish content by default
-            Actinium.Capability.register(`${type.collection}.publish`, {
-                allowed: ['contributor', 'moderator'],
-            });
-            Actinium.Capability.register(`${type.collection}.unpublish`, {
-                allowed: ['contributor', 'moderator'],
-            });
-        } catch (error) {
-            ERROR(`Error updating content schema ${type.type}`, error);
+        for (const type of types) {
+            try {
+                await Actinium.Type.saveSchema(type);
+            } catch (error) {
+                ERROR(`Error updating content schema ${type.type}`, error);
+            }
         }
-    }
-});
+    },
+    Actinium.Enums.priority.lowest,
+);
 
 Actinium.Hook.register('type-saved', async contentType => {
     const { objectId, type } = contentType;

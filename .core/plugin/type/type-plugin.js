@@ -51,7 +51,8 @@ Actinium.Hook.register('warning', async () => {
     }
 });
 
-Actinium.Hook.register('type-saved', async () => {
+Actinium.Hook.register('type-saved', async type => {
+    await Actinium.Type.saveSchema(type);
     Actinium.Cache.del('types');
 });
 

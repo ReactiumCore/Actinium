@@ -63,10 +63,12 @@ Type.create = async (params, options) => {
     const contentType = new Parse.Object(COLLECTION);
 
     const type = op.get(params, 'meta.label', op.get(params, 'type'));
-    if (!type) throw new Error('type parameter required.');
     const machineName = slugify(op.get(params, 'machineName', type));
+    if (!type) throw new Error('type parameter required.');
+    if (!machineName) throw new Error('Invalid machineName provided.');
+
     const namespace = op.get(params, 'namespace', getNamespace());
-    const uuid = uuidv5(machineName, namespace);
+    const uuid = uuidv5(String(machineName), namespace);
 
     const query = new Parse.Query(COLLECTION);
     query.equalTo('uuid', uuid);
@@ -461,6 +463,70 @@ Type.validateFields = (fields = {}, regions = {}) => {
 
         return valid;
     }, true);
+};
+
+Type.saveSchema = async type => {
+    const { STATUS } = require('../content/enums');
+
+    // ignore malformed types
+    if (
+        type.machineName === 'undefined' ||
+        type.collection === 'Content_undefined'
+    ) {
+        throw new Error('Invalid type');
+        return;
+    }
+
+    await Actinium.Content.saveSchema(type);
+
+    // content CLP should allow broad access to retrieve content by default
+    Actinium.Capability.register(`${type.collection}.retrieve`, {
+        allowed: ['anonymous', 'user', 'contributor', 'moderator'],
+    });
+
+    // Only admins should be able to escalate permission to retrieve any content
+    Actinium.Capability.register(`${type.collection}.retrieveany`);
+
+    // Only admin should be able to escalate cloud create by default
+    Actinium.Capability.register(`${type.collection}.createany`);
+    // Content creators should be able to create content by default
+    Actinium.Capability.register(`${type.collection}.create`, {
+        allowed: ['contributor', 'moderator'],
+    });
+
+    // Only admin should be able to update collection items by REST by default
+    Actinium.Capability.register(`${type.collection}.update`);
+    // Only admin should be able to escalate cloud update by default
+    Actinium.Capability.register(`${type.collection}.updateany`);
+
+    // Only admin should be able to delete collection items by REST by default
+    Actinium.Capability.register(`${type.collection}.delete`);
+    // Only admin should be able to escalate cloud delete by default
+    Actinium.Capability.register(`${type.collection}.deleteany`);
+
+    const statuses = _.chain(
+        op
+            .get(type, 'fields.publisher.statuses', 'TRASH,DRAFT,PUBLISHED')
+            .split(',')
+            .concat(Object.values(STATUS)),
+    )
+        .uniq()
+        .compact()
+        .value()
+        .forEach(status =>
+            Actinium.Capability.register(
+                `${type.collection}.setstatus-${status}`,
+                { allowed: ['contributor', 'moderator'] },
+            ),
+        );
+
+    // Content creators should be able to publish/unpublish content by default
+    Actinium.Capability.register(`${type.collection}.publish`, {
+        allowed: ['contributor', 'moderator'],
+    });
+    Actinium.Capability.register(`${type.collection}.unpublish`, {
+        allowed: ['contributor', 'moderator'],
+    });
 };
 
 Type[DEFAULT_TYPE_REGISTRY] = new Actinium.Utils.Registry('machineName');
