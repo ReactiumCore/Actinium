@@ -4,6 +4,11 @@ const axios = require('axios');
 const chalk = require('chalk');
 const _ = require('underscore');
 
+SyndicateClient.steps = new Actinium.Utils.Registry(
+    'SyndicateClient.steps',
+    'step',
+);
+
 SyndicateClient.settings = async () => {
     const SyndicateClient = await Actinium.Setting.get('SyndicateClient');
     const defaultSchedule = '*/30 * * * *';
@@ -62,8 +67,9 @@ SyndicateClient.token = async () => {
     }
 };
 
-SyndicateClient.test = async req => {
+SyndicateClient.test = async (req = {}, options) => {
     if (
+        op.get(options, 'useMasterKey', false) !== true &&
         !Actinium.Utils.CloudHasCapabilities(req, [
             'setting.SyndicateClient-get',
         ])
@@ -109,7 +115,7 @@ SyndicateClient.runRemote = async (funcName, params = {}) => {
 };
 
 SyndicateClient.syncTypes = async () => {
-    const enabled = await await SyndicateClient.isEnabled();
+    const enabled = await SyndicateClient.isEnabled();
     if (!enabled) return;
     const masterOptions = Actinium.Utils.MasterOptions();
 
@@ -151,10 +157,19 @@ SyndicateClient.syncTypes = async () => {
             saved = await Actinium.Type.create(type, masterOptions);
         }
 
+        // remoteObjectId
+        Actinium.Cache.set(
+            ['syndicate', 'mappings', 'type', remoteObjectId],
+            saved.objectId,
+        );
+
         await Actinium.Hook.run('syndicate-type-saved', saved);
     }
 
-    return remoteTypes.map(({ objectId, ...type }) => type);
+    const rts = remoteTypes.map(({ objectId, ...type }) => type);
+    Actinium.Cache.set('syndicate.remoteTypes', rts);
+
+    return rts;
 };
 
 SyndicateClient.syncMediaDirectories = async () => {
@@ -279,7 +294,17 @@ SyndicateClient.syncMedia = async () => {
 
             INFO(chalk.cyan(`Syncing media file ${result.url}`));
 
-            await media.save(null, masterOptions);
+            const localMedia = await media.save(null, masterOptions);
+
+            // facilitate mapping lookup by id or url
+            Actinium.Cache.set(
+                ['syndicate', 'mappings', 'media', objectId],
+                localMedia.id,
+            );
+            Actinium.Cache.set(
+                ['syndicate', 'mappings', 'media', result.url],
+                localMedia.id,
+            );
 
             await Actinium.Hook.run('syndicate-media-saved', media);
         }
@@ -308,7 +333,8 @@ const simplifyURLS = (urls = {}, type = {}) =>
         'route',
     );
 
-SyndicateClient.syncContent = async (remoteTypes = []) => {
+SyndicateClient.syncContent = async () => {
+    const remoteTypes = Actinium.Cache.get('syndicate.remoteTypes', []);
     const masterOptions = Actinium.Utils.MasterOptions();
     for (const type of remoteTypes) {
         let page = 1;
@@ -345,7 +371,6 @@ SyndicateClient.syncContent = async (remoteTypes = []) => {
                 });
 
                 op.set(syncContent, 'meta.syndicate.objectId', objectId);
-                op.set(syncContent, 'meta.syndicate.sourceType', sourceType);
                 op.set(syncContent, 'meta.syndicate.branches', branches);
                 op.set(syncContent, 'meta.syndicate.history', history);
                 op.set(syncContent, 'meta.syndicate.user', user);
@@ -426,6 +451,12 @@ SyndicateClient.syncContent = async (remoteTypes = []) => {
                                 },
                                 masterOptions,
                             );
+
+                            Actinium.Cache.set(
+                                ['syndicate', 'mappings', 'content', objectId],
+                                local.objectId,
+                            );
+
                             await Actinium.Hook.run(
                                 'syndicate-content-saved',
                                 local,
@@ -454,19 +485,19 @@ SyndicateClient.syncContent = async (remoteTypes = []) => {
                             }
 
                             // If sync is on, update the local copy
-                            const local = await Actinium.Content.update(
-                                { type, ...syncContent },
-                                masterOptions,
-                            );
-
                             // Keep syndication branch up to date with synced changes
-                            await Actinium.Content.update(
+                            const local = await Actinium.Content.update(
                                 {
                                     type,
-                                    ...local,
+                                    ...syncContent,
                                     history: { branch: 'syndicate' },
                                 },
                                 masterOptions,
+                            );
+
+                            Actinium.Cache.set(
+                                ['syndicate', 'mappings', 'content', objectId],
+                                local.objectId,
                             );
 
                             // publish synced version
@@ -575,10 +606,12 @@ SyndicateClient.syncTaxonomyTypes = async () => {
         results = Object.values(op.get(response, 'data.result.results', {}));
     }
 
+    Actinium.Cache.set('syndicate.taxTypes', types);
     return types;
 };
 
-SyndicateClient.syncTaxonomies = async taxTypes => {
+SyndicateClient.syncTaxonomies = async () => {
+    const taxTypes = Actinium.Cache.get('syndicate.taxTypes', {});
     const masterOptions = Actinium.Utils.MasterOptions();
     let page = 1;
     let response = await SyndicateClient.runRemote(
@@ -628,22 +661,70 @@ SyndicateClient.syncTaxonomies = async taxTypes => {
     }
 };
 
+SyndicateClient.steps
+    .register('begin', {
+        before: false,
+        after: false,
+        order: Actinium.Enums.priority.highest,
+    })
+    .register('taxonomies', {
+        action: async () => {
+            await SyndicateClient.syncTaxonomyTypes();
+            await SyndicateClient.syncTaxonomies();
+        },
+        order: Actinium.Enums.priority.high,
+    })
+    .register('media', {
+        action: async () => {
+            await SyndicateClient.syncMediaDirectories();
+            await SyndicateClient.syncMedia();
+        },
+        order: Actinium.Enums.priority.high,
+    })
+    .register('types', {
+        action: SyndicateClient.syncTypes,
+        order: Actinium.Enums.priority.high,
+    })
+    .register('content', {
+        action: SyndicateClient.syncContent,
+        order: Actinium.Enums.priority.high,
+    })
+    .register('end', {
+        before: false,
+        after: false,
+        order: Actinium.Enums.priority.lowest,
+    })
+    .protect('begin')
+    .protect('end');
+
 SyndicateClient.sync = async () => {
-    await Actinium.Hook.run('syndicate-client-sync-begin');
-    const taxTypes = await SyndicateClient.syncTaxonomyTypes();
-    await SyndicateClient.syncTaxonomies(taxTypes);
+    await Actinium.Hook.run('syndicate-client-before-sync', SyndicateClient);
+    for (const item of SyndicateClient.steps.list) {
+        const step = op.get(item, 'step');
+        const action = op.get(item, 'action', async () => {});
+        const before = op.get(item, 'before', true);
+        const after = op.get(item, 'after', true);
 
-    await Actinium.Hook.run('syndicate-client-sync-after-taxonomies');
-    await SyndicateClient.syncMediaDirectories();
-    await SyndicateClient.syncMedia();
+        Actinium.Cache.set('syndicate.status', step);
 
-    await Actinium.Hook.run('syndicate-client-sync-after-media');
-    const remoteTypes = await SyndicateClient.syncTypes();
+        // optional before hook
+        if (before) {
+            await Actinium.Hook.run(
+                `syndicate-client-sync-before-${item.step}`,
+            );
+        }
 
-    await Actinium.Hook.run('syndicate-client-sync-after-types', remoteTypes);
-    await SyndicateClient.syncContent(remoteTypes);
+        // run the step
+        const stepHook = `syndicate-client-sync-${item.step}`;
+        const hookId = Actinium.Hook.register(stepHook, action);
+        await Actinium.Hook.run(stepHook);
+        Actinium.Hook.unregister(hookId);
 
-    await Actinium.Hook.run('syndicate-client-sync-end');
+        // optional after hook
+        if (after) {
+            await Actinium.Hook.run(`syndicate-client-sync-after-${item.step}`);
+        }
+    }
 };
 
 module.exports = SyndicateClient;
