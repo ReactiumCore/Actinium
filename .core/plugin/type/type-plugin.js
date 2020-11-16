@@ -396,9 +396,9 @@ Actinium.Hook.register(
                                 });
 
                                 // ensure contentType base fields exist
-                                op.set(updatedContentType, 'region', {
-                                    ...template.region,
-                                    ...contentType.region,
+                                op.set(updatedContentType, 'regions', {
+                                    ...template.regions,
+                                    ...contentType.regions,
                                 });
 
                                 contentType = await Actinium.Type.update(
