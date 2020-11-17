@@ -336,7 +336,12 @@ const simplifyURLS = (urls = {}, type = {}) =>
 SyndicateClient.syncContent = async () => {
     const remoteTypes = Actinium.Cache.get('syndicate.remoteTypes', []);
     const masterOptions = Actinium.Utils.MasterOptions();
+
     for (const type of remoteTypes) {
+        const localType = await Actinium.Type.retrieve(
+            { uuid: type.uuid, schema: true },
+            masterOptions,
+        );
         let page = 1;
         let response = await SyndicateClient.runRemote(
             'syndicate-content-list',
@@ -430,6 +435,7 @@ SyndicateClient.syncContent = async () => {
                                 type,
                                 existing,
                                 manual === true,
+                                localType,
                             );
 
                             if (!op.get(existing, 'branches.syndicate')) {
@@ -463,6 +469,7 @@ SyndicateClient.syncContent = async () => {
                                 type,
                                 existing,
                                 manual === true,
+                                localType,
                             );
                         } else {
                             await Actinium.Hook.run(
@@ -471,6 +478,7 @@ SyndicateClient.syncContent = async () => {
                                 type,
                                 existing,
                                 manual === true,
+                                localType,
                             );
 
                             if (!op.get(existing, 'branches.syndicate')) {
@@ -512,6 +520,7 @@ SyndicateClient.syncContent = async () => {
                                 type,
                                 existing,
                                 manual === true,
+                                localType,
                             );
                         }
                     }
@@ -529,6 +538,7 @@ SyndicateClient.syncContent = async () => {
                         type,
                         false,
                         false,
+                        localType,
                     );
                     const local = await Actinium.Content.create(
                         { type, ...syncContent },
@@ -549,6 +559,7 @@ SyndicateClient.syncContent = async () => {
                         type,
                         false,
                         false,
+                        localType,
                     );
                 }
             }
@@ -689,6 +700,9 @@ SyndicateClient.steps
         action: SyndicateClient.syncContent,
         order: Actinium.Enums.priority.high,
     })
+    .register('relations', {
+        order: Actinium.Enums.priority.high,
+    })
     .register('end', {
         before: false,
         after: false,
@@ -705,24 +719,31 @@ SyndicateClient.sync = async () => {
         const before = op.get(item, 'before', true);
         const after = op.get(item, 'after', true);
 
+        // console.log({ step, before, after });
         Actinium.Cache.set('syndicate.status', step);
 
-        // optional before hook
-        if (before) {
-            await Actinium.Hook.run(
-                `syndicate-client-sync-before-${item.step}`,
-            );
-        }
+        try {
+            // optional before hook
+            if (before) {
+                await Actinium.Hook.run(
+                    `syndicate-client-sync-before-${item.step}`,
+                );
+            }
 
-        // run the step
-        const stepHook = `syndicate-client-sync-${item.step}`;
-        const hookId = Actinium.Hook.register(stepHook, action);
-        await Actinium.Hook.run(stepHook);
-        Actinium.Hook.unregister(hookId);
+            // run the step
+            const stepHook = `syndicate-client-sync-${item.step}`;
+            const hookId = Actinium.Hook.register(stepHook, action);
+            await Actinium.Hook.run(stepHook);
+            Actinium.Hook.unregister(hookId);
 
-        // optional after hook
-        if (after) {
-            await Actinium.Hook.run(`syndicate-client-sync-after-${item.step}`);
+            // optional after hook
+            if (after) {
+                await Actinium.Hook.run(
+                    `syndicate-client-sync-after-${item.step}`,
+                );
+            }
+        } catch (error) {
+            ERROR(`Error performing syndication step ${step}`, error);
         }
     }
 };

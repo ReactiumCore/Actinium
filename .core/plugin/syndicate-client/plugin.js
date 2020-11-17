@@ -59,6 +59,7 @@ Actinium.Hook.register('before-capability-load', async () => {
     Actinium.Capability.register('setting.SyndicateClient-get', {});
     Actinium.Capability.register('setting.SyndicateClient-set', {});
     Actinium.Capability.register('setting.SyndicateClient-delete', {});
+    Actinium.Capability.register('syndicate.manualsync', {});
 });
 
 Actinium.Hook.register('warning', async () => {
@@ -68,20 +69,44 @@ Actinium.Hook.register('warning', async () => {
 
     if (!appId) {
         WARN('');
-        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate Application Id');
+        WARN(
+            chalk.cyan.bold('Warning:'),
+            chalk.magenta.bold('Syndication Client'),
+            'missing syndicate Application Id',
+        );
     }
 
     if (!host) {
         WARN('');
-        WARN(chalk.cyan.bold('Warning:'), 'missing syndicate host');
+        WARN(
+            chalk.cyan.bold('Warning:'),
+            chalk.magenta.bold('Syndication Client'),
+            'missing syndicate host',
+        );
     }
 
     if (!token) {
         WARN('');
         WARN(
             chalk.cyan.bold('Warning:'),
+            chalk.magenta.bold('Syndication Client'),
             'missing syndicate client refresh token',
         );
+    }
+
+    if (appId && host && token) {
+        const valid = await Actinium.SyndicateClient.test(
+            null,
+            Actinium.Utils.MasterOptions(),
+        );
+        if (!valid) {
+            WARN('');
+            WARN(
+                chalk.cyan.bold('Warning:'),
+                chalk.magenta.bold('Syndication Client'),
+                'unable to connect to syndication host',
+            );
+        }
     }
 });
 
@@ -98,74 +123,72 @@ Actinium.Hook.register('running', async () => {
     );
 });
 
+// Attach Routes
 Actinium.Hook.register(
     'syndicate-content-before-save',
-    async (content, type, existing, requireManualUpdate = false) => {
+    async (content, type, existing) => {
         const masterOptions = Actinium.Utils.MasterOptions();
 
-        // ignore urls changes if content has been marked for manual update only
-        if (!requireManualUpdate) {
-            const syncedURLs = op.get(content, 'meta.syndicate.urls', {});
-            if (!Boolean(existing)) {
-                if (Object.values(syncedURLs).length) {
-                    op.set(
-                        content,
-                        'urls',
-                        _.indexBy(
-                            Object.values(syncedURLs).map(url => {
-                                op.set(url, 'objectId', Number(new Date()));
-                                op.set(url, 'pending', true);
-                                return url;
-                            }),
-                        ),
-                        'objectId',
-                    );
-                }
-            } else {
-                const contentId = op.get(existing, 'objectId');
-                const { results: existingURLs = {} } = await Actinium.URL.list(
-                    { contentId },
-                    masterOptions,
+        const syncedURLs = op.get(content, 'meta.syndicate.urls', {});
+        if (!Boolean(existing)) {
+            if (Object.values(syncedURLs).length) {
+                op.set(
+                    content,
+                    'urls',
+                    _.indexBy(
+                        Object.values(syncedURLs).map(url => {
+                            op.set(url, 'objectId', Number(new Date()));
+                            op.set(url, 'pending', true);
+                            return url;
+                        }),
+                    ),
+                    'objectId',
                 );
-
-                const urls = {};
-                const current = Object.values(existingURLs);
-                const synced = Object.values(syncedURLs);
-
-                // existing urls on the satellite
-                current.forEach(url => {
-                    const { route, objectId } = url;
-                    // remove routes that no longer exist on root site
-                    if (!op.has(syncedURLs, [route])) {
-                        op.set(url, 'pending', true);
-                        op.set(url, 'delete', true);
-                        op.set(urls, [objectId], url);
-                    }
-                });
-
-                // urls from root
-                synced.forEach(url => {
-                    const [found] = _.where(current, { route: url.route });
-                    if (!found) {
-                        const objectId = Number(new Date());
-                        op.set(url, 'objectId', objectId);
-                        op.set(url, 'pending', true);
-                        op.set(urls, [objectId], url);
-                    }
-                });
-
-                // if changes to urls, add them before save
-                if (Object.values(urls).length) op.set(content, 'urls', urls);
             }
+        } else {
+            const contentId = op.get(existing, 'objectId');
+            const { results: existingURLs = {} } = await Actinium.URL.list(
+                { contentId },
+                masterOptions,
+            );
+
+            const urls = {};
+            const current = Object.values(existingURLs);
+            const synced = Object.values(syncedURLs);
+
+            // existing urls on the satellite
+            current.forEach(url => {
+                const { route, objectId } = url;
+                // remove routes that no longer exist on root site
+                if (!op.has(syncedURLs, [route])) {
+                    op.set(url, 'pending', true);
+                    op.set(url, 'delete', true);
+                    op.set(urls, [objectId], url);
+                }
+            });
+
+            // urls from root
+            synced.forEach(url => {
+                const [found] = _.where(current, { route: url.route });
+                if (!found) {
+                    const objectId = Number(new Date());
+                    op.set(url, 'objectId', objectId);
+                    op.set(url, 'pending', true);
+                    op.set(urls, [objectId], url);
+                }
+            });
+
+            // if changes to urls, add them before save
+            if (Object.values(urls).length) op.set(content, 'urls', urls);
         }
     },
 );
 
+// Attach Taxonomies
 Actinium.Hook.register(
     'syndicate-content-before-save',
-    async (content, type, existing, requireManualUpdate = false) => {
+    async (content, type, existing) => {
         if (
-            !requireManualUpdate &&
             Object.values(type.fields).find(
                 ({ fieldType }) => fieldType === 'Taxonomy',
             )
@@ -196,24 +219,154 @@ Actinium.Hook.register(
     },
 );
 
-Actinium.Hook.register('syndicate-client-sync-begin', async () => {
-    Actinium.Cache.set('syndicate.status', 'begin');
+// Attach Media
+Actinium.Hook.register(
+    'syndicate-content-before-save',
+    async (content, type, existing) => {
+        const fieldSlugs = Object.values(type.fields)
+            .filter(({ fieldType }) => fieldType === 'Media')
+            .map(({ fieldName }) => Actinium.Utils.slugify(fieldName));
+
+        if (fieldSlugs.length > 0) {
+            const mediaMappings = Actinium.Cache.get(
+                ['syndicate', 'mappings', 'media'],
+                {},
+            );
+
+            for (const fieldSlug of fieldSlugs) {
+                const media = op.get(content, fieldSlug);
+                if (Array.isArray(media)) {
+                    op.set(
+                        content,
+                        fieldSlug,
+                        _.compact(
+                            media.map(item => {
+                                const localMediaId = op.get(
+                                    mediaMappings,
+                                    op.get(item, 'objectId', 'undefined'),
+                                    '',
+                                );
+                                if (localMediaId)
+                                    return { objectId: localMediaId };
+                            }),
+                        ),
+                    );
+                }
+            }
+        }
+    },
+);
+
+// Stage content relations fields for migration
+Actinium.Hook.register(
+    'syndicate-content-before-save',
+    async (content, type, existing, manual, localType) => {
+        const relationFields = Object.entries(localType.schema).filter(
+            ([, schema]) =>
+                schema.targetClass && /^Content_/.test(schema.targetClass),
+        );
+
+        const stage = {
+            uuid: content.uuid,
+            type: { uuid: type.uuid },
+            relationFields,
+            staged: {},
+        };
+        let passNeeded = false;
+
+        for (const [fieldSlug, fieldSchema] of relationFields) {
+            const fieldType = fieldSchema.type;
+            const field = op.get(content, [fieldSlug]);
+
+            if (fieldType === 'Pointer' && op.has(field, ['objectId'])) {
+                passNeeded = true;
+                op.set(stage, ['staged', fieldSlug], {
+                    objectId: field.objectId,
+                });
+            } else if (fieldType === 'Relation' && Array.isArray(field)) {
+                if (field.length > 0) passNeeded = true;
+                op.set(
+                    stage,
+                    ['staged', fieldSlug],
+                    field.map(({ objectId }) => ({ objectId })),
+                );
+            }
+        }
+
+        if (passNeeded) {
+            Actinium.Cache.set(
+                ['syndicate', 'contentRelations', content.uuid],
+                stage,
+            );
+        }
+    },
+);
+
+Actinium.Hook.register('syndicate-client-sync-relations', async () => {
+    const contentRelations = Actinium.Cache.get('syndicate.contentRelations');
+    const context = {
+        label: 'Relation',
+        count: [0, Object.values(contentRelations).length],
+    };
+
+    Actinium.Cache.set('syndicate.context', context);
+
+    for (const { uuid, type, relationFields, staged } of Object.values(
+        contentRelations,
+    )) {
+        const mapped = {};
+        let hasMapping = false;
+        for (const [fieldSlug, schema] of relationFields) {
+            const field = op.get(staged, [fieldSlug]);
+
+            if (schema.type === 'Pointer' && op.has(field, ['objectId'])) {
+                const objectId = Actinium.Cache.get([
+                    'syndicate',
+                    'mappings',
+                    'content',
+                    field.objectId,
+                ]);
+
+                if (objectId) {
+                    hasMapping = true;
+                    op.set(mapped, [fieldSlug], { objectId });
+                }
+            } else if (schema.type === 'Relation' && Array.isArray(field)) {
+                op.set(
+                    mapped,
+                    [fieldSlug],
+                    _.compact(
+                        field.map(item => {
+                            const objectId = Actinium.Cache.get([
+                                'syndicate',
+                                'mappings',
+                                'content',
+                                item.objectId,
+                            ]);
+                            if (objectId) {
+                                hasMapping = true;
+                                return { objectId };
+                            }
+                        }),
+                    ),
+                );
+            }
+        }
+
+        if (hasMapping) {
+            await Actinium.Content.update(
+                { uuid, type, ...mapped },
+                Actinium.Utils.MasterOptions(),
+            );
+        }
+
+        context.count[0]++;
+        Actinium.Cache.set('syndicate.context', context);
+    }
 });
 
-Actinium.Hook.register('syndicate-client-sync-after-taxonomies', async () => {
-    Actinium.Cache.set('syndicate.status', 'after-taxonomies');
-});
-
-Actinium.Hook.register('syndicate-client-sync-after-media', async () => {
-    Actinium.Cache.set('syndicate.status', 'after-media');
-});
-
-Actinium.Hook.register('syndicate-client-sync-after-types', async () => {
-    Actinium.Cache.set('syndicate.status', 'after-types');
-});
-
-Actinium.Hook.register('syndicate-client-sync-end', async () => {
-    Actinium.Cache.set('syndicate.status', 'end');
+Actinium.Hook.register('syndicate-client-sync-end', () => {
+    Actinium.Cache.del('syndicate');
 });
 
 const cloudAPIs = [
@@ -228,34 +381,54 @@ const cloudAPIs = [
 /**
  * @api {Cloud} syndicate-satellite-sync syndicate-satellite-sync
  * @apiDescription Manually trigger a content synchronization from root site as administrator.
- * @apiPermission Syndicate.ManualSync
+ * @apiPermission syndicate.manualsync
  * @apiGroup Cloud
  * @apiName syndicate-satellite-sync
  */
 Actinium.Cloud.define(PLUGIN.ID, 'syndicate-satellite-sync', async req => {
-    if (!Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.ManualSync']))
+    if (!Actinium.Utils.CloudHasCapabilities(req, ['syndicate.manualsync']))
         throw new Error('Not permitted.');
 
-    const syncStatus = Actinium.Cache.get('syndicate.status', 'idle');
+    let syncStatus = Actinium.Cache.get('syndicate.status');
+
     const syncContext = Actinium.Cache.get('syndicate.context', {
         label: '',
         count: [0, 0],
     });
 
-    if (syncStatus === 'idle') {
+    if (!syncStatus || syncStatus === 'end') {
         BOOT('Manual content sync triggered.');
-        Actinium.Cache.get('syndicate.status', 'start');
+        syncStatus = 'begin';
+        Actinium.Cache.set('syndicate.status', syncStatus);
         Actinium.SyndicateClient.sync();
-        return 'start';
+        syncStatus = Actinium.Cache.get('syndicate.status', syncStatus);
     }
+
+    return { syncStatus, syncContext };
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'syndicate-satellite-status', async req => {
+    if (!Actinium.Utils.CloudHasCapabilities(req, ['syndicate.manualsync']))
+        throw new Error('Not permitted.');
+
+    let syncStatus = Actinium.Cache.get('syndicate.status');
+    if (!syncStatus) {
+        syncStatus = 'end';
+        Actinium.Cache.set('syndicate.status', syncStatus);
+    }
+
+    const syncContext = Actinium.Cache.get('syndicate.context', {
+        label: '',
+        count: [0, 0],
+    });
 
     return { syncStatus, syncContext };
 });
 
 /**
  * @api {Cloud} syndicate-satellite-sync-reset syndicate-satellite-sync-reset
- * @apiDescription Reset sync status to idle, allowing a manual sync.
- * @apiPermission Syndicate.ManualSync
+ * @apiDescription Reset sync status to "end", allowing a manual sync.
+ * @apiPermission syndicate.manualsync
  * @apiGroup Cloud
  * @apiName syndicate-satellite-sync-reset
  */
@@ -263,10 +436,10 @@ Actinium.Cloud.define(
     PLUGIN.ID,
     'syndicate-satellite-sync-reset',
     async req => {
-        if (!Actinium.Utils.CloudHasCapabilities(req, ['Syndicate.ManualSync']))
+        if (!Actinium.Utils.CloudHasCapabilities(req, ['syndicate.manualsync']))
             throw new Error('Not permitted.');
 
-        Actinium.Cache.set('syndicate.status', 'idle');
+        Actinium.Cache.set('syndicate.status', 'end');
         Actinium.Cache.set('syndicate.context', {
             label: '',
             count: [0, 0],

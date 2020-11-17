@@ -262,6 +262,11 @@ Type.retrieve = async (params, options) => {
     if (!contentType) throw new Error('Unable to find type.');
     const result = serialize(contentType);
 
+    if (op.get(params, 'schema', false) === true) {
+        const { schema } = await Actinium.Content.getSchema(result);
+        op.set(result, 'schema', schema);
+    }
+
     await Actinium.Hook.run('type-retrieved', result);
     return result;
 };

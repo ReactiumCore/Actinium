@@ -226,7 +226,29 @@
                 }
                 return n;
             }
-            function m(e, t, n) {
+            function m(e) {
+                for (var t = 1; t < arguments.length; t++) {
+                    var n = null != arguments[t] ? arguments[t] : {};
+                    t % 2
+                        ? b(Object(n), !0).forEach(function(t) {
+                              g(e, t, n[t]);
+                          })
+                        : Object.getOwnPropertyDescriptors
+                        ? Object.defineProperties(
+                              e,
+                              Object.getOwnPropertyDescriptors(n),
+                          )
+                        : b(Object(n)).forEach(function(t) {
+                              Object.defineProperty(
+                                  e,
+                                  t,
+                                  Object.getOwnPropertyDescriptor(n, t),
+                              );
+                          });
+                }
+                return e;
+            }
+            function g(e, t, n) {
                 return (
                     t in e
                         ? Object.defineProperty(e, t, {
@@ -239,7 +261,7 @@
                     e
                 );
             }
-            function g(e, t) {
+            function v(e, t) {
                 return (
                     (function(e) {
                         if (Array.isArray(e)) return e;
@@ -274,17 +296,17 @@
                     })(e, t) ||
                     (function(e, t) {
                         if (!e) return;
-                        if ('string' == typeof e) return v(e, t);
+                        if ('string' == typeof e) return h(e, t);
                         var n = Object.prototype.toString.call(e).slice(8, -1);
                         'Object' === n &&
                             e.constructor &&
                             (n = e.constructor.name);
-                        if ('Map' === n || 'Set' === n) return Array.from(n);
+                        if ('Map' === n || 'Set' === n) return Array.from(e);
                         if (
                             'Arguments' === n ||
                             /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
                         )
-                            return v(e, t);
+                            return h(e, t);
                     })(e, t) ||
                     (function() {
                         throw new TypeError(
@@ -293,13 +315,21 @@
                     })()
                 );
             }
-            function v(e, t) {
+            function h(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
             }
-            var h = Object(a.memo)(
-                function(e) {
+            var O = function(e, t) {
+                    return (
+                        f.a.get(e, 'groupName') === f.a.get(t, 'groupName') &&
+                        p()(
+                            f.a.get(e, 'settingGroup'),
+                            f.a.get(t, 'settingGroup'),
+                        )
+                    );
+                },
+                j = Object(a.memo)(function(e) {
                     var t,
                         n = e.settingGroup,
                         c = Object(r.useHookComponent)('ReactiumUI'),
@@ -307,7 +337,7 @@
                         s = c.Alert,
                         l = c.Icon,
                         d = c.Button,
-                        p = g(
+                        p = v(
                             Object(a.useState)({
                                 loading: !0,
                                 valid: !1,
@@ -315,54 +345,21 @@
                             }),
                             2,
                         ),
-                        v = p[0],
-                        h = p[1],
-                        O = function(e) {
-                            h(
-                                (function(e) {
-                                    for (var t = 1; t < arguments.length; t++) {
-                                        var n =
-                                            null != arguments[t]
-                                                ? arguments[t]
-                                                : {};
-                                        t % 2
-                                            ? b(Object(n), !0).forEach(function(
-                                                  t,
-                                              ) {
-                                                  m(e, t, n[t]);
-                                              })
-                                            : Object.getOwnPropertyDescriptors
-                                            ? Object.defineProperties(
-                                                  e,
-                                                  Object.getOwnPropertyDescriptors(
-                                                      n,
-                                                  ),
-                                              )
-                                            : b(Object(n)).forEach(function(t) {
-                                                  Object.defineProperty(
-                                                      e,
-                                                      t,
-                                                      Object.getOwnPropertyDescriptor(
-                                                          n,
-                                                          t,
-                                                      ),
-                                                  );
-                                              });
-                                    }
-                                    return e;
-                                })({}, v, {}, e),
-                            );
+                        b = p[0],
+                        g = p[1],
+                        h = function(e) {
+                            g(m(m({}, b), e));
                         },
-                        j =
+                        O =
                             ((t = n),
                             {
                                 appId: f.a.get(t, 'appId'),
                                 host: f.a.get(t, 'host'),
                                 token: f.a.get(t, 'token'),
                             }),
-                        S = j.appId,
-                        C = j.host,
-                        w = j.token;
+                        j = O.appId,
+                        S = O.host,
+                        C = O.token;
                     if (
                         (Object(r.useAsyncEffect)(
                             (function() {
@@ -379,12 +376,12 @@
                                                                     e.next)
                                                             ) {
                                                                 case 0:
-                                                                    if (!w) {
+                                                                    if (!C) {
                                                                         e.next = 6;
                                                                         break;
                                                                     }
                                                                     return (
-                                                                        O({
+                                                                        h({
                                                                             loading: !0,
                                                                         }),
                                                                         (e.next = 4),
@@ -396,7 +393,7 @@
                                                                     (n =
                                                                         e.sent),
                                                                         t() &&
-                                                                            O({
+                                                                            h({
                                                                                 loading: !1,
                                                                                 valid: n,
                                                                             });
@@ -435,12 +432,12 @@
                                     return t.apply(this, arguments);
                                 };
                             })(),
-                            [S, C, w, v.forceUpdated],
+                            [j, S, C, b.forceUpdated],
                         ),
-                        !(S && C && w))
+                        !(j && S && C))
                     )
                         return null;
-                    if (v.loading)
+                    if (b.loading)
                         return i.a.createElement(
                             'div',
                             {
@@ -453,7 +450,7 @@
                             },
                             i.a.createElement(u, null),
                         );
-                    var x = {
+                    var w = {
                         success: Object(r.__)('Connection test successful.'),
                         failure: Object(r.__)('Connection test failed.'),
                     };
@@ -464,16 +461,16 @@
                             s,
                             {
                                 dismissable: !0,
-                                color: v.valid
+                                color: b.valid
                                     ? s.ENUMS.COLOR.SUCCESS
                                     : s.ENUMS.COLOR.DANGER,
                                 icon: i.a.createElement(l, {
-                                    name: v.valid
+                                    name: b.valid
                                         ? 'Feather.Check'
                                         : 'Feather.AlertOctagon',
                                 }),
                             },
-                            v.valid ? x.success : x.failure,
+                            b.valid ? w.success : w.failure,
                             i.a.createElement(
                                 d,
                                 {
@@ -481,28 +478,18 @@
                                     size: 'xs',
                                     appearance: 'pill',
                                     onClick: function() {
-                                        O({ forceUpdated: new Date() });
+                                        h({ forceUpdated: new Date() });
                                     },
                                 },
                                 Object(r.__)('Refresh'),
                             ),
                         ),
                     );
-                },
-                function(e, t) {
-                    return (
-                        f.a.get(e, 'groupName') === f.a.get(t, 'groupName') &&
-                        p()(
-                            f.a.get(e, 'settingGroup'),
-                            f.a.get(t, 'settingGroup'),
-                        )
-                    );
-                },
-            );
-            function O(e) {
+                }, O);
+            function S(e) {
                 return (
                     (function(e) {
-                        if (Array.isArray(e)) return _(e);
+                        if (Array.isArray(e)) return k(e);
                     })(e) ||
                     (function(e) {
                         if (
@@ -511,7 +498,7 @@
                         )
                             return Array.from(e);
                     })(e) ||
-                    E(e) ||
+                    P(e) ||
                     (function() {
                         throw new TypeError(
                             'Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
@@ -519,7 +506,7 @@
                     })()
                 );
             }
-            function j(e, t, n, r, o, a, i) {
+            function C(e, t, n, r, o, a, i) {
                 try {
                     var c = e[a](i),
                         u = c.value;
@@ -528,23 +515,23 @@
                 }
                 c.done ? t(u) : Promise.resolve(u).then(r, o);
             }
-            function S(e) {
+            function w(e) {
                 return function() {
                     var t = this,
                         n = arguments;
                     return new Promise(function(r, o) {
                         var a = e.apply(t, n);
                         function i(e) {
-                            j(a, r, o, i, c, 'next', e);
+                            C(a, r, o, i, c, 'next', e);
                         }
                         function c(e) {
-                            j(a, r, o, i, c, 'throw', e);
+                            C(a, r, o, i, c, 'throw', e);
                         }
                         i(void 0);
                     });
                 };
             }
-            function C(e, t) {
+            function E(e, t) {
                 var n = Object.keys(e);
                 if (Object.getOwnPropertySymbols) {
                     var r = Object.getOwnPropertySymbols(e);
@@ -559,7 +546,29 @@
                 }
                 return n;
             }
-            function w(e, t, n) {
+            function _(e) {
+                for (var t = 1; t < arguments.length; t++) {
+                    var n = null != arguments[t] ? arguments[t] : {};
+                    t % 2
+                        ? E(Object(n), !0).forEach(function(t) {
+                              x(e, t, n[t]);
+                          })
+                        : Object.getOwnPropertyDescriptors
+                        ? Object.defineProperties(
+                              e,
+                              Object.getOwnPropertyDescriptors(n),
+                          )
+                        : E(Object(n)).forEach(function(t) {
+                              Object.defineProperty(
+                                  e,
+                                  t,
+                                  Object.getOwnPropertyDescriptor(n, t),
+                              );
+                          });
+                }
+                return e;
+            }
+            function x(e, t, n) {
                 return (
                     t in e
                         ? Object.defineProperty(e, t, {
@@ -572,7 +581,7 @@
                     e
                 );
             }
-            function x(e, t) {
+            function I(e, t) {
                 return (
                     (function(e) {
                         if (Array.isArray(e)) return e;
@@ -605,7 +614,7 @@
                         }
                         return n;
                     })(e, t) ||
-                    E(e, t) ||
+                    P(e, t) ||
                     (function() {
                         throw new TypeError(
                             'Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.',
@@ -613,212 +622,197 @@
                     })()
                 );
             }
-            function E(e, t) {
+            function P(e, t) {
                 if (e) {
-                    if ('string' == typeof e) return _(e, t);
+                    if ('string' == typeof e) return k(e, t);
                     var n = Object.prototype.toString.call(e).slice(8, -1);
                     return (
                         'Object' === n &&
                             e.constructor &&
                             (n = e.constructor.name),
                         'Map' === n || 'Set' === n
-                            ? Array.from(n)
+                            ? Array.from(e)
                             : 'Arguments' === n ||
                               /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
-                            ? _(e, t)
+                            ? k(e, t)
                             : void 0
                     );
                 }
             }
-            function _(e, t) {
+            function k(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
             }
-            var I = { label: '', count: [0, 0] },
-                P = Object(a.memo)(
-                    function(e) {
-                        var t,
-                            n = e.settingGroup,
-                            c = Object(r.useHookComponent)('ReactiumUI'),
-                            u = c.Icon,
-                            s = c.Button,
-                            l = x(
-                                Object(a.useState)({
-                                    loading: !0,
-                                    valid: !1,
-                                    forceUpdated: new Date(),
-                                }),
-                                2,
-                            ),
-                            d = l[0],
-                            p = l[1],
-                            y = x(
-                                Object(a.useState)({
-                                    syncStatus: 'idle',
-                                    syncContext: I,
-                                }),
-                                2,
-                            ),
-                            b = y[0],
-                            m = y[1],
-                            g = function(e) {
-                                p(
-                                    (function(e) {
-                                        for (
-                                            var t = 1;
-                                            t < arguments.length;
-                                            t++
-                                        ) {
-                                            var n =
-                                                null != arguments[t]
-                                                    ? arguments[t]
-                                                    : {};
-                                            t % 2
-                                                ? C(Object(n), !0).forEach(
-                                                      function(t) {
-                                                          w(e, t, n[t]);
-                                                      },
-                                                  )
-                                                : Object.getOwnPropertyDescriptors
-                                                ? Object.defineProperties(
-                                                      e,
-                                                      Object.getOwnPropertyDescriptors(
-                                                          n,
-                                                      ),
-                                                  )
-                                                : C(Object(n)).forEach(function(
-                                                      t,
-                                                  ) {
-                                                      Object.defineProperty(
-                                                          e,
-                                                          t,
-                                                          Object.getOwnPropertyDescriptor(
-                                                              n,
-                                                              t,
-                                                          ),
-                                                      );
-                                                  });
-                                        }
-                                        return e;
-                                    })({}, d, {}, e),
-                                );
-                            },
-                            v =
-                                ((t = n),
-                                {
-                                    appId: f.a.get(t, 'appId'),
-                                    host: f.a.get(t, 'host'),
-                                    token: f.a.get(t, 'token'),
-                                }),
-                            h = v.appId,
-                            j = v.host,
-                            E = v.token;
-                        Object(r.useAsyncEffect)(
-                            (function() {
-                                var e = S(
-                                    regeneratorRuntime.mark(function e(t) {
-                                        var n;
-                                        return regeneratorRuntime.wrap(function(
-                                            e,
-                                        ) {
-                                            for (;;)
-                                                switch ((e.prev = e.next)) {
-                                                    case 0:
-                                                        if (!E) {
-                                                            e.next = 6;
-                                                            break;
-                                                        }
-                                                        return (
-                                                            g({ loading: !0 }),
-                                                            (e.next = 4),
-                                                            o.a.Cloud.run(
-                                                                'syndicate-satellite-test',
-                                                            )
-                                                        );
-                                                    case 4:
-                                                        (n = e.sent),
-                                                            t() &&
-                                                                g({
-                                                                    loading: !1,
-                                                                    valid: n,
-                                                                });
-                                                    case 6:
-                                                    case 'end':
-                                                        return e.stop();
-                                                }
-                                        },
-                                        e);
-                                    }),
-                                );
-                                return function(t) {
-                                    return e.apply(this, arguments);
-                                };
-                            })(),
-                            [h, j, E, d.forceUpdated],
-                        );
-                        var _ = {
-                                idle: Object(r.__)('Sync Content'),
-                                start: Object(r.__)('Syncing...'),
-                                begin: Object(r.__)('Syncing Taxonomies...'),
-                                'after-taxonomies': Object(r.__)(
-                                    'Syncing Media...',
-                                ),
-                                'after-media': Object(r.__)('Syncing Types...'),
-                                'after-types': Object(r.__)(
-                                    'Syncing %context...',
-                                ),
-                                end: Object(r.__)('Finishing...'),
-                            },
-                            P = b.syncStatus,
-                            k = b.syncContext;
-                        Object(r.useAsyncEffect)(
-                            (function() {
-                                var e = S(
-                                    regeneratorRuntime.mark(function e(t) {
-                                        var n;
-                                        return regeneratorRuntime.wrap(function(
-                                            e,
-                                        ) {
-                                            for (;;)
-                                                switch ((e.prev = e.next)) {
-                                                    case 0:
-                                                        if ('idle' !== P) {
-                                                            e.next = 2;
-                                                            break;
-                                                        }
-                                                        return e.abrupt(
-                                                            'return',
-                                                        );
-                                                    case 2:
-                                                        if ('end' !== P) {
-                                                            e.next = 8;
-                                                            break;
-                                                        }
-                                                        return (
-                                                            (e.next = 5),
-                                                            o.a.Cloud.run(
-                                                                'syndicate-satellite-sync-reset',
-                                                            )
-                                                        );
-                                                    case 5:
-                                                        t() &&
-                                                            m({
-                                                                syncStatus:
-                                                                    'idle',
-                                                                syncContext: I,
-                                                            }),
-                                                            (e.next = 10);
+            var A = function(e, t) {
+                    return (
+                        f.a.get(e, 'groupName') === f.a.get(t, 'groupName') &&
+                        p()(
+                            f.a.get(e, 'settingGroup'),
+                            f.a.get(t, 'settingGroup'),
+                        )
+                    );
+                },
+                T = { label: '', count: [0, 0] },
+                N = Object(a.memo)(function(e) {
+                    var t,
+                        n = e.settingGroup,
+                        c = Object(r.useHandle)('AdminTools'),
+                        u =
+                            (f.a.get(c, 'Toast'),
+                            Object(r.useHookComponent)('ReactiumUI')),
+                        s = u.Icon,
+                        l = u.Button,
+                        d = I(
+                            Object(a.useState)({
+                                loading: !0,
+                                valid: !1,
+                                forceUpdated: new Date(),
+                            }),
+                            2,
+                        ),
+                        p = d[0],
+                        y = d[1],
+                        b = I(
+                            Object(a.useState)({
+                                syncStatus: 'end',
+                                syncContext: T,
+                            }),
+                            2,
+                        ),
+                        m = b[0],
+                        g = b[1],
+                        v = function(e) {
+                            y(_(_({}, p), e));
+                        },
+                        h =
+                            ((t = n),
+                            {
+                                appId: f.a.get(t, 'appId'),
+                                host: f.a.get(t, 'host'),
+                                token: f.a.get(t, 'token'),
+                            }),
+                        O = h.appId,
+                        j = h.host,
+                        C = h.token;
+                    Object(r.useAsyncEffect)(
+                        (function() {
+                            var e = w(
+                                regeneratorRuntime.mark(function e(t) {
+                                    var n;
+                                    return regeneratorRuntime.wrap(function(e) {
+                                        for (;;)
+                                            switch ((e.prev = e.next)) {
+                                                case 0:
+                                                    if (!C) {
+                                                        e.next = 6;
                                                         break;
-                                                    case 8:
+                                                    }
+                                                    return (
+                                                        v({ loading: !0 }),
+                                                        (e.next = 4),
+                                                        o.a.Cloud.run(
+                                                            'syndicate-satellite-test',
+                                                        )
+                                                    );
+                                                case 4:
+                                                    (n = e.sent),
+                                                        t() &&
+                                                            v({
+                                                                loading: !1,
+                                                                valid: n,
+                                                            });
+                                                case 6:
+                                                case 'end':
+                                                    return e.stop();
+                                            }
+                                    }, e);
+                                }),
+                            );
+                            return function(t) {
+                                return e.apply(this, arguments);
+                            };
+                        })(),
+                        [O, j, C, p.forceUpdated],
+                    );
+                    var E = {
+                        end: Object(r.__)('Sync Content'),
+                        begin: Object(r.__)('Starting...'),
+                        taxonomies: Object(r.__)('Syncing Taxonomies...'),
+                        media: Object(r.__)('Syncing Media...'),
+                        types: Object(r.__)('Syncing Types...'),
+                        content: Object(r.__)('Syncing %context...'),
+                        relations: Object(r.__)('Syncing %context...'),
+                    };
+                    o.a.Hook.runSync('syndicate-client-status-labels', E);
+                    var x = (function() {
+                            var e = w(
+                                regeneratorRuntime.mark(function e() {
+                                    var t, n, r, a;
+                                    return regeneratorRuntime.wrap(function(e) {
+                                        for (;;)
+                                            switch ((e.prev = e.next)) {
+                                                case 0:
+                                                    return (
+                                                        (e.next = 2),
+                                                        o.a.Cloud.run(
+                                                            'syndicate-satellite-sync',
+                                                        )
+                                                    );
+                                                case 2:
+                                                    (t = e.sent),
+                                                        (n = t.syncStatus),
+                                                        (r =
+                                                            void 0 === n
+                                                                ? 'end'
+                                                                : n),
+                                                        (a = t.syncContext),
+                                                        g({
+                                                            syncStatus: r,
+                                                            syncContext:
+                                                                void 0 === a
+                                                                    ? T
+                                                                    : a,
+                                                        });
+                                                case 8:
+                                                case 'end':
+                                                    return e.stop();
+                                            }
+                                    }, e);
+                                }),
+                            );
+                            return function() {
+                                return e.apply(this, arguments);
+                            };
+                        })(),
+                        P = m.syncStatus,
+                        k = m.syncContext;
+                    if (
+                        (Object(r.useAsyncEffect)(
+                            (function() {
+                                var e = w(
+                                    regeneratorRuntime.mark(function e(t) {
+                                        var n;
+                                        return regeneratorRuntime.wrap(function(
+                                            e,
+                                        ) {
+                                            for (;;)
+                                                switch ((e.prev = e.next)) {
+                                                    case 0:
+                                                        if ('end' === P) {
+                                                            e.next = 3;
+                                                            break;
+                                                        }
                                                         return (
                                                             (n = setInterval(
-                                                                S(
+                                                                w(
                                                                     regeneratorRuntime.mark(
                                                                         function e() {
                                                                             var n,
                                                                                 r,
-                                                                                a;
+                                                                                a,
+                                                                                i,
+                                                                                c;
                                                                             return regeneratorRuntime.wrap(
                                                                                 function(
                                                                                     e,
@@ -832,7 +826,7 @@
                                                                                                 return (
                                                                                                     (e.next = 2),
                                                                                                     o.a.Cloud.run(
-                                                                                                        'syndicate-satellite-sync',
+                                                                                                        'syndicate-satellite-status',
                                                                                                     )
                                                                                                 );
                                                                                             case 2:
@@ -841,15 +835,25 @@
                                                                                                     (r =
                                                                                                         n.syncStatus),
                                                                                                     (a =
+                                                                                                        void 0 ===
+                                                                                                        r
+                                                                                                            ? 'end'
+                                                                                                            : r),
+                                                                                                    (i =
                                                                                                         n.syncContext),
+                                                                                                    (c =
+                                                                                                        void 0 ===
+                                                                                                        i
+                                                                                                            ? T
+                                                                                                            : i),
                                                                                                     t() &&
-                                                                                                        m(
+                                                                                                        g(
                                                                                                             {
-                                                                                                                syncStatus: r,
-                                                                                                                syncContext: a,
+                                                                                                                syncStatus: a,
+                                                                                                                syncContext: c,
                                                                                                             },
                                                                                                         );
-                                                                                            case 6:
+                                                                                            case 8:
                                                                                             case 'end':
                                                                                                 return e.stop();
                                                                                         }
@@ -870,7 +874,7 @@
                                                                 },
                                                             )
                                                         );
-                                                    case 10:
+                                                    case 3:
                                                     case 'end':
                                                         return e.stop();
                                                 }
@@ -882,110 +886,68 @@
                                     return e.apply(this, arguments);
                                 };
                             })(),
-                            [P].concat(O(f.a.get(k, 'count', I.count))),
-                        );
-                        var A = (function() {
-                            var e = S(
-                                regeneratorRuntime.mark(function e() {
-                                    var t, n, r;
-                                    return regeneratorRuntime.wrap(function(e) {
-                                        for (;;)
-                                            switch ((e.prev = e.next)) {
-                                                case 0:
-                                                    return (
-                                                        (e.next = 2),
-                                                        o.a.Cloud.run(
-                                                            'syndicate-satellite-sync',
-                                                        )
-                                                    );
-                                                case 2:
-                                                    (t = e.sent),
-                                                        (n = t.syncStatus),
-                                                        (r = t.syncContext),
-                                                        m({
-                                                            syncStatus: n,
-                                                            syncContext: r,
-                                                        });
-                                                case 6:
-                                                case 'end':
-                                                    return e.stop();
-                                            }
-                                    }, e);
-                                }),
-                            );
-                            return function() {
-                                return e.apply(this, arguments);
-                            };
-                        })();
-                        if (!(h && j && E)) return null;
-                        d.loading || d.valid;
-                        var T = f.a.get(k, 'label', ''),
-                            N = x(f.a.get(k, 'count', [0, 0]), 2),
-                            D = N[0],
-                            R = N[1];
-                        return i.a.createElement(
-                            'div',
-                            { className: 'm-xs-20' },
-                            i.a.createElement(
-                                s,
-                                {
-                                    size: 'md',
-                                    color: 'idle' === P ? 'danger' : 'clear',
-                                    onClick: function() {
-                                        return A();
-                                    },
-                                    disabled: 'idle' !== P,
+                            [P].concat(S(f.a.get(k, 'count', T.count))),
+                        ),
+                        !(O && j && C))
+                    )
+                        return null;
+                    p.loading || p.valid;
+                    var A = f.a.get(k, 'label', ''),
+                        N = I(f.a.get(k, 'count', [0, 0]), 2),
+                        D = N[0],
+                        R = N[1];
+                    return i.a.createElement(
+                        'div',
+                        { className: 'm-xs-20' },
+                        i.a.createElement(
+                            l,
+                            {
+                                size: 'md',
+                                color: 'end' === P ? 'danger' : 'clear',
+                                onClick: function() {
+                                    return x();
                                 },
-                                'idle' !== P &&
-                                    i.a.createElement(
-                                        'div',
-                                        {
-                                            className: 'mr-xs-8',
-                                            style: {
-                                                width: '20px',
-                                                height: '20px',
-                                            },
+                                disabled: 'end' !== P,
+                            },
+                            'end' !== P &&
+                                i.a.createElement(
+                                    'div',
+                                    {
+                                        className: 'mr-xs-8',
+                                        style: {
+                                            width: '20px',
+                                            height: '20px',
                                         },
-                                        i.a.createElement(u, {
-                                            name: 'Feather.DownloadCloud',
-                                        }),
-                                    ),
-                                ' ',
-                                f.a
-                                    .get(_, [P], _.start)
-                                    .replace(
-                                        '%context',
-                                        ''
-                                            .concat(T, ' ')
-                                            .concat(
-                                                R > 0 &&
-                                                    ''.concat(D, '/').concat(R),
-                                            ),
-                                    ),
-                            ),
-                        );
-                    },
-                    function(e, t) {
-                        return (
-                            f.a.get(e, 'groupName') ===
-                                f.a.get(t, 'groupName') &&
-                            p()(
-                                f.a.get(e, 'settingGroup'),
-                                f.a.get(t, 'settingGroup'),
-                            )
-                        );
-                    },
-                ),
-                k = function(e) {
+                                    },
+                                    i.a.createElement(s, {
+                                        name: 'Feather.DownloadCloud',
+                                    }),
+                                ),
+                            ' ',
+                            f.a
+                                .get(E, [P], E.start)
+                                .replace(
+                                    '%context',
+                                    ''
+                                        .concat(A, ' ')
+                                        .concat(
+                                            R > 0 &&
+                                                ''.concat(D, '/').concat(R),
+                                        ),
+                                ),
+                        ),
+                    );
+                }, A),
+                D = function(e) {
                     var t = Object(r.useHookComponent)('MenuItem');
                     return i.a.createElement(t, {
                         route: '/admin/plugins/SyndicateClient',
                         label: Object(r.__)('Syndicate Client'),
                     });
                 },
-                A = n(4),
-                T = n.n(A);
-            function N(e, t, n, r, o, a, i) {
+                R = n(4),
+                q = n.n(R);
+            function U(e, t, n, r, o, a, i) {
                 try {
                     var c = e[a](i),
                         u = c.value;
@@ -994,7 +956,7 @@
                 }
                 c.done ? t(u) : Promise.resolve(u).then(r, o);
             }
-            function D(e, t) {
+            function H(e, t) {
                 var n = Object.keys(e);
                 if (Object.getOwnPropertySymbols) {
                     var r = Object.getOwnPropertySymbols(e);
@@ -1009,19 +971,19 @@
                 }
                 return n;
             }
-            function R(e) {
+            function z(e) {
                 for (var t = 1; t < arguments.length; t++) {
                     var n = null != arguments[t] ? arguments[t] : {};
                     t % 2
-                        ? D(Object(n), !0).forEach(function(t) {
-                              q(e, t, n[t]);
+                        ? H(Object(n), !0).forEach(function(t) {
+                              L(e, t, n[t]);
                           })
                         : Object.getOwnPropertyDescriptors
                         ? Object.defineProperties(
                               e,
                               Object.getOwnPropertyDescriptors(n),
                           )
-                        : D(Object(n)).forEach(function(t) {
+                        : H(Object(n)).forEach(function(t) {
                               Object.defineProperty(
                                   e,
                                   t,
@@ -1031,7 +993,7 @@
                 }
                 return e;
             }
-            function q(e, t, n) {
+            function L(e, t, n) {
                 return (
                     t in e
                         ? Object.defineProperty(e, t, {
@@ -1044,7 +1006,7 @@
                     e
                 );
             }
-            function U(e, t) {
+            function M(e, t) {
                 return (
                     (function(e) {
                         if (Array.isArray(e)) return e;
@@ -1079,17 +1041,17 @@
                     })(e, t) ||
                     (function(e, t) {
                         if (!e) return;
-                        if ('string' == typeof e) return z(e, t);
+                        if ('string' == typeof e) return G(e, t);
                         var n = Object.prototype.toString.call(e).slice(8, -1);
                         'Object' === n &&
                             e.constructor &&
                             (n = e.constructor.name);
-                        if ('Map' === n || 'Set' === n) return Array.from(n);
+                        if ('Map' === n || 'Set' === n) return Array.from(e);
                         if (
                             'Arguments' === n ||
                             /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)
                         )
-                            return z(e, t);
+                            return G(e, t);
                     })(e, t) ||
                     (function() {
                         throw new TypeError(
@@ -1098,12 +1060,12 @@
                     })()
                 );
             }
-            function z(e, t) {
+            function G(e, t) {
                 (null == t || t > e.length) && (t = e.length);
                 for (var n = 0, r = new Array(t); n < t; n++) r[n] = e[n];
                 return r;
             }
-            var L = function(e) {
+            var B = function(e) {
                 var t = e.editor,
                     n = Object(r.useHandle)('AdminTools'),
                     o = f.a.get(n, 'Modal'),
@@ -1119,7 +1081,7 @@
                         on: Object(r.__)('Turn off synchronization'),
                         off: Object(r.__)('Turn on synchronization'),
                     },
-                    g = U(Object(a.useState)(f.a.get(b, 'meta.syndicate')), 2),
+                    g = M(Object(a.useState)(f.a.get(b, 'meta.syndicate')), 2),
                     v = g[0],
                     h = g[1],
                     O = !0 === f.a.get(v, 'manual', !1),
@@ -1150,11 +1112,11 @@
                         [],
                     ),
                     w = f.a.get(b, 'branches.syndicate.history', []),
-                    x =
+                    E =
                         f.a.get(C, 0) !== f.a.get(w, 0) ||
                         C.length !== w.length ||
-                        T.a.difference(w, C).length > 0,
-                    E = (function() {
+                        q.a.difference(w, C).length > 0,
+                    _ = (function() {
                         var e,
                             n =
                                 ((e = regeneratorRuntime.mark(function e() {
@@ -1214,10 +1176,10 @@
                                     return new Promise(function(r, o) {
                                         var a = e.apply(t, n);
                                         function i(e) {
-                                            N(a, r, o, i, c, 'next', e);
+                                            U(a, r, o, i, c, 'next', e);
                                         }
                                         function c(e) {
-                                            N(a, r, o, i, c, 'throw', e);
+                                            U(a, r, o, i, c, 'throw', e);
                                         }
                                         i(void 0);
                                     });
@@ -1251,15 +1213,20 @@
                                     checked: !1 === O,
                                     onChange: function(e) {
                                         var n = {
-                                            meta: R(
+                                            meta: z(
+                                                z({}, f.a.get(b, 'meta', {})),
                                                 {},
-                                                f.a.get(b, 'meta', {}),
                                                 {
-                                                    syndicate: R({}, v, {
-                                                        manual:
-                                                            !1 ===
-                                                            e.target.checked,
-                                                    }),
+                                                    syndicate: z(
+                                                        z({}, v),
+                                                        {},
+                                                        {
+                                                            manual:
+                                                                !1 ===
+                                                                e.target
+                                                                    .checked,
+                                                        },
+                                                    ),
                                                 },
                                             ),
                                         };
@@ -1269,13 +1236,13 @@
                             ),
                         ),
                         !0 === O &&
-                            x &&
+                            E &&
                             i.a.createElement(
                                 d,
                                 {
                                     size: 'sm',
                                     appearance: 'pill',
-                                    onClick: E,
+                                    onClick: _,
                                     type: 'button',
                                 },
                                 i.a.createElement(y, {
@@ -1287,7 +1254,7 @@
                     ),
                 );
             };
-            function M(e, t, n, r, o, a, i) {
+            function Z(e, t, n, r, o, a, i) {
                 try {
                     var c = e[a](i),
                         u = c.value;
@@ -1315,10 +1282,10 @@
                                                 (e.next = 4),
                                                 o.a.Capability.check(
                                                     [
-                                                        'Setting.create',
-                                                        'Setting.update',
-                                                        'setting.SyndicateClient-get',
-                                                        'setting.SyndicateClient-set',
+                                                        'setting.create',
+                                                        'setting.update',
+                                                        'setting.syndicateClient-get',
+                                                        'setting.syndicateClient-set',
                                                     ],
                                                     !1,
                                                 )
@@ -1340,7 +1307,7 @@
                                                     zone: [
                                                         'admin-sidebar-settings',
                                                     ],
-                                                    component: k,
+                                                    component: D,
                                                     order: 0,
                                                 }),
                                                 o.a.Zone.addComponent({
@@ -1349,7 +1316,7 @@
                                                     zone: [
                                                         'settings-editor-SyndicateClient',
                                                     ],
-                                                    component: h,
+                                                    component: j,
                                                     order: 0,
                                                 }),
                                                 o.a.Zone.addComponent({
@@ -1358,7 +1325,7 @@
                                                     zone: [
                                                         'settings-editor-SyndicateClient',
                                                     ],
-                                                    component: P,
+                                                    component: N,
                                                     order:
                                                         o.a.Enums.priority
                                                             .lowest,
@@ -1368,7 +1335,7 @@
                                                     zone: [
                                                         'admin-content-sidebar',
                                                     ],
-                                                    component: L,
+                                                    component: B,
                                                     order:
                                                         o.a.Enums.priority
                                                             .highest,
@@ -1385,10 +1352,10 @@
                             return new Promise(function(r, o) {
                                 var a = e.apply(t, n);
                                 function i(e) {
-                                    M(a, r, o, i, c, 'next', e);
+                                    Z(a, r, o, i, c, 'next', e);
                                 }
                                 function c(e) {
-                                    M(a, r, o, i, c, 'throw', e);
+                                    Z(a, r, o, i, c, 'throw', e);
                                 }
                                 i(void 0);
                             });
