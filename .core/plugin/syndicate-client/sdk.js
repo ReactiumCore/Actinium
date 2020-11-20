@@ -280,7 +280,7 @@ SyndicateClient.syncMedia = async () => {
                     port,
                     pathname,
                 } = require('url').parse(apiURL);
-                port = ['80', '443'].includes(port) ? '' : `:${port}`;
+                port = !port || ['80', '443'].includes(port) ? '' : `:${port}`;
                 const baseURL = `${protocol}//${hostname}${port}`;
                 // media urls
                 if (/^\/media/.test(result.url))
