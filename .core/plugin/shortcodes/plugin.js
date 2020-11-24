@@ -30,8 +30,7 @@ Actinium.Plugin.register(PLUGIN, false);
  * Capability registration
  * ----------------------------------------------------------------------------
  */
-Actinium.Hook.register('before-capability-load', () => {
-    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+const registerCaps = () => {
     const allowed = ['contributor', 'moderator'];
     Actinium.Capability.register('shortcodes.create', { allowed });
     Actinium.Capability.register('shortcodes.retrieve', { allowed });
@@ -42,7 +41,7 @@ Actinium.Hook.register('before-capability-load', () => {
     Actinium.Setting.anonymousGroup.register('shortcodes', {
         id: 'shortcodes',
     });
-});
+};
 
 /**
  * ----------------------------------------------------------------------------
@@ -66,6 +65,8 @@ Actinium.Hook.register('activate', ({ ID }) => {
     PLUGIN_BLUEPRINTS.forEach(blueprint =>
         Actinium.Blueprint.register(blueprint.ID, blueprint),
     );
+
+    registerCaps();
 });
 
 // Deactivate: Blueprints
