@@ -27,7 +27,7 @@ global.BASE_DIR = path.normalize(path.resolve(path.join(__dirname, '..')));
 global.SRC_DIR = path.normalize(path.resolve(path.join(BASE_DIR, 'src')));
 global.APP_DIR = path.normalize(path.resolve(path.join(SRC_DIR, 'app')));
 global.ENV = require(`${BASE_DIR}/.core/boot`).environment;
-global.PORT = ENV.APP_PORT || ENV.PORT;
+global.PORT = ENV.PORT;
 global.ACTINIUM_DIR = __dirname;
 global.CLOUD_FUNCTIONS = [];
 

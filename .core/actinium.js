@@ -73,6 +73,22 @@ Actinium.init = async options => {
 
 Actinium.start = options =>
     new Promise(async (resolve, reject) => {
+        if (PORT < 1024) {
+            if (process.platform === 'win32') {
+                reject(
+                    `PORT ${PORT} is not allowed on windows. Choose something >= 1024.`,
+                );
+                return;
+            }
+
+            if (!process.getuid || process.getuid() !== 0) {
+                reject(
+                    `Node must be started with root user to allow PORT ${PORT}.`,
+                );
+                return;
+            }
+        }
+
         try {
             // Skip all this if Actinium.start() has already been successfully run
             if (Actinium.started === true && Actinium.server !== null) {
@@ -103,6 +119,27 @@ Actinium.start = options =>
                         'on port:',
                         chalk.magenta(PORT),
                     );
+
+                    if (process.getuid && process.getuid() === 0) {
+                        if (
+                            !ENV.ACTINIUM_RUN_AS ||
+                            !ENV.ACTINIUM_RUN_AS_GROUP
+                        ) {
+                            ERROR(
+                                'You must specify by ACTINIUM_RUN_AS and ACTINIUM_RUN_AS_GROUP to start actinium as root user.',
+                            );
+                            process.exit(1);
+                        }
+                        try {
+                            process.initgroups(
+                                ENV.ACTINIUM_RUN_AS,
+                                ENV.ACTINIUM_RUN_AS_GROUP,
+                            );
+                        } catch (error) {
+                            ERROR('Error lowering permissions.', error);
+                            process.exit(1);
+                        }
+                    }
 
                     if (!ENV.NO_PARSE && ENV.LIVE_QUERY_SERVER) {
                         BOOT(' ');

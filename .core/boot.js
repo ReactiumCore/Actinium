@@ -2,6 +2,100 @@ const path = require('path');
 const fs = require('fs-extra');
 const chalk = require('chalk');
 const assert = require('assert');
+const op = require('object-path');
+
+const DEFAULT_PORT = 9000;
+
+const ensurePortEnvironment = env => {
+    const file = environmentFile();
+
+    // PORT is special case
+    // Allow PORT_VAR to specify where to find PORT information
+    const PORT_VAR = op.get(process.env, 'PORT_VAR', op.get(env, 'PORT_VAR'));
+
+    let PORT;
+    if (PORT_VAR) {
+        // if PORT_VAR is specified, it must be found in either the
+        // environment, or the environment file.
+        PORT = op.get(process.env, [PORT_VAR], op.get(env, [PORT_VAR]));
+    } else {
+        PORT = op.get(
+            // check for process.env first
+            // 1. process.env.APP_PORT
+            // 2. process.env.PORT
+            process.env,
+            'APP_PORT',
+            op.get(
+                process.env,
+                'PORT',
+
+                // check for env file second
+                // 3. env.APP_PORT
+                // 4. env.PORT
+                op.get(env, 'APP_PORT', op.get(env, 'PORT', DEFAULT_PORT)),
+            ),
+        );
+    }
+
+    PORT = parseInt(PORT);
+
+    if (isNaN(PORT) || PORT < 1) {
+        // console.error is appropriate this early in the bootup process.
+        if (PORT_VAR) {
+            throw new Error(
+                `No port environment variable found matching ${chalk.magenta(
+                    'PORT_VAR',
+                )}\n` +
+                    `- ${chalk.cyan('PORTVAR')}: ${chalk.magenta(PORT_VAR)}\n` +
+                    `- ${chalk.cyan('1.')} process.env ${chalk.magenta(
+                        PORT_VAR,
+                    )}: ${op.get(process.env, [PORT_VAR])}\n` +
+                    `- ${chalk.cyan('2.')} ${file} ${chalk.magenta(
+                        PORT_VAR,
+                    )}: ${op.get(env, [PORT_VAR])}`,
+            );
+        } else {
+            throw new Error(
+                `No ${chalk.cyan('APP_PORT')} or ${chalk.cyan(
+                    'PORT',
+                )} variables found in ${chalk.cyan(
+                    'process.env',
+                )} or ${chalk.cyan('env')} file.\n` +
+                    `- ${chalk.cyan('1.')} process.env ${chalk.magenta(
+                        'APP_PORT',
+                    )}: ${op.get(process.env, 'APP_PORT')}\n` +
+                    `- ${chalk.cyan('2.')} process.env ${chalk.magenta(
+                        'PORT',
+                    )}: ${op.get(process.env, 'PORT')}\n` +
+                    `- ${chalk.cyan('3.')} ${file} ${chalk.magenta(
+                        'APP_PORT',
+                    )}: ${op.get(env, 'APP_PORT')}\n` +
+                    `- ${chalk.cyan('4.')} ${file} ${chalk.magenta(
+                        'PORT',
+                    )}: ${op.get(env, 'PORT')}`,
+            );
+        }
+    }
+
+    // Cleanup env object
+    op.del(env, 'PORT');
+    op.del(env, 'APP_PORT');
+
+    return PORT;
+};
+
+// Sanitize SERVER_URI
+const getServerURI = (env, PORT) => {
+    const url = new URL(
+        op.get(
+            process.env,
+            'SERVER_URI',
+            op.get(env, 'SERVER_URI', `http://localhost:${DEFAULT_PORT}`),
+        ),
+    );
+
+    return `${url.protocol || 'http'}//${url.hostname || 'localhost'}:${PORT}`;
+};
 
 /**
  * Reads application configuration variables
@@ -15,15 +109,21 @@ const boot = {
 
         try {
             const ENV_WARNING = envDev();
+
             env = {
                 ...env,
                 ...JSON.parse(fs.readFileSync(file, 'utf8')),
                 ENV_WARNING,
             };
+
+            const PORT = ensurePortEnvironment(env);
+            const SERVER_URI = getServerURI(env, PORT);
+
+            return { ...env, ...process.env, PORT, SERVER_URI };
         } catch (err) {
             console.error(err);
+            process.exit(1);
         }
-        return { ...env, ...process.env };
     },
 };
 
@@ -59,7 +159,7 @@ function environmentFile() {
 }
 
 function validateReactorEnvId(value) {
-    const pattern = /^[A-Za-z0-9_-]+$/;
+    const pattern = /^[A-Za-z0-9_-.]+$/;
     assert(pattern.test(value), 'invalid value for ACTINIUM_ENV_ID');
 }
 
