@@ -224,7 +224,7 @@ Actinium.Hook.register(
         const parsedFilename = path.parse(metaAsset.targetFileName);
         const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
         const appVer = op.get(ACTINIUM_CONFIG, 'version');
-        const version = op.get(plugin, 'version', appVer);
+        const version = op.get(plugin, 'version.plugin', appVer);
         const { name, ext } = parsedFilename;
         metaAsset.targetFileName = `${name}-${version}${ext}`;
     },
