@@ -9,7 +9,7 @@ const PLUGIN = {
     name: 'Actinium File Adapter plugin.',
     description:
         'Actinium file adapter plugin, used to allow files to be stored on the filesystem.',
-    order: 0,
+    order: Actinium.Enums.priority.high,
     version: {
         actinium: '>=3.1.2',
         plugin: '0.0.1',
@@ -31,7 +31,6 @@ FSFilesAdapter.prototype._getLocalFilePath = function(filename) {
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    INFO('  Files Adapter set to FSFilesAdapter.');
 
     let filesSubDirectory = await Actinium.Setting.get(
         'FSFileAdapter.filesSubDirectory',

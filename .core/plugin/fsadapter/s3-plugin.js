@@ -12,7 +12,7 @@ const PLUGIN = {
     name: 'Actinium S3 Adapter plugin.',
     description:
         'Actinium S3 file adapter plugin, used to allow runtime change of underlying Parse file adapter to allow AWS S3 Storage or Digital Ocean Spaces.',
-    order: 0,
+    order: Actinium.Enums.priority.high,
     version: {
         actinium: '>=3.1.8',
         plugin: '0.0.2',
@@ -46,7 +46,6 @@ _addStaticAssets(PLUGIN);
 
 Actinium.FilesAdapter.register(PLUGIN, async (config, env) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
-    BOOT('  Files Adapter set to S3Adapter.');
 
     const settings = await Actinium.Setting.get('S3Adapter', {
         directAccess: config.directAccess,

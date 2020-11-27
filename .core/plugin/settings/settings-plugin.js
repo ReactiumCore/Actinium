@@ -34,7 +34,7 @@ const PLUGIN = {
     ID: 'Settings',
     description: 'Settings plugin used to manage application settings',
     name: 'Settings Plugin',
-    order: 0,
+    order: Actinium.Enums.priority.highest,
     version: {
         actinium: '>=3.0.5',
         plugin: '0.0.1',

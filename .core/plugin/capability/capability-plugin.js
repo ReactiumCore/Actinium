@@ -14,7 +14,7 @@ const PLUGIN = {
     name: 'Capabilities plugin.',
     description:
         'Adds cloud functions to facilitate setting and checking of permissions.',
-    order: 0,
+    order: Actinium.Enums.priority.highest,
     version: {
         actinium: '>=3.1.2',
         plugin: '0.0.1',

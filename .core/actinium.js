@@ -159,7 +159,7 @@ Actinium.start = options =>
                     await Actinium.Plugin.load();
 
                     // Load File Adapter
-                    await Actinium.FilesAdapter.update();
+                    Actinium.FilesAdapter.getProxy().bootMessage();
 
                     // Load User Roles
                     await Actinium.Roles.load();

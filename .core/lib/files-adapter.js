@@ -10,21 +10,33 @@ const op = require('object-path');
 class FilesAdapterProxy {
     constructor(config) {
         this.config = { ...config };
-        this._set(null, true);
+        this._defaultAdapter();
+        this.ID = 'GridFSBucketAdapter';
     }
 
-    async _set(adapter, silent) {
-        if (!adapter) {
-            if (silent !== true) {
-                INFO('  Files Adapter set to GridFSBucketAdapter.');
-            }
-            this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
-            this._adapter.validateFilename = this._validateFilenameDefault;
+    _defaultAdapter() {
+        this._adapter = new GridFSBucketAdapter(this.config.databaseURI);
+        this._adapter.validateFilename = this._validateFilenameDefault;
+    }
+
+    async _set(adapter, ID = 'GridFSBucketAdapter') {
+        this.ID = ID;
+        if (!adapter || ID === 'GridFSBucketAdapter') {
+            this._defaultAdapter();
         } else this._adapter = adapter;
+
+        this.bootMessage();
     }
 
     _get() {
         return this._adapter;
+    }
+
+    bootMessage() {
+        if (Actinium.pluginsLoaded) {
+            BOOT('');
+            BOOT(`Files Adapter: ${chalk.cyan(this.ID)}`);
+        }
     }
 
     // createFile(filename: string, data, contentType: string): Promise {}
@@ -97,12 +109,20 @@ FilesAdapter.getProxy = config => {
     return proxy;
 };
 
-FilesAdapter.update = async () => {
+FilesAdapter.update = async (ID, active) => {
     try {
-        INFO(' ');
-        INFO(chalk.cyan('Updating Files Adapter:'));
-        const { adapter } = await Hook.run('files-adapter', proxy.config, ENV);
-        await proxy._set(adapter);
+        const { adapter } = await Hook.run(
+            'files-adapter',
+            proxy.config,
+            ENV,
+            ID,
+            active,
+        );
+        if (active) {
+            await proxy._set(adapter, ID);
+        } else if (ID === proxy.ID) {
+            await proxy._set();
+        }
     } catch (error) {
         ERROR('Error setting files-adapter.', error);
     }
@@ -124,8 +144,9 @@ FilesAdapter.update = async () => {
 FilesAdapter.register = (plugin, installer, order) => {
     const hookId = Hook.register(
         'files-adapter',
-        async (config, env, context) => {
-            if (Plugin.isActive(plugin.ID)) {
+        async (config, env, ID, active = false, context) => {
+            if (active && ID === plugin.ID) {
+                context.ID = plugin.ID;
                 context.adapter = await installer(config, env);
             }
         },
@@ -137,20 +158,34 @@ FilesAdapter.register = (plugin, installer, order) => {
     return Plugin.register(plugin);
 };
 
-Hook.register('start', async () => {
-    await FilesAdapter.update();
-});
+Hook.register(
+    'plugin-before-save',
+    async ({ ID, active }) => {
+        if (ID in plugins) {
+            await FilesAdapter.update(ID, active);
+        }
+    },
+    Actinium.Enums.priority.highest,
+);
 
-Hook.register('activate', async ({ ID }) => {
-    if (ID in plugins) {
-        await FilesAdapter.update();
-    }
-});
+Hook.register(
+    'activate',
+    async ({ ID, active }) => {
+        if (ID in plugins) {
+            await FilesAdapter.update(ID, active);
+        }
+    },
+    Actinium.Enums.priority.highest,
+);
 
-Hook.register('deactivate', async ({ ID }) => {
-    if (ID in plugins) {
-        await FilesAdapter.update();
-    }
-});
+Hook.register(
+    'deactivate',
+    async ({ ID, active }) => {
+        if (ID in plugins) {
+            await FilesAdapter.update(ID, active);
+        }
+    },
+    Actinium.Enums.priority.highest,
+);
 
 module.exports = FilesAdapter;

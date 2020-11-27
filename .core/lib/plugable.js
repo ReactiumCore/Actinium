@@ -163,6 +163,7 @@ Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
     const objectPath = `meta.assets.${assetObjectPath}`;
     const installAsset = async (pluginObj, obj) => {
         if (ID !== pluginObj.ID) return;
+
         const metaAsset = {
             ID,
             filePath,
@@ -199,6 +200,7 @@ Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
             // asset path is not set on existing
             !op.has(existing, objectPath);
 
+        const proxy = Actinium.FilesAdapter.getProxy();
         if (missingAsset === true) {
             await installAsset(pluginObj, obj);
         }
@@ -251,6 +253,7 @@ Plugable.init = () => {
 };
 
 Plugable.load = async () => {
+    Actinium.pluginsLoaded = false;
     await Plugable.schema();
 
     const pluginCache = _.sortBy(
@@ -285,6 +288,9 @@ Plugable.load = async () => {
             op.get(existing, 'active', op.get(cached, 'active', false)) ===
             true;
 
+        // Set new active state as early as reasonable for Actinium.Plugin.isActive() usage
+        Actinium.Cache.set(`plugins.${ID}.active`, active);
+
         BOOT(
             chalk.cyan('  Plugin') +
                 (active ? chalk.green('↑') : chalk.yellow('↓')),
@@ -309,6 +315,7 @@ Plugable.load = async () => {
         const obj = new Parse.Object(COLLECTION);
         if (objectId) obj.id = objectId;
         Object.entries(merged).forEach(([key, value]) => obj.set(key, value));
+
         await Actinium.Hook.run(
             'plugin-before-save',
             objData,
@@ -321,15 +328,20 @@ Plugable.load = async () => {
 
     const plugins = {};
 
-    (await Parse.Object.saveAll(objects, { useMasterKey: true }))
-        .map(Actinium.Utils.serialize)
-        .forEach(item => (plugins[item.ID] = item));
+    for (const obj of objects) {
+        try {
+            const saved = await obj.save(null, Actinium.Utils.MasterOptions());
+            const item = Actinium.Utils.serialize(saved);
+            plugins[item.ID] = item;
+            Actinium.Cache.set(`plugins.${item.ID}`, item);
 
-    Actinium.Cache.set('plugins', plugins);
-
-    for (const ID in plugins) {
-        await Actinium.Hook.run('plugin-load', plugins[ID]);
+            await Actinium.Hook.run('plugin-load', plugins[item.ID]);
+        } catch (error) {
+            ERROR(`Error loading plugin ${obj.get('ID')}`, error);
+        }
     }
+
+    Actinium.pluginsLoaded = true;
 
     return Promise.resolve(plugins);
 };
