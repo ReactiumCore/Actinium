@@ -86,15 +86,23 @@ const ensurePortEnvironment = env => {
 
 // Sanitize SERVER_URI
 const getServerURI = (env, PORT) => {
-    const url = new URL(
-        op.get(
-            process.env,
-            'SERVER_URI',
-            op.get(env, 'SERVER_URI', `http://localhost:${DEFAULT_PORT}`),
-        ),
+    const SERVER_URI = op.get(
+        process.env,
+        'SERVER_URI',
+        op.get(env, 'SERVER_URI', `http://localhost:${DEFAULT_PORT}`),
     );
 
-    return `${url.protocol || 'http'}//${url.hostname || 'localhost'}:${PORT}`;
+    if (PORT !== DEFAULT_PORT) {
+        const url = new URL(SERVER_URI);
+
+        // lazy port configuration for SERVER_URI
+        if (Number(url.port) === DEFAULT_PORT) {
+            return `${url.protocol || 'http'}//${url.hostname ||
+                'localhost'}:${PORT}`;
+        }
+    }
+
+    return SERVER_URI;
 };
 
 /**
