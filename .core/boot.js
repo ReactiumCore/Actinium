@@ -159,7 +159,7 @@ function environmentFile() {
 }
 
 function validateReactorEnvId(value) {
-    const pattern = /^[A-Za-z0-9_-.]+$/;
+    const pattern = /^[.A-Za-z0-9_-]+$/;
     assert(pattern.test(value), 'invalid value for ACTINIUM_ENV_ID');
 }
 
