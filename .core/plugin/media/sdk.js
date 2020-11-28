@@ -164,7 +164,7 @@ Media.deleteFileObject = async filename => {
     filename = encodeURIComponent(filename);
 
     const endpoint = [
-        ENV.SERVER_URI,
+        ENV.PUBLIC_SERVER_URI,
         ENV.PARSE_MOUNT,
         '/files/',
         filename,
@@ -837,7 +837,7 @@ Media.crop = async params => {
 
     try {
         if (isDataURL !== true && String(url).substr(0, 1) === '/') {
-            url = [ENV.SERVER_URI, String(url).substr(1)].join('/');
+            url = [ENV.PUBLIC_SERVER_URI, String(url).substr(1)].join('/');
         }
 
         const imageData =

@@ -10,7 +10,7 @@ class ActiniumFile extends Parse.File {
     mediaURL() {
         return decodeURIComponent(
             String(this.url()).replace(
-                `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
+                `${ENV.PUBLIC_SERVER_URI}${ENV.PARSE_MOUNT}/files/${ENV.APP_ID}/`,
                 '/media/',
             ),
         );

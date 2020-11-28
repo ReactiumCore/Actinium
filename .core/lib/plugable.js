@@ -182,7 +182,7 @@ Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
         );
 
         url = String(file.url()).replace(
-            `${ENV.SERVER_URI}${ENV.PARSE_MOUNT}`,
+            `${ENV.PUBLIC_SERVER_URI}${ENV.PARSE_MOUNT}`,
             '',
         );
 

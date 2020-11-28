@@ -105,6 +105,16 @@ const getServerURI = (env, PORT) => {
     return SERVER_URI;
 };
 
+const getPublicServerURI = (env, SERVER_URI) => {
+    const PUBLIC_SERVER_URI = op.get(
+        process.env,
+        'PUBLIC_SERVER_URI',
+        op.get(env, 'PUBLIC_SERVER_URI', SERVER_URI),
+    );
+
+    return PUBLIC_SERVER_URI;
+};
+
 /**
  * Reads application configuration variables
  */
@@ -126,8 +136,15 @@ const boot = {
 
             const PORT = ensurePortEnvironment(env);
             const SERVER_URI = getServerURI(env, PORT);
+            const PUBLIC_SERVER_URI = getPublicServerURI(env, SERVER_URI);
 
-            return { ...env, ...process.env, PORT, SERVER_URI };
+            return {
+                ...env,
+                ...process.env,
+                PORT,
+                SERVER_URI,
+                PUBLIC_SERVER_URI,
+            };
         } catch (err) {
             console.error(err);
             process.exit(1);
