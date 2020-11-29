@@ -11,7 +11,7 @@
         "local": "npm run docs && nodemon"
     },
     "dependencies": {
-        "@atomic-reactor/actinium-auth": "^1.0.5",
+        "@atomic-reactor/actinium-auth": "^1.1.1",
         "action-sequence": "^1.1.1",
         "apidoc": "^0.25.0",
         "axios": "^0.19.2",
