@@ -13115,6 +13115,51 @@
   },
   {
     "type": "Hook",
+    "url": "content-before-clone",
+    "title": "content-before-clone",
+    "description": "<p>Called before cloning content object.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "targetObj",
+            "description": "<p>the content object to be saved</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "sourceObj",
+            "description": "<p>the original source content object being cloned from</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The sessions save options.</p>"
+          }
+        ]
+      }
+    },
+    "name": "content-before-clone",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
     "url": "content-before-save",
     "title": "content-before-save",
     "description": "<p>Called after content saved with <code>Content.create()</code> or <code>Content.update()</code></p>",
@@ -13141,44 +13186,6 @@
             "optional": false,
             "field": "isNew",
             "description": "<p>If the content object is new or existing.</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "params",
-            "description": "<p>The request.params object.</p>"
-          }
-        ]
-      }
-    },
-    "name": "content-before-save",
-    "group": "Hooks",
-    "version": "0.0.0",
-    "filename": ".core/plugin/content/sdk.js",
-    "groupTitle": "Hooks"
-  },
-  {
-    "type": "Hook",
-    "url": "content-before-clone",
-    "title": "content-before-clone",
-    "description": "<p>Called before cloning content object.</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "targetObj",
-            "description": "<p>the content object to be saved</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "Object",
-            "optional": false,
-            "field": "sourceObj",
-            "description": "<p>the original source content object being cloned from</p>"
           },
           {
             "group": "Parameter",

@@ -1415,7 +1415,8 @@ Content.clone = async (params, options) => {
      * @apiParam {Object} targetObj the content object to be saved
      * @apiParam {Object} sourceObj the original source content object being cloned from
      * @apiParam {Object} params The request.params object.
-     * @apiName content-before-save
+     * @apiParam {Object} options The sessions save options.
+     * @apiName content-before-clone
      * @apiGroup Hooks
      */
     await Actinium.Hook.run(
