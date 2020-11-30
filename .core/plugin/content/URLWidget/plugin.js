@@ -53,6 +53,14 @@ Actinium.Hook.register(
     },
 );
 
+Actinium.Hook.register(
+    'content-before-clone',
+    async (targetObj, sourceObj) => {
+        op.del(targetObj, 'urls');
+    },
+    Actinium.Enums.priority.highest,
+);
+
 // content-deleted hook
 Actinium.Hook.register('afterDelete_content', async ({ object, options }) => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;

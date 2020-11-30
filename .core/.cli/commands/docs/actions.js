@@ -57,8 +57,8 @@ module.exports = spinner => {
                     dest: d,
                     lineEnding: '\n',
                     debug: false,
-                    verbose: false,
-                    silent: true,
+                    verbose: op.get(params, 'verbose', false) === true,
+                    silent: op.get(params, 'verbose', false) === false,
                 });
             });
 

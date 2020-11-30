@@ -1387,6 +1387,49 @@ Content.create = async (params, options) => {
 };
 
 /**
+ * @api {Asynchronous} Content.clone(params,options) Content.clone()
+ * @apiDescription Clones one item of content.
+ * @apiParam {Object} params parameters for content
+ * @apiParam {Object} options Parse Query options (controls access)
+ * @apiParam (params) {Object} type Type object, or at minimum the properties required `type-retrieve`
+ * @apiParam (params) {String} [slug] The unique slug for the content.
+ * @apiParam (params) {String} [objectId] The objectId for the content.
+ * @apiParam (params) {String} [uuid] The uuid for the content.
+ * @apiParam (type) {String} [objectId] Parse objectId of content type
+ * @apiParam (type) {String} [uuid] UUID of content type
+ * @apiParam (type) {String} [machineName] the machine name of the existing content type
+ (default index of latest revision)
+ * @apiName Content.clone
+ * @apiGroup Actinium
+ */
+Content.clone = async (params, options) => {
+    op.set(params, 'current', true);
+    op.set(params, 'resolveRelations', true);
+
+    const sourceObj = await Content.retrieve(params, options);
+    const { uuid, objectId, slug, branches, history, ...targetObj } = sourceObj;
+
+    /**
+     * @api {Hook} content-before-clone content-before-clone
+     * @apiDescription Called before cloning content object.
+     * @apiParam {Object} targetObj the content object to be saved
+     * @apiParam {Object} sourceObj the original source content object being cloned from
+     * @apiParam {Object} params The request.params object.
+     * @apiName content-before-save
+     * @apiGroup Hooks
+     */
+    await Actinium.Hook.run(
+        'content-before-clone',
+        targetObj,
+        sourceObj,
+        params,
+        options,
+    );
+
+    return Content.create(targetObj, options);
+};
+
+/**
  * @api {Asynchronous} Content.changeSlug(params,options) Content.changeSlug()
  * @apiDescription Update the official slug for existing content. This results in a new uuid.
  * @apiParam {Object} params parameters for content lookup and newSlug
@@ -2085,9 +2128,9 @@ Content.trash = async (params, options) => {
 };
 
 /**
- * @api {Asynchronous} Content.masterCopyProps(content, schema, type) Content.masterCopyProps()
+ * @api {Asynchronous} Content.masterCopyProps(content,schema,type) Content.masterCopyProps()
  * @apiDescription Return subset of all properties from master copy of content that *must* come from the master copy (not revisions). This helps with certainty about
- which properties are comeing from the collection, and which may be coming from revisions.
+ which properties are coming from the collection, and which may be coming from revisions.
  * @apiParam {Object} content Actinium.Object or serialized object from recently fetched content.
  * @apiParam {Object} schema Content type current field schemas.
  * @apiParam {Object} type Type object of evaluated content.

@@ -159,6 +159,37 @@ Actinium.Hook.register('setting-set', async (key, value) => {
 });
 
 Actinium.Hook.register(
+    'content-before-clone',
+    async (targetObj, sourceObj) => {
+        // pick default cloned slug
+        const originalSlug = op.get(sourceObj, 'slug');
+
+        // look for previous clones
+        const slugs = op
+            .get(sourceObj, 'type.slugs', [])
+            .filter(
+                slug => slug.startsWith(originalSlug) && slug !== originalSlug,
+            )
+            .sort();
+
+        let newSlug = originalSlug + '-1';
+        if (slugs.length > 0) {
+            const previous = slugs[slugs.length - 1].match(/-(\d+)$/);
+            if (previous) {
+                newSlug =
+                    originalSlug +
+                    '-' +
+                    (parseInt(op.get(previous, '1', 0)) + 1);
+            }
+        }
+
+        op.set(targetObj, 'slug', newSlug);
+        op.set(targetObj, 'title', op.get(sourceObj, 'title') + ' Copy');
+    },
+    Actinium.Enums.priority.highest,
+);
+
+Actinium.Hook.register(
     'schema',
     async ({ ID }) => {
         // ignore plugin installs
@@ -371,6 +402,21 @@ Actinium.Cloud.define(PLUGIN.ID, 'content-create', async req => {
     }
 
     return Actinium.Content.create(
+        req.params,
+        Actinium.Utils.CloudCapOptions(req, [`${collection}.create`]),
+    );
+});
+
+Actinium.Cloud.define(PLUGIN.ID, 'content-clone', async req => {
+    const collection = await Actinium.Type.getCollection(
+        op.get(req.params, 'type'),
+    );
+
+    if (req.user) {
+        req.params.user = req.user;
+    }
+
+    return Actinium.Content.clone(
         req.params,
         Actinium.Utils.CloudCapOptions(req, [`${collection}.create`]),
     );

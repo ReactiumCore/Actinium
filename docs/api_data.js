@@ -765,6 +765,90 @@ define({ "api": [
   },
   {
     "type": "Asynchronous",
+    "url": "Content.clone(params,options)",
+    "title": "Content.clone()",
+    "description": "<p>Clones one item of content.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>parameters for content</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>Parse Query options (controls access)</p>"
+          }
+        ],
+        "params": [
+          {
+            "group": "params",
+            "type": "Object",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Type object, or at minimum the properties required <code>type-retrieve</code></p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "slug",
+            "description": "<p>The unique slug for the content.</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "objectId",
+            "description": "<p>The objectId for the content.</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "uuid",
+            "description": "<p>The uuid for the content.</p>"
+          }
+        ],
+        "type": [
+          {
+            "group": "type",
+            "type": "String",
+            "optional": true,
+            "field": "objectId",
+            "description": "<p>Parse objectId of content type</p>"
+          },
+          {
+            "group": "type",
+            "type": "String",
+            "optional": true,
+            "field": "uuid",
+            "description": "<p>UUID of content type</p>"
+          },
+          {
+            "group": "type",
+            "type": "String",
+            "optional": true,
+            "field": "machineName",
+            "description": "<p>the machine name of the existing content type (default index of latest revision)</p>"
+          }
+        ]
+      }
+    },
+    "name": "Content.clone",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Actinium"
+  },
+  {
+    "type": "Asynchronous",
     "url": "Content.cloneBranch(params,options)",
     "title": "Content.cloneBranch()",
     "description": "<p>Clone a branch / specific revision as a new branch.</p>",
@@ -1589,9 +1673,9 @@ define({ "api": [
   },
   {
     "type": "Asynchronous",
-    "url": "Content.masterCopyProps(content,",
-    "title": "schema, type) Content.masterCopyProps()",
-    "description": "<p>Return subset of all properties from master copy of content that <em>must</em> come from the master copy (not revisions). This helps with certainty about which properties are comeing from the collection, and which may be coming from revisions.</p>",
+    "url": "Content.masterCopyProps(content,schema,type)",
+    "title": "Content.masterCopyProps()",
+    "description": "<p>Return subset of all properties from master copy of content that <em>must</em> come from the master copy (not revisions). This helps with certainty about which properties are coming from the collection, and which may be coming from revisions.</p>",
     "parameter": {
       "fields": {
         "Parameter": [
@@ -7151,6 +7235,95 @@ define({ "api": [
   },
   {
     "type": "Asynchronous",
+    "url": "Type.register(template)",
+    "title": "Type.register()",
+    "description": "<p>Utility for plugin developers to programattically ensure a content type definition exists. WARNING: do not use or expose this function to the CLOUD/REST API. Has similar object argument to Type.create or Type.update, however type label and machineName are required parameters, and type uuid is not allowed.</p>",
+    "parameter": {
+      "fields": {
+        "template": [
+          {
+            "group": "template",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>String label of the content type to programmatically maintain.</p>"
+          },
+          {
+            "group": "template",
+            "type": "String",
+            "optional": false,
+            "field": "machineName",
+            "description": "<p>the machine name of the existing content type</p>"
+          },
+          {
+            "group": "template",
+            "type": "String",
+            "optional": true,
+            "field": "namespace",
+            "description": "<p>optional namespace. Will be used to derive the uuid from the machine name. By default, the current APIs content namespace will be used, and this will not be needed.</p>"
+          },
+          {
+            "group": "template",
+            "type": "Object",
+            "optional": false,
+            "field": "regions",
+            "description": "<p>indexed by region id, this object contains multiple region objects, each with the same id ('default' by default), a label, and a slug. Each field in the <code>fields</code> has a <code>region</code> property with the id of the region to which it belongs.</p>"
+          },
+          {
+            "group": "template",
+            "type": "Object",
+            "optional": false,
+            "field": "fields",
+            "description": "<p>indexed by fieldId (an uuid), a <code>field</code> object. Except for required <code>fieldId</code>, <code>fieldName</code>, <code>fieldType</code> and <code>region</code> properties, each field object may contain free-form variants that aid in the presentation of the editor/configuration of Content Editor. e.g. fieldType &quot;Text&quot; has a &quot;defaultValue&quot; property which is used for the Content Editor to display the default value in the field editor. fieldType &quot;Publisher&quot; has a boolean &quot;simple&quot; property that changes the behavior of the publishing feature in the Content Editor.</p>"
+          },
+          {
+            "group": "template",
+            "type": "Object",
+            "optional": true,
+            "field": "meta",
+            "description": "<p>largely free-form metadata object associated with this content type. Actinium will use this to store the current label of the type.</p>"
+          }
+        ],
+        "field": [
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldId",
+            "description": "<p>(uuid) unique id of field in content type</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldName",
+            "description": "<p>unique name of field in content type, in general becomes slugified column name for storing the field data.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "fieldType",
+            "description": "<p>field identifier used in <code>content-schema-field-types</code> and <code>content-schema</code> hooks, describing how the schema should store data submitted for this field using the Content SDK.</p>"
+          },
+          {
+            "group": "field",
+            "type": "String",
+            "optional": false,
+            "field": "region",
+            "description": "<p>id of the region where the field will appear in the Content Editor</p>"
+          }
+        ]
+      }
+    },
+    "name": "Type.register",
+    "group": "Actinium",
+    "version": "0.0.0",
+    "filename": ".core/plugin/type/sdk.js",
+    "groupTitle": "Actinium"
+  },
+  {
+    "type": "Asynchronous",
     "url": "Type.retrieve(params,options)",
     "title": "Type.retrieve()",
     "description": "<p>Retrieve configuration for one content type. You must provide either the id|ID|objectId, uuid or the machineName.</p>",
@@ -12383,7 +12556,7 @@ define({ "api": [
     "description": "<p>Manually trigger a content synchronization from root site as administrator.</p>",
     "permission": [
       {
-        "name": "Syndicate.ManualSync"
+        "name": "syndicate.manualsync"
       }
     ],
     "group": "Cloud",
@@ -12396,10 +12569,10 @@ define({ "api": [
     "type": "Cloud",
     "url": "syndicate-satellite-sync-reset",
     "title": "syndicate-satellite-sync-reset",
-    "description": "<p>Reset sync status to idle, allowing a manual sync.</p>",
+    "description": "<p>Reset sync status to &quot;end&quot;, allowing a manual sync.</p>",
     "permission": [
       {
-        "name": "Syndicate.ManualSync"
+        "name": "syndicate.manualsync"
       }
     ],
     "group": "Cloud",
@@ -12968,6 +13141,44 @@ define({ "api": [
             "optional": false,
             "field": "isNew",
             "description": "<p>If the content object is new or existing.</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object.</p>"
+          }
+        ]
+      }
+    },
+    "name": "content-before-save",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": ".core/plugin/content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-before-clone",
+    "title": "content-before-clone",
+    "description": "<p>Called before cloning content object.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "targetObj",
+            "description": "<p>the content object to be saved</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "sourceObj",
+            "description": "<p>the original source content object being cloned from</p>"
           },
           {
             "group": "Parameter",

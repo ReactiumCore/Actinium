@@ -437,7 +437,6 @@ Type.list = async (params = {}, options) => {
  *
  * @apiName Type.register
  * @apiGroup Actinium
- * @apiExample [{type]} title example
  */
 
 Type.validateFields = (fields = {}, regions = {}) => {
