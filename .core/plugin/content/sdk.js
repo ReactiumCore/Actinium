@@ -1310,10 +1310,20 @@ Content.create = async (params, options) => {
     );
 
     if (op.get(params, 'user')) {
-        content.set('user', op.get(params, 'user'));
-        groupACL.setReadAccess(op.get(params, 'user').id, true);
-        groupACL.setWriteAccess(op.get(params, 'user').id, true);
+        const userId = op.get(
+            params,
+            'user.id',
+            op.get(params, 'user.objectId'),
+        );
+
+        const user = new Actinium.User();
+        user.set('objectId', userId);
+
+        content.set('user', user);
+        groupACL.setReadAccess(userId, true);
+        groupACL.setWriteAccess(userId, true);
     }
+
     content.setACL(groupACL);
 
     const sanitized = await Actinium.Content.sanitize(
