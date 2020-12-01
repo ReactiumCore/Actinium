@@ -1040,7 +1040,8 @@ Content.list = async (params, options) => {
 
     const title = op.get(params, 'title');
     if (title) {
-        qry.matches('title', title);
+        const reg = new RegExp(title, 'gi');
+        qry.matches('title', reg);
     }
 
     const count = await qry.count(options);
