@@ -8,8 +8,8 @@ define({
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2020-11-30T20:06:57.073Z",
-    "url": "https://apidocjs.com",
-    "version": "0.25.0"
+    "time": "2020-12-01T02:04:04.470Z",
+    "url": "http://apidocjs.com",
+    "version": "0.24.0"
   }
 });

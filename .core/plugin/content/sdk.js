@@ -948,7 +948,8 @@ Content.getVersion = async (contentObj, branch, revisionIndex, options) => {
  * @apiParam (params) {Boolean} [optimize=false] if optimize is true, and collection contains
 less than 1000 records, the entire set will be delivered in one page for application-side pagination.
  * @apiParam (params) {Boolean} [resolveRelations=false] boolean flag to resolveRelations Pointers and Relations.
- * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT", or other custom status of the content
+ * @apiParam (params) {String} [status=PUBLISHED] "PUBLISHED" or "DRAFT", or other custom status of the content. By prefixing this value with `!` the `notEqualTo()` comparison function is used.
+ * @apiParam (params) {String} [title] String search on the `title` property. This may be slow for large datasets.
  * @apiParam (params) {String} [orderBy=updatedAt] Field to order the results by.
  * @apiParam (params) {String} [order=descending] Order "descending" or "ascending"
  * @apiParam (params) {String} [indexBy] Out put the results as an {Object} indexed by the specified collection field.
@@ -962,6 +963,7 @@ less than 1000 records, the entire set will be delivered in one page for applica
  * @apiName Content.list
  * @apiGroup Actinium
  * @apiExample Usage
+// Return only DRAFT articles
 Actinium.Content.list({
     "type": {
         "machineName": "article"
@@ -970,6 +972,17 @@ Actinium.Content.list({
     "direction": "ascending",
     "limit": 1,
     "status": "DRAFT"
+});
+
+// Return all statuses except TRASH
+Actinium.Content.list({
+    "type": {
+        "machineName": "page"
+    },
+    "orderBy":"title",
+    "direction": "ascending",
+    "limit": 100,
+    "status": "!TRASH"
 });
  */
 Content.list = async (params, options) => {
@@ -1008,9 +1021,13 @@ Content.list = async (params, options) => {
     order = !orders.includes(order) ? 'descending' : order;
 
     const qry = new Parse.Query(collection);
-    const status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
-    if (status) qry.equalTo('status', status);
-    else qry.notEqualTo('status', ENUMS.STATUS.TRASH);
+    let status = op.get(params, 'status', ENUMS.STATUS.PUBLISHED);
+
+    if (String(status).substr(0, 1) !== '!') {
+        qry.equalTo('status', status);
+    } else {
+        qry.notEqualTo('status', String(status).substr(1));
+    }
 
     // get list from id list params if found
     if (ids.length > 0) {
@@ -1019,6 +1036,11 @@ Content.list = async (params, options) => {
         qry.containedIn('uuid', uuids);
     } else if (slugs.length > 0) {
         qry.containedIn('slug', slugs);
+    }
+
+    const title = op.get(params, 'title');
+    if (title) {
+        qry.matches('title', title);
     }
 
     const count = await qry.count(options);
