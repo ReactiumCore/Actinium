@@ -114,7 +114,9 @@ Actinium.Hook.register('deactivate', async ({ ID }) => {
 
 Actinium.Capability.register(
     `${COLLECTION}.create`,
-    {},
+    {
+        allowed: ['contributor', 'moderator'],
+    },
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
@@ -126,12 +128,16 @@ Actinium.Capability.register(
 );
 Actinium.Capability.register(
     `${COLLECTION}.update`,
-    {},
+    {
+        allowed: ['moderator', 'contributor'],
+    },
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
     `${COLLECTION}.delete`,
-    {},
+    {
+        allowed: ['moderator', 'contributor'],
+    },
     Actinium.Enums.priority.highest,
 );
 Actinium.Capability.register(
