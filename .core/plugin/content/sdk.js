@@ -829,7 +829,7 @@ Content.revisions = async (params, options) => {
             rev.id = id;
             return rev;
         }),
-        options,
+        masterOptions,
     );
 
     const byRevId = _.indexBy(
