@@ -548,7 +548,7 @@ Content.createBranch = async (
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName Content.labelBranch()
+ * @apiName Content.labelBranch
  * @apiGroup Actinium
  */
 Content.labelBranch = async (params, options) => {
@@ -617,7 +617,7 @@ Content.labelBranch = async (params, options) => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName Content.deleteBranch()
+ * @apiName Content.deleteBranch
  * @apiGroup Actinium
  */
 Content.deleteBranch = async (params, options) => {
@@ -713,7 +713,7 @@ Content.deleteBranch = async (params, options) => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName Content.cloneBranch()
+ * @apiName Content.cloneBranch
  * @apiGroup Actinium
  */
 Content.cloneBranch = async (params, options) => {
@@ -810,7 +810,7 @@ Content.diff = async (contentObj, changes) => {
  * @apiParam (type) {String} [uuid] UUID of content type
  * @apiParam (type) {String} [machineName] the machine name of the existing content type
  * @apiParam (history) {String} [branch=master] the revision branch of current content
- * @apiName Content.revision()
+ * @apiName Content.revision
  * @apiGroup Actinium
  */
 Content.revisions = async (params, options) => {

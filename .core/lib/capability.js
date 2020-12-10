@@ -76,7 +76,7 @@ const User = Capability => ({
      * @api {Function} Capability.User.can(capability,user) Capability.User.can()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.User.can()
+     * @apiName Capability.User.can
      * @apiDescription Synchronously evaluate if a user has the specified capability.
      * @apiParam {String} capability The Capability group name.
      * @apiParam {Mixed} user The user objectId String or an Actinium.User object.
@@ -99,7 +99,7 @@ const User = Capability => ({
      * @api {Function} Capability.User.get(user) Capability.User.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.User.get()
+     * @apiName Capability.User.get
      * @apiDescription Synchronously retrieve a user's capabilites.
      * @apiParam {Mixed} user The user objectId String for an Actinium.User object.
      * @apiExample Example Usage
@@ -165,7 +165,7 @@ const Role = Capability => ({
      * @api {Function} Capability.Role.can(capability,role) Capability.Role.can()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.Role.can()
+     * @apiName Capability.Role.can
      * @apiDescription Synchronously evaluate if a role has the specified capability.
      * @apiParam {String} capability The Capability group name.
      * @apiParam {String} role The Role name.
@@ -184,7 +184,7 @@ const Role = Capability => ({
      * @api {Function} Capability.Role.get(role) Capability.Role.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.Role.get()
+     * @apiName Capability.Role.get
      * @apiDescription Synchronously retrieve a Role object capabilites.
      * @apiParam {String} role Role name.
      * @apiExample Example Usage
@@ -215,7 +215,7 @@ class Capability {
      * @apiName Capability.anonymous
      * @apiDescription Returns an array of Capability group names where the anonymous role is allowed and not excluded.
      * @apiExample Example Usage
-     console.log(Actinium.Capability.anonymous); 
+     console.log(Actinium.Capability.anonymous);
      */
     get anonymous() {
         const _granted = cap => {
@@ -243,7 +243,7 @@ class Capability {
      * @api {Async} Capability.delete(capabilites) Capability.delete()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.delete()
+     * @apiName Capability.delete
      * @apiDescription Delete a single or multiple Capability objects. Returns an Actinium.Object array of the deleted Capability objects. Triggers the `before-capability-delete` and `capability-deleted` hooks.
      * @apiParam {Mixed} capabilities String or Array of capability group names.
      * @apiExample Example Usage
@@ -268,7 +268,7 @@ class Capability {
      * @api {Function} Capability.get(capability) Capability.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.get()
+     * @apiName Capability.get
      * @apiDescription Synchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus `capabilites` hook with the return value as the only parameter.
      * @apiParam {Mixed} [capability] String or Array of capability group names.
      * @apiExample Example Usage
@@ -312,7 +312,7 @@ class Capability {
      * @api {Function} Capability.granted(capability,role) Capability.granted()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.granted()
+     * @apiName Capability.granted
      * @apiDescription Synchronously returns an Array of Actinium.Role names granted the capability. If the role parameter is specified, returns `Boolean`.
      * @apiParam {String} capability The capability group name.
      * @apiParam {String} [role] The role name to check.
@@ -349,7 +349,7 @@ class Capability {
      * @api {Function} Capability.isRegistered(capability) Capability.isRegistered()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.isRegistered()
+     * @apiName Capability.isRegistered
      * @apiDescription Synchronously check if a capability has been registered.
      * @apiParam {String} capability The capability group name to check for.
      * @apiExample Example Usage
@@ -363,7 +363,7 @@ class Capability {
      * @api {Function} Capability.register(id,capability,order) Capability.register()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.register()
+     * @apiName Capability.register
      * @apiDescription Synchronously register a new Capability object. If the capability exists this is a noop. Returns the results of `Capability.get()`.
      * @apiParam {String} id The unique Capability group name.
      * @apiParam {Object} [capability] Data associated with Capability object.
@@ -398,7 +398,7 @@ class Capability {
      * @api {Function} Capability.restricted(capability,role) Capability.restricted()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.restricted()
+     * @apiName Capability.restricted
      * @apiDescription Synchronously returns an Array of Actinium.Role names restricted from the capability. If the role parameter is specified, returns `Boolean`.
      * @apiParam {String} capability The capability group name.
      * @apiParam {String} [role] The role name to check.
@@ -436,7 +436,7 @@ class Capability {
      * @api {Function} Capability.update(id,capability,order) Capability.update()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.update()
+     * @apiName Capability.update
      * @apiDescription Synchronously update a new Capability object. Returns the results of `Capability.get()`.
      * @apiParam {String} id The unique Capability group name.
      * @apiParam {Object} [capability] Data associated with Capability object.
@@ -610,7 +610,7 @@ class Capability {
      * @api {Async} Capability.getAsync(capability) Capability.getAsync()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.getAsync()
+     * @apiName Capability.getAsync
      * @apiDescription Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus `capabilites` hook with the return value as the only parameter.
      * @apiParam {Mixed} [capability] String or Array of capability group names.
      * @apiExample Example Usage
@@ -760,7 +760,7 @@ class Capability {
      * @api {Async} Capability.grant(params,options) Capability.grant()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.grant()
+     * @apiName Capability.grant
      * @apiDescription Asynchronously grant a capability to a role.
      * @apiParam (params) {String} capability The Capability group name.
      * @apiParam (params) {Mixed} role String or Array of Role names.
@@ -798,7 +798,7 @@ class Capability {
          * @api {Async} Capability.revoke(params,options) Capability.revoke()
          * @apiVersion 3.1.2
          * @apiGroup Capability
-         * @apiName Capability.revoke()
+         * @apiName Capability.revoke
          * @apiDescription Asynchronously revoke a capability from a role.
          * @apiParam (params) {String} capability The Capability group name.
          * @apiParam (params) {Mixed} role String or Array of Role names.
@@ -836,7 +836,7 @@ class Capability {
      * @api {Async} Capability.restrict(params,options) Capability.restrict()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.restrict()
+     * @apiName Capability.restrict
      * @apiDescription Asynchronously restrict a role from a capability.
      * @apiParam (params) {String} capability The Capability group name.
      * @apiParam (params) {Mixed} role String or Array of Role names.
@@ -874,7 +874,7 @@ class Capability {
      * @api {Async} Capability.unrestrict(params,options) Capability.unrestrict()
      * @apiVersion 3.1.2
      * @apiGroup Capability
-     * @apiName Capability.unrestrict()
+     * @apiName Capability.unrestrict
      * @apiDescription Asynchronously unrestrict a role from a capability.
      * @apiParam (params) {String} capability The Capability group name.
      * @apiParam (params) {Mixed} role String or Array of Role names.

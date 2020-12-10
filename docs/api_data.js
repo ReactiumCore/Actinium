@@ -23,8 +23,8 @@ define({ "api": [
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
-    "groupTitle": "/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
+    "group": "/Users/johndillick/dev/atomic-reactor/actinium/.core/middleware/docs/content/main.js",
+    "groupTitle": "/Users/johndillick/dev/atomic-reactor/actinium/.core/middleware/docs/content/main.js",
     "name": ""
   },
   {
@@ -957,7 +957,7 @@ define({ "api": [
         ]
       }
     },
-    "name": "Content.cloneBranch()",
+    "name": "Content.cloneBranch",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1318,7 +1318,7 @@ define({ "api": [
         ]
       }
     },
-    "name": "Content.deleteBranch()",
+    "name": "Content.deleteBranch",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1511,7 +1511,7 @@ define({ "api": [
         ]
       }
     },
-    "name": "Content.labelBranch()",
+    "name": "Content.labelBranch",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -1578,7 +1578,14 @@ define({ "api": [
             "optional": true,
             "field": "status",
             "defaultValue": "PUBLISHED",
-            "description": "<p>&quot;PUBLISHED&quot; or &quot;DRAFT&quot;, or other custom status of the content</p>"
+            "description": "<p>&quot;PUBLISHED&quot; or &quot;DRAFT&quot;, or other custom status of the content. By prefixing this value with <code>!</code> the <code>notEqualTo()</code> comparison function is used.</p>"
+          },
+          {
+            "group": "params",
+            "type": "String",
+            "optional": true,
+            "field": "title",
+            "description": "<p>String search on the <code>title</code> property. This may be slow for large datasets.</p>"
           },
           {
             "group": "params",
@@ -1663,7 +1670,7 @@ define({ "api": [
     "examples": [
       {
         "title": "Usage",
-        "content": "Actinium.Content.list({\n    \"type\": {\n        \"machineName\": \"article\"\n    },\n    \"orderBy\":\"title\",\n    \"direction\": \"ascending\",\n    \"limit\": 1,\n    \"status\": \"DRAFT\"\n});",
+        "content": "// Return only DRAFT articles\nActinium.Content.list({\n    \"type\": {\n        \"machineName\": \"article\"\n    },\n    \"orderBy\":\"title\",\n    \"direction\": \"ascending\",\n    \"limit\": 1,\n    \"status\": \"DRAFT\"\n});\n\n// Return all statuses except TRASH\nActinium.Content.list({\n    \"type\": {\n        \"machineName\": \"page\"\n    },\n    \"orderBy\":\"title\",\n    \"direction\": \"ascending\",\n    \"limit\": 100,\n    \"status\": \"!TRASH\"\n});",
         "type": "json"
       }
     ],
@@ -2139,7 +2146,7 @@ define({ "api": [
         ]
       }
     },
-    "name": "Content.revision()",
+    "name": "Content.revision",
     "group": "Actinium",
     "version": "0.0.0",
     "filename": ".core/plugin/content/sdk.js",
@@ -8970,7 +8977,7 @@ define({ "api": [
     "title": "Capability.Role.can()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.Role.can()",
+    "name": "Capability.Role.can",
     "description": "<p>Synchronously evaluate if a role has the specified capability.</p>",
     "parameter": {
       "fields": {
@@ -9008,7 +9015,7 @@ define({ "api": [
     "title": "Capability.Role.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.Role.get()",
+    "name": "Capability.Role.get",
     "description": "<p>Synchronously retrieve a Role object capabilites.</p>",
     "parameter": {
       "fields": {
@@ -9039,7 +9046,7 @@ define({ "api": [
     "title": "Capability.User.can()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.User.can()",
+    "name": "Capability.User.can",
     "description": "<p>Synchronously evaluate if a user has the specified capability.</p>",
     "parameter": {
       "fields": {
@@ -9077,7 +9084,7 @@ define({ "api": [
     "title": "Capability.User.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.User.get()",
+    "name": "Capability.User.get",
     "description": "<p>Synchronously retrieve a user's capabilites.</p>",
     "parameter": {
       "fields": {
@@ -9126,7 +9133,7 @@ define({ "api": [
     "title": "Capability.delete()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.delete()",
+    "name": "Capability.delete",
     "description": "<p>Delete a single or multiple Capability objects. Returns an Actinium.Object array of the deleted Capability objects. Triggers the <code>before-capability-delete</code> and <code>capability-deleted</code> hooks.</p>",
     "parameter": {
       "fields": {
@@ -9157,7 +9164,7 @@ define({ "api": [
     "title": "Capability.get()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.get()",
+    "name": "Capability.get",
     "description": "<p>Synchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
     "parameter": {
       "fields": {
@@ -9188,7 +9195,7 @@ define({ "api": [
     "title": "Capability.getAsync()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.getAsync()",
+    "name": "Capability.getAsync",
     "description": "<p>Asynchronously retrieve a single capability or multiple. If the capability value is a String, a single Capability object is returned. If the capability value is an Array or empty, an Array of capabilites is returned. Triggers the synchronus <code>capabilites</code> hook with the return value as the only parameter.</p>",
     "parameter": {
       "fields": {
@@ -9219,7 +9226,7 @@ define({ "api": [
     "title": "Capability.grant()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.grant()",
+    "name": "Capability.grant",
     "description": "<p>Asynchronously grant a capability to a role.</p>",
     "parameter": {
       "fields": {
@@ -9257,7 +9264,7 @@ define({ "api": [
     "title": "Capability.granted()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.granted()",
+    "name": "Capability.granted",
     "description": "<p>Synchronously returns an Array of Actinium.Role names granted the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
     "parameter": {
       "fields": {
@@ -9295,7 +9302,7 @@ define({ "api": [
     "title": "Capability.isRegistered()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.isRegistered()",
+    "name": "Capability.isRegistered",
     "description": "<p>Synchronously check if a capability has been registered.</p>",
     "parameter": {
       "fields": {
@@ -9344,7 +9351,7 @@ define({ "api": [
     "title": "Capability.register()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.register()",
+    "name": "Capability.register",
     "description": "<p>Synchronously register a new Capability object. If the capability exists this is a noop. Returns the results of <code>Capability.get()</code>.</p>",
     "parameter": {
       "fields": {
@@ -9390,7 +9397,7 @@ define({ "api": [
     "title": "Capability.restrict()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.restrict()",
+    "name": "Capability.restrict",
     "description": "<p>Asynchronously restrict a role from a capability.</p>",
     "parameter": {
       "fields": {
@@ -9428,7 +9435,7 @@ define({ "api": [
     "title": "Capability.restricted()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.restricted()",
+    "name": "Capability.restricted",
     "description": "<p>Synchronously returns an Array of Actinium.Role names restricted from the capability. If the role parameter is specified, returns <code>Boolean</code>.</p>",
     "parameter": {
       "fields": {
@@ -9466,7 +9473,7 @@ define({ "api": [
     "title": "Capability.revoke()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.revoke()",
+    "name": "Capability.revoke",
     "description": "<p>Asynchronously revoke a capability from a role.</p>",
     "parameter": {
       "fields": {
@@ -9504,7 +9511,7 @@ define({ "api": [
     "title": "Capability.unrestrict()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.unrestrict()",
+    "name": "Capability.unrestrict",
     "description": "<p>Asynchronously unrestrict a role from a capability.</p>",
     "parameter": {
       "fields": {
@@ -9542,7 +9549,7 @@ define({ "api": [
     "title": "Capability.update()",
     "version": "3.1.2",
     "group": "Capability",
-    "name": "Capability.update()",
+    "name": "Capability.update",
     "description": "<p>Synchronously update a new Capability object. Returns the results of <code>Capability.get()</code>.</p>",
     "parameter": {
       "fields": {
