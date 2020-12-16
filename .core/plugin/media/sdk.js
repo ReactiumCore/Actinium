@@ -705,6 +705,33 @@ Media.load = async () => {
     return Actinium.Cache.get('Media');
 };
 
+Media.isStreamURL = url => {
+    let matches = [
+        'vimeo',
+        'wistia.',
+        'youtube',
+        'youtu.be',
+        'twitch.tv',
+        '/fb.watch/',
+        'vidyard.com',
+        'facebook.com',
+        'mixcloud.com',
+        'soundcloud.com',
+        'dailymotion.com',
+    ];
+
+    let str = String(url).toLowerCase();
+
+    Actinium.Hook.runSync('streaming-matches', { matches, str, url });
+
+    while (matches.length > 0) {
+        const match = String(matches.shift()).toLowerCase();
+        if (str.includes(match)) return true;
+    }
+
+    return false;
+};
+
 Media.createFromURL = async (params, options) => {
     let { directory = 'uploads', outputType = 'JSON', url, user } = params;
 
@@ -737,10 +764,20 @@ Media.createFromURL = async (params, options) => {
     directory = String(slugify(directory)).toLowerCase();
 
     // Object properties
-    const ext = url.split('.').pop();
-    const filename = String(url.split('/').pop()).toLowerCase();
-    const localURL = `/media/${directory}/${filename}`;
-    const type = Media.fileType(url);
+    let localURL;
+    let ext = url.split('.').pop();
+    let type = Media.fileType(url);
+    let filename = String(url.split('/').pop()).toLowerCase();
+
+    if (Media.isStreamURL(url)) {
+        ext = 'com';
+        localURL = url;
+        type = 'VIDEO';
+    } else {
+        localURL = `/media/${directory}/${filename}`;
+    }
+
+    Actinium.Hook.runSync('media-local-url', localURL);
 
     const data = {
         capabilities,
