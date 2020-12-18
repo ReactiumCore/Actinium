@@ -836,7 +836,7 @@ Media.createFromURL = async (params, options) => {
     }
 
     // Update the media cache
-    await Media.load();
+    Media.load();
 
     return resp;
 };
@@ -1050,7 +1050,7 @@ Media.upload = async (data, meta, user, options) => {
 
     // Create the directory
     try {
-        await Media.directorySave({ directory, options });
+        Media.directorySave({ directory, options });
     } catch (err) {}
 
     return fileObj.toJSON();
