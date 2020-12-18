@@ -242,7 +242,8 @@ Actinium.Hook.register('media-query', async (qry, params) => {
 Actinium.Hook.register(
     'user-retrieve-response',
     async (user, params, options) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        const { verbose } = params;
+        if (!Actinium.Plugin.isActive(PLUGIN.ID) || !verbose) return;
 
         options = options || { useMasterKey: true };
         const media = await Actinium.Media.User.files({ user }, options);

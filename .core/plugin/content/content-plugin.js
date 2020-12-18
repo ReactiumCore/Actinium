@@ -353,7 +353,8 @@ Actinium.Hook.register('content-query', async (qry, params) => {
 Actinium.Hook.register(
     'user-retrieve-response',
     async (user, params, options) => {
-        if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
+        const { verbose } = params;
+        if (!Actinium.Plugin.isActive(PLUGIN.ID) || !verbose) return;
 
         options = options || { useMasterKey: true };
         const content = await Actinium.Content.User.list({ user }, options);
