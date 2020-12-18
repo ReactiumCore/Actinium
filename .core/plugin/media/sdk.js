@@ -273,8 +273,6 @@ Media.directoryDelete = async (directory, user, deleteFiles = false) => {
 
     return await Media.load();
     // }
-
-    return Media.files({ user });
 };
 
 /**
@@ -836,7 +834,7 @@ Media.createFromURL = async (params, options) => {
     }
 
     // Update the media cache
-    Media.load();
+    await Media.load();
 
     return resp;
 };
@@ -1050,7 +1048,7 @@ Media.upload = async (data, meta, user, options) => {
 
     // Create the directory
     try {
-        Media.directorySave({ directory, options });
+        await Media.directorySave({ directory, options });
     } catch (err) {}
 
     return fileObj.toJSON();

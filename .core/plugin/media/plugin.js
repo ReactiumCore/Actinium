@@ -704,12 +704,12 @@ Actinium.Cloud.afterFind(COLLECTION.MEDIA, async req => {
 
 Actinium.Cloud.afterSave(COLLECTION.MEDIA, async req => {
     await Actinium.Hook.run('after-media-save', req);
-    Actinium.Media.load();
+    await Actinium.Media.load();
 });
 
 Actinium.Cloud.afterSave(COLLECTION.DIRECTORY, async req => {
     await Actinium.Hook.run('after-directory-save', req);
-    Actinium.Media.load();
+    await Actinium.Media.load();
 });
 
 Actinium.Cloud.define(PLUGIN.ID, 'media-create-from-url', async req => {
