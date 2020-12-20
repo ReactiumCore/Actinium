@@ -8,12 +8,15 @@ WORKDIR /usr/src/app
 # where available (npm@5+)
 COPY package*.json ./
 
-RUN npm install
-# If you are building your code for production
-# RUN npm install --only=production
+RUN npx -p @atomic-reactor/cli arcli install
+RUN npm prune --production
 
 # Bundle app source
 COPY . .
+
+RUN chown -R node /usr/src/app
+
+USER node
 
 EXPOSE 9000
 

@@ -62,6 +62,18 @@ module.exports = {
                     destination: '/.gitignore',
                     source: '/tmp/update/.gitignore',
                 },
+                {
+                    overwrite: true,
+                    version: '>=3.6.6',
+                    destination: '/Dockerfile',
+                    source: '/tmp/update/Dockerfile',
+                },
+                {
+                    overwrite: true,
+                    version: '>=3.6.6',
+                    destination: '/.dockerignore',
+                    source: '/tmp/update/.dockerignore',
+                },
             ],
             remove: [],
         },
