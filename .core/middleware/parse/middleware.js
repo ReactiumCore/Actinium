@@ -71,15 +71,28 @@ Actinium.Middleware.register('parse', app => {
     }
 
     if (ENV.PARSE_DASHBOARD === true && !ENV.NO_PARSE) {
-        const pconf = parseConfig();
-        delete pconf.sessionLength;
-        delete pconf.databaseURI;
-        delete pconf.cloud;
+        const {
+            appId,
+            appName,
+            masterKey,
+            sessionLength,
+            serverURL,
+            publicServerURL,
+        } = parseConfig();
 
         const dashboardConfig = {
             trustProxy: 1,
             users: ENV.PARSE_DASHBOARD_USERS,
-            apps: [{ ...pconf }],
+            apps: [
+                {
+                    appId,
+                    appName,
+                    masterKey,
+                    sessionLength,
+                    serverURL,
+                    publicServerURL,
+                },
+            ],
         };
 
         const dashboard = new ParseDashboard(dashboardConfig, {
