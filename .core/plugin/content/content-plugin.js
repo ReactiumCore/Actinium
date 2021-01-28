@@ -376,6 +376,67 @@ Actinium.Content.registerActivity('content-status-changed');
 Actinium.Content.registerActivity('content-unpublished');
 Actinium.Content.registerActivity('content-restored');
 
+const relayChangelogLive = client => async ({
+    contentId,
+    advancedQuery,
+    sessionToken,
+}) => {
+    DEBUG('changelog.subscribe', contentId);
+
+    const qry = new Actinium.Query('Changelog');
+    if (contentId) qry.equalTo('contentId', contentId);
+
+    // allow special queries
+    if (advancedQuery.length) {
+        advancedQuery.forEach(({ operator, params }) => {
+            if (operator in qry) {
+                qry[operator](...params);
+            }
+        });
+    }
+    try {
+        const subscription = await qry.subscribe(null, { sessionToken });
+
+        subscription.on('create', logEntry => {
+            const logObj = Actinium.Utils.serialize(logEntry);
+            client.emit('changelog-created', logObj);
+        });
+
+        subscription.on('update', logEntry => {
+            const logObj = Actinium.Utils.serialize(logEntry);
+            client.emit('changelog-updated', logObj);
+        });
+
+        subscription.on('enter', logEntry => {
+            const logObj = Actinium.Utils.serialize(logEntry);
+            client.emit('changelog-entered', logObj);
+        });
+
+        subscription.on('leave', logEntry => {
+            const logObj = Actinium.Utils.serialize(logEntry);
+            client.emit('changelog-left', logObj);
+        });
+
+        subscription.on('delete', logEntry => {
+            const logObj = Actinium.Utils.serialize(logEntry);
+            client.emit('changelog-deleted', logObj);
+        });
+
+        const unsubscribe = () => subscription.unsubscribe();
+        client.on('disconnecting', unsubscribe);
+        client.on('changelog.unsubscribe', message => {
+            DEBUG('changelog.unsubscribe', message.contentId);
+            if (message.contentId === contentId) unsubscribe();
+        });
+    } catch (error) {
+        ERROR(error);
+    }
+};
+
+Actinium.Hook.register('io.connection', client => {
+    client.on('changelog.subscribe', relayChangelogLive(client));
+});
+
 /**
  * @api {Asynchronous} content-create content-create
  * @apiDescription Create new content of a defined Type. In addition to the required parameters of
