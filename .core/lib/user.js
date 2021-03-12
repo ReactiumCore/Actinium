@@ -4,12 +4,15 @@ const COLLECTION_ROLE = '_Role';
 const chalk = require('chalk');
 const _ = require('underscore');
 const uuid = require('uuid/v4');
-const ENUMS = require('./enums');
 const moment = require('moment');
 const op = require('object-path');
 const slugify = require('slugify');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
+
+const ENUMS = {
+    CACHE: 90 * 1000, // 90 seconds
+};
 
 /**
  * @api {Object} Actinium.User User

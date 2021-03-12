@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.6.6',
+    version: '3.7.0',
     semver: '^3.0.0',
     update: {
         package: {
@@ -18,6 +18,35 @@ module.exports = {
                     local: 'npm run docs && nodemon',
                 },
                 remove: ['local'],
+            },
+            actiniumDependencies: {
+                add: {
+                    '@atomic-reactor/actinium-block': '1.0.3',
+                    '@atomic-reactor/actinium-blueprint': '1.0.4',
+                    '@atomic-reactor/actinium-capability': '1.0.4',
+                    '@atomic-reactor/actinium-component-manager': '1.0.4',
+                    '@atomic-reactor/actinium-content': '1.0.4',
+                    '@atomic-reactor/actinium-env': '1.0.4',
+                    '@atomic-reactor/actinium-fs-adapter': '1.0.4',
+                    '@atomic-reactor/actinium-io': '1.0.4',
+                    '@atomic-reactor/actinium-mailer': '1.0.4',
+                    '@atomic-reactor/actinium-media': '1.0.4',
+                    '@atomic-reactor/actinium-plugin-manager': '1.0.4',
+                    '@atomic-reactor/actinium-pulse': '1.0.4',
+                    '@atomic-reactor/actinium-recycle': '1.0.4',
+                    '@atomic-reactor/actinium-reset': '1.0.4',
+                    '@atomic-reactor/actinium-roles': '1.0.4',
+                    '@atomic-reactor/actinium-route': '1.0.4',
+                    '@atomic-reactor/actinium-search': '1.0.4',
+                    '@atomic-reactor/actinium-settings': '1.0.4',
+                    '@atomic-reactor/actinium-shortcodes': '1.0.5',
+                    '@atomic-reactor/actinium-syndicate': '1.0.4',
+                    '@atomic-reactor/actinium-syndicate-client': '1.0.4',
+                    '@atomic-reactor/actinium-taxonomy': '1.0.4',
+                    '@atomic-reactor/actinium-type': '1.0.4',
+                    '@atomic-reactor/actinium-users': '1.0.4',
+                    '@atomic-reactor/actinium-wizard': '1.0.4',
+                },
             },
         },
         files: {

@@ -2,12 +2,12 @@ const op = require('object-path');
 const _ = require('underscore');
 const uuidv5 = require('uuid/v5');
 const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
-const chalk = require('chalk');
 const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
 
 const {
-    UNINSTALLED_NAMESPACE,
     PLUGIN,
+    STATUS,
+    UNINSTALLED_NAMESPACE,
     DEFAULT_TYPE_REGISTRY,
 } = require('./enums');
 
@@ -470,8 +470,6 @@ Type.validateFields = (fields = {}, regions = {}) => {
 };
 
 Type.saveSchema = async type => {
-    const { STATUS } = require('../content/enums');
-
     // ignore malformed types
     if (
         type.machineName === 'undefined' ||
