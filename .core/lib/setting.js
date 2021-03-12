@@ -4,7 +4,12 @@ const _ = require('underscore');
 const semver = require('semver');
 const op = require('object-path');
 const config = require(`${BASE_DIR}/.core/actinium-config`);
-const { Registry } = require(`${ACTINIUM_DIR}/lib/utils`);
+
+const {
+    CloudCapOptions,
+    CloudHasCapabilities,
+    Registry,
+} = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const COLLECTION = 'Setting';
 
@@ -80,20 +85,31 @@ Actinium.Setting.get('site.hostname');
 // get object of all site settings
 Actinium.Setting.get('site');
  */
-Setting.get = async (key, defaultValue) => {
-    const options = Actinium.Utils.MasterOptions();
-    const karr = String(key).split('.');
-    const rootKey = karr.shift();
+Setting.get = async (key, defaultValue, options) => {
+    options = options || Actinium.Utils.MasterOptions();
+    const [group, ...settingPath] = String(key).split('.');
 
-    if (!rootKey) return Setting.load();
+    if (!group) return Setting.load();
 
-    const obj = await Parse.Cloud.run('setting-get', { key }, options);
+    const cached = Actinium.Cache.get(`setting.${key}`);
 
-    if (typeof obj === 'undefined') {
-        return defaultValue;
-    }
+    if (typeof cached !== 'undefined') return cached;
 
-    return obj;
+    let obj = await new Actinium.Query(COLLECTION)
+        .equalTo('key', group)
+        .first(options);
+    obj = obj ? obj.toJSON() : {};
+
+    const result = op.get(obj, 'value.value');
+    if (settingPath.length) return op.get(result, settingPath);
+
+    Actinium.Cache.set(
+        `setting.${key}`,
+        result,
+        Actinium.Enums.cache.dataLoading,
+    );
+
+    return typeof obj === 'undefined' ? defaultValue : obj;
 };
 
 /**
@@ -119,15 +135,46 @@ Setting.unset = key => {
 };
 
 Setting.load = async () => {
-    const options = Actinium.Utils.MasterOptions();
-
     await Setting.schema();
-    return Parse.Cloud.run('settings', {}, options);
+    const settings = await Setting.list({}, true);
+    return settings;
 };
 
 // Non-sensitive setting groups only!!
 Setting.anonymousGroup = new Registry('AnonymousGroup');
 Setting.anonymousGroup.register('app', { id: 'app' });
 Setting.anonymousGroup.register('profile', { id: 'profile' });
+
+Setting.list = async (req = {}, fullAccess) => {
+    let skip = 0;
+    const output = {};
+    const limit = 1000;
+    const qry = new Actinium.Query(COLLECTION).skip(skip).limit(limit);
+
+    let results = await qry.find({ useMasterKey: true });
+
+    fullAccess =
+        fullAccess || CloudHasCapabilities(req, `${COLLECTION}.retrieve`);
+    while (results.length > 0) {
+        results.forEach(item => {
+            const { key, value } = item.toJSON();
+            if (
+                key &&
+                (fullAccess || CloudHasCapabilities(req, `setting.${key}-get`))
+            ) {
+                output[key] = op.get(value, 'value');
+            }
+        });
+
+        skip += limit;
+        qry.skip(skip);
+        // result-set filtered by capability
+        results = await qry.find({ useMasterKey: true });
+    }
+
+    Actinium.Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
+
+    return output;
+};
 
 module.exports = Setting;
