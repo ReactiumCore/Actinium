@@ -11,6 +11,53 @@ const noop = () => Promise.resolve();
 
 const COLLECTION = Parse.Role;
 
+const DEFAULTS = [
+    {
+        name: 'banned',
+        label: 'Banned User',
+        level: -1,
+        acl: ['administrator', 'super-admin', 'moderator'],
+    },
+    {
+        name: 'anonymous',
+        label: 'Anonymous',
+        level: 0,
+    },
+    {
+        name: 'user',
+        label: 'Standard User',
+        level: 1,
+    },
+    {
+        name: 'contributor',
+        label: 'Contributor',
+        level: 10,
+        roles: ['user'],
+        acl: ['administrator', 'super-admin'],
+    },
+    {
+        name: 'moderator',
+        label: 'Moderator',
+        level: 100,
+        roles: ['user', 'contributor'],
+        acl: ['administrator', 'super-admin'],
+    },
+    {
+        name: 'administrator',
+        label: 'Administrator',
+        level: 1000,
+        roles: ['user', 'contributor', 'moderator'],
+        acl: ['administrator', 'super-admin'],
+    },
+    {
+        name: 'super-admin',
+        label: 'Super Administrator',
+        level: 10000,
+        roles: ['user', 'contributor', 'moderator', 'administrator'],
+        acl: ['super-admin'],
+    },
+];
+
 const decorateRoles = async (objects = [], options) => {
     if (!options) throw new Error('options required');
 
@@ -85,7 +132,7 @@ Roles.list = async (req, opts) => {
 
     // 3. If no roles create from defaults
     if (results.length < 1) {
-        results = await addRoles(req, DEFAULTS);
+        results = await Roles.init();
     }
 
     results = await decorateRoles(results, opts);
@@ -192,12 +239,56 @@ Roles.create = (roleObj = {}, options = { useMasterKey }) => {
     });
 };
 
+Roles.defaultRoleACL = () => {
+    const acl = new Parse.ACL();
+    acl.setPublicReadAccess(true);
+    acl.setPublicWriteAccess(true);
+    return acl;
+};
+
 Roles.remove = (role, options = { useMasterKey }) =>
     ActionSequence({
         actions: {
             remove: () => Actinium.Cloud.run('role-remove', { role }, options),
             hook: () => Actinium.Hook.run('role-removed', role, Roles.get()),
         },
+    });
+
+Roles.init = () =>
+    Parse.Object.saveAll(
+        DEFAULTS.map(({ label, level, name }) =>
+            new Parse.Role(name, Roles.defaultRoleACL())
+                .set('label', label)
+                .set('level', level),
+        ),
+        { useMasterKey: true },
+    ).then(roles => {
+        roles = roles.map(role => {
+            const { name } = role.toJSON();
+            const roleData = _.findWhere(ENV.ROLES, { name }) || {};
+
+            if (op.has(roleData, 'roles')) {
+                const related = roles.filter(r =>
+                    roleData.roles.includes(r.get('name')),
+                );
+                role.getRoles().add(related);
+            }
+
+            if (op.has(roleData, 'acl')) {
+                const ACL = Roles.defaultRoleACL();
+                roles.forEach(r => {
+                    if (roleData.acl.includes(r.get('name'))) {
+                        ACL.setPublicWriteAccess(false);
+                        ACL.setRoleWriteAccess(r, true);
+                    }
+                });
+                role.setACL(ACL);
+            }
+
+            return role;
+        });
+
+        return Parse.Object.saveAll(roles, { useMasterKey: true });
     });
 
 Actinium.User.isRole = Roles.User.is;
