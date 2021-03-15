@@ -15,7 +15,9 @@ module.exports = {
             },
             scripts: {
                 add: {
-                    local: 'npm run docs && nodemon',
+                    local: 'nodemon',
+                    'plugin:install':
+                        'npx -p @atomic-reactor/cli arcli install -s',
                 },
                 remove: ['local'],
             },
