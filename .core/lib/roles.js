@@ -4,9 +4,48 @@ const _ = require('underscore');
 const op = require('object-path');
 const Capability = require('./capability');
 const ActionSequence = require('action-sequence');
+const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
 
 const useMasterKey = true;
 const noop = () => Promise.resolve();
+
+const COLLECTION = Parse.Role;
+
+const decorateRoles = async (objects = [], options) => {
+    if (!options) throw new Error('options required');
+
+    for (let i = 0; i < objects.length; i++) {
+        let users = {};
+        let roles = {};
+        let item = objects[i];
+
+        try {
+            await item
+                .get('users')
+                .query()
+                .each(item => {
+                    const { avatar, objectId, username } = item.toJSON();
+                    users[objectId] = { avatar, objectId, username };
+                }, options);
+
+            await item
+                .get('roles')
+                .query()
+                .each(item => {
+                    const { level, name, objectId, label } = item.toJSON();
+                    roles[objectId] = { label, level, name, objectId };
+                }, options);
+        } catch (error) {
+            // relations return undefined if not set
+        }
+
+        item.set('userList', users);
+        item.set('roleList', roles);
+        objects[i] = item;
+    }
+
+    return Promise.resolve(objects);
+};
 
 const Roles = { User: {} };
 
@@ -33,14 +72,56 @@ Roles.get = search => {
         }, {});
 };
 
-Roles.load = (options = { useMasterKey }) => {
-    return ActionSequence({
+Roles.list = async (req, opts) => {
+    // 0. Get options object
+    let output = [];
+    opts = opts || CloudRunOptions(req);
+
+    // 1. Create query
+    const qry = new Parse.Query(COLLECTION).skip(0).limit(1000);
+
+    // 2. Get first page of roles
+    let results = await qry.find(opts);
+
+    // 3. If no roles create from defaults
+    if (results.length < 1) {
+        results = await addRoles(req, DEFAULTS);
+    }
+
+    results = await decorateRoles(results, opts);
+
+    // 4. Get rest of roles
+    while (results.length > 0) {
+        output = output.concat(
+            results.map(item => {
+                item = item.toJSON();
+                item['users'] = item.userList || {};
+                item['roles'] = item.roleList || {};
+                delete item.userList;
+                delete item.roleList;
+                return item;
+            }),
+        );
+        qry.skip(Object.keys(output).length);
+        results = await qry.find(opts);
+    }
+
+    // 5. Format output
+    output = _.indexBy(output, 'name');
+
+    // 6. Cache roles
+    Actinium.Cache.set('roles', output);
+
+    return Promise.resolve(output);
+};
+
+Roles.load = (options = { useMasterKey }) =>
+    ActionSequence({
         actions: {
-            fetch: () => Actinium.Cloud.run('roles', {}, { useMasterKey }),
+            fetch: () => Roles.list({}, options),
             hook: () => Actinium.Hook.run('roles', Roles.get()),
         },
     });
-};
 
 Roles.User.get = search => {
     return _.chain(

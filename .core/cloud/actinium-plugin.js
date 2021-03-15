@@ -124,7 +124,7 @@ Parse.Cloud.beforeDelete(COLLECTION, async req => {
     const obj = req.object.toJSON();
 
     if (op.get(obj, 'meta.builtIn', false) === true) {
-        return Promise.reject(`Cannot delete or deactivate built in plugins`);
+        return Promise.reject('Cannot delete or deactivate built in plugins');
     }
 
     await Actinium.Hook.run('beforeDelete-plugin', req);

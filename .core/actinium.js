@@ -11,9 +11,9 @@ Actinium = { ...Parse };
 Actinium.ready = false;
 Actinium.started = false;
 Actinium.server = null;
-Actinium.version = op.get(config, 'version', '3.1.1');
+Actinium.version = op.get(config, 'version');
 Actinium.Object = require('./lib/ParseObject');
-Actinium.User = require('./plugin/users/sdk');
+Actinium.User = require('./lib/user');
 Actinium.Harness = require('./lib/harness');
 Actinium.Enums = require('./lib/enums');
 Actinium.Exp = require('./lib/express-settings');
@@ -31,6 +31,7 @@ Actinium.Pulse = require('./lib/pulse');
 Actinium.Capability = require('./lib/capability');
 Actinium.Collection = require('./lib/collection');
 Actinium.Utils = require('./lib/utils');
+Actinium.Type = require('./lib/type');
 
 Actinium.init = async options => {
     BOOT('');
@@ -167,14 +168,14 @@ Actinium.start = options =>
                     // Load Capability
                     await Actinium.Capability.load(false, 'boot');
 
+                    // Runtime schema initialization
+                    await Actinium.Hook.run('schema', {}, {});
+
                     // Load Collection Schemas
                     await Actinium.Collection.load();
 
                     // Run start-up hook
                     await Actinium.Hook.run('start');
-
-                    // Runtime schema initialization
-                    await Actinium.Hook.run('schema');
 
                     // Run tests in local development
                     await Actinium.Harness.run();

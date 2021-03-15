@@ -1,7 +1,5 @@
 const UNINSTALLED_NAMESPACE = '9f85eb4d-777b-4213-b039-fced11c2dbae';
 const ID_NAMESPACE = ENV.CONTENT_NAMESPACE || UNINSTALLED_NAMESPACE;
-const PLUGIN_BLUEPRINTS = require('./blueprints');
-const PLUGIN_ROUTES = require('./routes');
 const PLUGIN = {
     ID: 'Type',
     name: 'Content Types',
@@ -13,11 +11,17 @@ const PLUGIN = {
     },
 };
 
+const STATUS = {
+    TRASH: 'TRASH',
+    DRAFT: 'DRAFT',
+    PUBLISHED: 'PUBLISHED',
+};
+
 const DEFAULT_TYPE_REGISTRY = Symbol('DEFAULT_TYPE_REGISTRY');
 
 module.exports = {
     UNINSTALLED_NAMESPACE,
-    PLUGIN_BLUEPRINTS,
-    PLUGIN_ROUTES,
+    DEFAULT_TYPE_REGISTRY,
+    STATUS,
     PLUGIN,
 };
