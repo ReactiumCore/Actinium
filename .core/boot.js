@@ -160,9 +160,7 @@ const envDev = () => {
     if (fs.existsSync(filePath)) return false;
 
     // Get the template file
-    const templatePath = path.normalize(
-        `${BASE_DIR}/.core/plugin/env/env.dev.json`,
-    );
+    const templatePath = path.normalize(`${BASE_DIR}/.core/env.def.json`);
 
     // Copy to src
     fs.copySync(templatePath, filePath);
