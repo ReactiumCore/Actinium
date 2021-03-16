@@ -8,7 +8,7 @@
 
  Returns Boolean.
 
- * @apiExample
+ * @apiExample Example
 if (Actinium.Utils.isSDK('Recycle')) {
   // Recycle something
 }
