@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.4',
+    version: '3.7.5',
     semver: '^3.0.0',
     update: {
         package: {
@@ -11,6 +11,7 @@ module.exports = {
                 remove: [],
             },
             devDependencies: {
+                add: { clipboardy: '^2.3.0' },
                 remove: ['@atomic-reactor/cli', 'camelcase'],
             },
             scripts: {
