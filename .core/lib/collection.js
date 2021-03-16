@@ -58,8 +58,10 @@ Collection.register = (
     });
 
     if (Collection.loaded) {
-        Collection.load(collection);
+        return Collection.load(collection);
     }
+
+    return Promise.resolve();
 };
 
 Collection.unregister = collection => {
@@ -68,9 +70,11 @@ Collection.unregister = collection => {
         collectionPerms[collection] = defaultPublicSetting;
 
         if (Collection.loaded) {
-            Collection.load(collection);
+            return Collection.load(collection);
         }
     }
+
+    return Promise.resolve();
 };
 
 Collection.load = async (collection = false) => {
