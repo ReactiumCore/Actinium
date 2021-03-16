@@ -3684,7 +3684,7 @@
             "type": "Hook",
             "optional": false,
             "field": "user-list-query",
-            "description": "<p>Mutate the <code>Parse.Query</code> object.</p> <pre class=\"prettyprint\">Arguments: query:Parse.Query, params, options </code></pre>"
+            "description": "<p>Mutate the <code>Actinium.Query</code> object.</p> <pre class=\"prettyprint\">Arguments: query:Actinium.Query, params, options </code></pre>"
           },
           {
             "group": "hooks",
@@ -4126,6 +4126,24 @@
     ],
     "version": "0.0.0",
     "filename": ".core/lib/utils/serialize.js",
+    "groupTitle": "Actinium"
+  },
+  {
+    "type": "Function",
+    "url": "Utils.isSDK(feature,feature2,feature3)",
+    "title": "Utils.isSDK()",
+    "name": "isSDK",
+    "group": "Actinium",
+    "description": "<p>Check for specific Actinium SDK features. When the first argument is an array, each item in the array is checked and must be present on the Actinium SDK for a valid response.</p> <p>Returns Boolean.</p>",
+    "examples": [
+      {
+        "title": "if (Actinium.Utils.isSDK('Recycle')) {",
+        "content": "if (Actinium.Utils.isSDK('Recycle')) {\n  // Recycle something\n}\n\nif (Actinium.Utils.isSDK('Recycle', 'User')) {\n  // Recycle a User\n}\n\nif (Actinium.Utils.isSDK(['Recycle', 'User'])) {\n  // Recycle a User\n}\n\nif (Actinium.Utils.isSDK(['Recycle', 'User'], 'Media')) {\n  // Recycle a User and some Media\n}",
+        "type": "json"
+      }
+    ],
+    "version": "0.0.0",
+    "filename": ".core/lib/utils/isSDK.js",
     "groupTitle": "Actinium"
   },
   {
