@@ -4137,7 +4137,7 @@ define({ "api": [
     "description": "<p>Check for specific Actinium SDK features. When the first argument is an array, each item in the array is checked and must be present on the Actinium SDK for a valid response.</p> <p>Returns Boolean.</p>",
     "examples": [
       {
-        "title": "if (Actinium.Utils.isSDK('Recycle')) {",
+        "title": "Example",
         "content": "if (Actinium.Utils.isSDK('Recycle')) {\n  // Recycle something\n}\n\nif (Actinium.Utils.isSDK('Recycle', 'User')) {\n  // Recycle a User\n}\n\nif (Actinium.Utils.isSDK(['Recycle', 'User'])) {\n  // Recycle a User\n}\n\nif (Actinium.Utils.isSDK(['Recycle', 'User'], 'Media')) {\n  // Recycle a User and some Media\n}",
         "type": "json"
       }
