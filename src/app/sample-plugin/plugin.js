@@ -53,7 +53,7 @@ Actinium.Hook.register('uninstall', async ({ ID }) => {
     BOOT(`  Uninstalled ${PLUGIN.ID}!`);
 });
 
-Actinium.Cloud.define(PLUGIN.ID, 'sample-plugin', async req => {
+Actinium.Cloud.define(PLUGIN.ID, 'sample-plugin', async () => {
     return { sample: 'plugin' };
 });
 

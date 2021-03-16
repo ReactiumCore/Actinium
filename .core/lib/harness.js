@@ -55,42 +55,46 @@ Actinium.Harness.test('My Test', async assert => {
 }, setup, teardown);
 
  */
-    test: async (description, cb, setup, teardown) => {
+    test: async (description, cb, setup, teardown, order = 100) => {
         const desc = slugify(description);
         const assert = require('assert');
 
-        Hook.register('tests', async context => {
-            try {
-                if (typeof setup === 'function') {
-                    await setup();
-                }
+        Hook.register(
+            'tests',
+            async context => {
+                try {
+                    if (typeof setup === 'function') {
+                        await setup();
+                    }
 
-                context[desc] = await cb(assert);
-                BOOT(
-                    ' ',
-                    chalk.cyan('Test'),
-                    chalk.cyan('→'),
-                    chalk.magenta(description),
-                    chalk.green.bold('[OK]'),
-                );
+                    context[desc] = await cb(assert);
+                    BOOT(
+                        ' ',
+                        chalk.cyan('Test'),
+                        chalk.cyan('→'),
+                        chalk.magenta(description),
+                        chalk.green.bold('[OK]'),
+                    );
 
-                if (typeof teardown === 'function') {
-                    await teardown();
+                    if (typeof teardown === 'function') {
+                        await teardown();
+                    }
+                } catch (error) {
+                    if (typeof teardown === 'function') {
+                        await teardown();
+                    }
+                    BOOT(
+                        ' ',
+                        chalk.cyan('Test'),
+                        chalk.cyan('→'),
+                        chalk.magenta(description),
+                        chalk.red.bold('[FAIL]'),
+                    );
+                    DEBUG(error);
                 }
-            } catch (error) {
-                if (typeof teardown === 'function') {
-                    await teardown();
-                }
-                BOOT(
-                    ' ',
-                    chalk.cyan('Test'),
-                    chalk.cyan('→'),
-                    chalk.magenta(description),
-                    chalk.red.bold('[FAIL]'),
-                );
-                DEBUG(error);
-            }
-        });
+            },
+            order,
+        );
     },
 };
 
