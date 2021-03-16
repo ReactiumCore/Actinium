@@ -1,3 +1,4 @@
+const isSDK = require('./isSDK');
 const slugify = require('./slugify');
 const FileAPI = require('./file-api');
 const Registry = require('./registry');
@@ -37,4 +38,5 @@ module.exports = {
     Registry,
     getCallStack,
     getCallerFile,
+    isSDK,
 };

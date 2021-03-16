@@ -1,18 +1,13 @@
-const COLLECTION = '_User';
-const COLLECTION_ROLE = '_Role';
-
 const chalk = require('chalk');
 const _ = require('underscore');
 const uuid = require('uuid/v4');
 const moment = require('moment');
 const op = require('object-path');
 const slugify = require('slugify');
-const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
-const { UserFromSession } = require(`${ACTINIUM_DIR}/lib/utils`);
 
-const ENUMS = {
-    CACHE: 90 * 1000, // 90 seconds
-};
+const COLLECTION = '_User';
+const COLLECTION_ROLE = '_Role';
+const ENUMS = { CACHE: 90000 };
 
 /**
  * @api {Object} Actinium.User User
@@ -21,6 +16,8 @@ const ENUMS = {
  * @apiDescription Set of functions to interact with the User collection.
  */
 class User extends Parse.User {}
+
+User.ENUMS = ENUMS;
 
 /**
  * @api {Asynchronous} Actinium.User.currentUser(options) User.currentUser()
@@ -34,10 +31,12 @@ const currentUser = await Actinium.User.currentUser({ sessionToken: 'alketjaTelB
  */
 User.currentUser = async (options, toObject = false) => {
     const response = op.has(options, 'sessionToken')
-        ? await UserFromSession(options.sessionToken)
+        ? await Actinium.Utils.UserFromSession(options.sessionToken)
         : undefined;
 
-    return toObject === true && response ? serialize(response) : response;
+    return toObject === true && response
+        ? Actinium.Utils.serialize(response)
+        : response;
 };
 
 /**
@@ -114,10 +113,10 @@ _Note:_ You can add or remove fields via the `user-search-fields` hook.
 ```
 Arguments: fields:Array, params, options
 ```
- * @apiParam (hooks) {Hook} user-list-query Mutate the `Parse.Query` object.
+ * @apiParam (hooks) {Hook} user-list-query Mutate the `Actinium.Query` object.
 
 ```
-Arguments: query:Parse.Query, params, options
+Arguments: query:Actinium.Query, params, options
 ```
  * @apiParam (hooks) {Hook} user-list-response Mutate the response object before it is returned.
 
@@ -141,10 +140,12 @@ User.list = async (params, options) => {
     let order = String(op.get(params, 'order', 'ascending')).toLowerCase();
     order = !orders.includes(order) ? 'ascending' : order;
 
-    let qry = new Parse.Query(COLLECTION);
+    let qry = new Actinium.Query(COLLECTION);
 
     const roleObj = role
-        ? await new Parse.Query(COLLECTION_ROLE).equalTo('name', role).first()
+        ? await new Actinium.Query(COLLECTION_ROLE)
+              .equalTo('name', role)
+              .first()
         : undefined;
 
     let fields = op.get(params, 'fieldsHooked', [
@@ -168,12 +169,12 @@ User.list = async (params, options) => {
         const queries = fields.map(fld => {
             const nqry = roleObj
                 ? roleObj.relation('users').query()
-                : new Parse.Query(COLLECTION);
+                : new Actinium.Query(COLLECTION);
 
             return nqry.matches(fld, regex);
         });
 
-        qry = Parse.Query.or(...queries);
+        qry = Actinium.Query.or(...queries);
     }
 
     if (!search) {
@@ -210,9 +211,7 @@ User.list = async (params, options) => {
         ).toString('base64'),
     ];
 
-    if (refresh === true) {
-        Actinium.Cache.del('users');
-    }
+    if (refresh === true) Actinium.Cache.del('users');
 
     let response = Actinium.Cache.get(cacheKey);
     if (response && !refresh) {
@@ -242,7 +241,9 @@ User.list = async (params, options) => {
     const prev = page - 1 > 0 && page <= pages ? page - 1 : null;
     let results = await qry.find(options);
     results =
-        outputType === 'JSON' ? results.map(item => serialize(item)) : results;
+        outputType === 'JSON'
+            ? results.map(item => Actinium.Utils.serialize(item))
+            : results;
 
     response = {
         count,
@@ -334,7 +335,7 @@ User.retrieve = async (params, options) => {
 
     await Actinium.Hook.run('user-retrieve-response', user, params, options);
 
-    return user.toJSON();
+    return Actinium.Utils.serialize(user);
 };
 
 /**
@@ -382,9 +383,7 @@ User.save = async (params, options) => {
     op.del(params, 'confirm');
 
     // delete username if not new
-    if (op.has(params, 'objectId')) {
-        op.del(params, 'username');
-    }
+    if (op.has(params, 'objectId')) op.del(params, 'username');
 
     // Create the user object
     const userObj = new Parse.Object(COLLECTION);
@@ -423,18 +422,20 @@ User.save = async (params, options) => {
 
     Actinium.Cache.del('users');
 
-    user = serialize(user);
+    user = Actinium.Utils.serialize(user);
 
     const current = await User.currentUser(options);
 
-    await Actinium.Recycle.revision(
-        {
-            collection: COLLECTION,
-            object: { ...user, password: null },
-            user: current,
-        },
-        options,
-    );
+    if (Actium.Utils.isSDK('Recycle')) {
+        await Actinium.Recycle.revision(
+            {
+                collection: COLLECTION,
+                object: { ...user, password: null },
+                user: current,
+            },
+            options,
+        );
+    }
 
     return User.retrieve({ objectId: user.objectId }, options);
 };
@@ -462,21 +463,23 @@ User.trash = async (params, options) => {
     const objectId = op.get(params, 'objectId');
     if (!objectId) return new Error('objectId is a required parameter');
 
-    const userObj = await new Parse.Query(COLLECTION)
+    const userObj = await new Actinium.Query(COLLECTION)
         .equalTo('objectId', objectId)
         .first();
 
     if (!userObj) return;
 
-    const current = await User.currentUser(options);
-    await Actinium.Recycle.trash(
-        {
-            collection: COLLECTION,
-            object: userObj.toJSON(),
-            user: current,
-        },
-        options,
-    );
+    if (Actinium.Utils.isSDK('Recycle')) {
+        const current = await User.currentUser(options);
+        await Actinium.Recycle.trash(
+            {
+                collection: COLLECTION,
+                object: userObj.toJSON(),
+                user: current,
+            },
+            options,
+        );
+    }
 
     await userObj.destroy(options);
 };
