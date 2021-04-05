@@ -426,7 +426,7 @@ User.save = async (params, options) => {
 
     const current = await User.currentUser(options);
 
-    if (Actium.Utils.isSDK('Recycle')) {
+    if (Actinium.Utils.isSDK('Recycle')) {
         await Actinium.Recycle.revision(
             {
                 collection: COLLECTION,
