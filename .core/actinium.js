@@ -1,6 +1,7 @@
 require('./globals');
 
 const http = require('http');
+const https = require('https');
 const chalk = require('chalk');
 const op = require('object-path');
 const express = require('express');
@@ -106,8 +107,24 @@ Actinium.start = options =>
 
             BOOT(chalk.cyan('Starting...'));
 
+            DEBUG({
+                TLS_MODE: ENV.TLS_MODE,
+                APP_TLS_CERT_FILE: ENV.APP_TLS_CERT_FILE,
+                APP_TLS_KEY_FILE: ENV.APP_TLS_KEY_FILE,
+                APP_TLS_CERT: ENV.APP_TLS_CERT,
+                APP_TLS_KEY: ENV.APP_TLS_KEY,
+            });
+
             Actinium.server = !Actinium.server
-                ? http.createServer(Actinium.app)
+                ? ENV.TLS_MODE
+                    ? https.createServer(
+                          {
+                              cert: ENV.APP_TLS_CERT,
+                              key: ENV.APP_TLS_KEY,
+                          },
+                          Actinium.app,
+                      )
+                    : http.createServer(Actinium.app)
                 : Actinium.server;
 
             Actinium.server.listen(PORT, async err => {
@@ -115,11 +132,19 @@ Actinium.start = options =>
                     BOOT(err);
                     reject(err);
                 } else {
+                    const tlsMsg = ENV.TLS_MODE
+                        ? chalk.green('[TLS MODE]')
+                        : chalk.yellow('[PLAIN TEXT]');
+
                     BOOT(
                         chalk.cyan('  Started'),
-                        'on port:',
+                        `in ${tlsMsg} on port:`,
                         chalk.magenta(PORT),
                     );
+
+                    if (ENV.TLS_MODE) {
+                        BOOT();
+                    }
 
                     if (process.getuid && process.getuid() === 0) {
                         if (

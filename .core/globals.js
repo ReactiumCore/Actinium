@@ -2,6 +2,7 @@ const path = require('path');
 const chalk = require('chalk');
 const moment = require('moment');
 const op = require('object-path');
+const fs = require('fs-extra');
 const Enums = require('./lib/enums');
 const Registry = require('./lib/utils/registry');
 const ACTINIUM_CONFIG = require('./actinium-config');
@@ -114,6 +115,19 @@ ENV.PARSE_PRESERVE_FILENAME = stringToBoolean(
 ENV.PARSE_FILES_DIRECT_ACCESS = stringToBoolean(
     op.get(ENV, 'PARSE_FILES_DIRECT_ACCESS', true),
 );
+
+// TLS MODE
+ENV.APP_TLS_CERT_FILE = op.get(ENV, 'APP_TLS_CERT_FILE');
+ENV.APP_TLS_KEY_FILE = op.get(ENV, 'APP_TLS_KEY_FILE');
+ENV.APP_TLS_KEY =
+    ENV.APP_TLS_KEY_FILE &&
+    fs.existsSync(ENV.APP_TLS_KEY_FILE) &&
+    fs.readFileSync(ENV.APP_TLS_KEY_FILE);
+ENV.APP_TLS_CERT =
+    ENV.APP_TLS_CERT_FILE &&
+    fs.existsSync(ENV.APP_TLS_CERT_FILE) &&
+    fs.readFileSync(ENV.APP_TLS_CERT_FILE);
+ENV.TLS_MODE = ENV.APP_TLS_KEY && ENV.APP_TLS_CERT;
 
 ENV.RUN_TEST = stringToBoolean(op.get(ENV, 'RUN_TEST', true));
 
