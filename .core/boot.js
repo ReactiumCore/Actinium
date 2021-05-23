@@ -154,13 +154,15 @@ const boot = {
 
 const envDev = () => {
     // Check for env.dev.json file
-    const filePath = path.normalize(`${SRC_DIR}/env.dev.json`);
+    const filePath = path.resolve(path.join(SRC_DIR, 'env.dev.json'));
 
     // Exit if found
     if (fs.existsSync(filePath)) return false;
 
     // Get the template file
-    const templatePath = path.normalize(`${BASE_DIR}/.core/env.def.json`);
+    const templatePath = path.resolve(
+        path.join(BASE_DIR, '.core', 'env.def.json'),
+    );
 
     // Copy to src
     fs.copySync(templatePath, filePath);
@@ -175,9 +177,9 @@ function environmentFile() {
         return envFile;
     } else if (envId) {
         validateReactorEnvId(envId);
-        return `${SRC_DIR}/env.${envId}.json`;
+        return path.resolve(path.join(SRC_DIR, 'env', `${envId}.json`));
     } else {
-        return `${SRC_DIR}/env.json`;
+        return path.resolve(path.join(SRC_DIR, 'env.json'));
     }
 }
 
