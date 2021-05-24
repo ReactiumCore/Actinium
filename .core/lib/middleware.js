@@ -3,7 +3,7 @@ const path = require('path');
 const chalk = require('chalk');
 const _ = require('underscore');
 const op = require('object-path');
-const globby = require('globby').sync;
+const globby = require('./globby-patch').sync;
 const ActionSequence = require('action-sequence');
 
 const matches = [

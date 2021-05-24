@@ -23,9 +23,6 @@ const stringToBoolean = val => {
 
 const stringToObject = val => (typeof val === 'string' ? JSON.parse(val) : val);
 
-const globbyPath = pathString =>
-    pathString.split(/[\\\/]/g).join(path.posix.sep);
-
 global.Actinium = {};
 global.ACTINIUM_CONFIG = ACTINIUM_CONFIG;
 global.BASE_DIR = path.normalize(path.resolve(path.join(__dirname, '..')));
@@ -40,26 +37,26 @@ global.FEATURES = new Registry('Features');
 const defaults = {
     glob: {
         cloud: [
-            `${globbyPath(ACTINIUM_DIR)}/cloud/**/*.js`,
-            `${globbyPath(BASE_DIR)}/node_modules/**/actinium/*cloud.js`,
-            `${globbyPath(BASE_DIR)}/actinium_modules/**/*cloud.js`,
-            `${globbyPath(APP_DIR)}/cloud/**/*.js`, // deprecated 3.1.8
-            `${globbyPath(APP_DIR)}/**/*cloud.js`, // since 3.1.8
+            `${ACTINIUM_DIR}/cloud/**/*.js`,
+            `${BASE_DIR}/node_modules/**/actinium/*cloud.js`,
+            `${BASE_DIR}/actinium_modules/**/*cloud.js`,
+            `${APP_DIR}/cloud/**/*.js`, // deprecated 3.1.8
+            `${APP_DIR}/**/*cloud.js`, // since 3.1.8
         ],
         plugins: [
-            `${globbyPath(ACTINIUM_DIR)}/plugin/**/*plugin.js`,
-            `${globbyPath(BASE_DIR)}/node_modules/**/actinium/*plugin.js`,
-            `${globbyPath(BASE_DIR)}/actinium_modules/**/*plugin.js`,
-            `${globbyPath(APP_DIR)}/**/*plugin.js`,
-            `!${globbyPath(ACTINIUM_DIR)}/plugin/**/assets/**/*.js`,
-            `!${globbyPath(ACTINIUM_DIR)}/plugin/**/plugin-assets/**/*.js`,
+            `${ACTINIUM_DIR}/plugin/**/*plugin.js`,
+            `${BASE_DIR}/node_modules/**/actinium/*plugin.js`,
+            `${BASE_DIR}/actinium_modules/**/*plugin.js`,
+            `${APP_DIR}/**/*plugin.js`,
+            `!${ACTINIUM_DIR}/plugin/**/assets/**/*.js`,
+            `!${ACTINIUM_DIR}/plugin/**/plugin-assets/**/*.js`,
         ],
         middleware: [
-            `${globbyPath(ACTINIUM_DIR)}/middleware/**/*.js`,
-            `${globbyPath(ACTINIUM_DIR)}/**/*middleware.js`,
-            `${globbyPath(BASE_DIR)}/node_modules/**/actinium/*middleware.js`,
-            `${globbyPath(BASE_DIR)}/actinium_modules/**/*middleware.js`,
-            `${globbyPath(APP_DIR)}/**/*middleware.js`,
+            `${ACTINIUM_DIR}/middleware/**/*.js`,
+            `${ACTINIUM_DIR}/**/*middleware.js`,
+            `${BASE_DIR}/node_modules/**/actinium/*middleware.js`,
+            `${BASE_DIR}/actinium_modules/**/*middleware.js`,
+            `${APP_DIR}/**/*middleware.js`,
         ],
     },
     express: {
