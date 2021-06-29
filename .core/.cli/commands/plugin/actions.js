@@ -57,6 +57,11 @@ module.exports = spinner => {
             message('Creating', chalk.cyan('sdk'), 'file...');
             generateFile('sdk.hbs', file, params);
         },
+        package: ({ params }) => {
+            const file = normalize(destination, 'package.json');
+            message('Creating', chalk.cyan('package.json'), 'file...');
+            generateFile('package.hbs', file, params);
+        },
         plugin: ({ params }) => {
             const file = normalize(destination, 'plugin.js');
             message('Creating', chalk.cyan('plugin'), 'file...');
