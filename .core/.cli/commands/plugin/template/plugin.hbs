@@ -1,6 +1,6 @@
 const chalk = require('chalk');
 const op = require('object-path');
-const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
+const { CloudRunOptions } = Actinium.Utils;
 
 const PLUGIN = {
     ID: '{{ID}}',
@@ -72,17 +72,17 @@ Actinium.Hook.register('start', async () => {
 });
 
 // Update routes on plugin activation
-Actinium.Hook.register('activate', async ({ID}) => {
+Actinium.Hook.register('activate', async ({ ID }) => {
     if (ID === PLUGIN.ID) await saveRoutes();
 });
 
 // Update routes on plugin update
-Actinium.Hook.register('update', async ({ID}) => {
+Actinium.Hook.register('update', async ({ ID }) => {
     if (ID === PLUGIN.ID) await saveRoutes();
 });
 
 // Remove routes on deactivation
-Actinium.Hook.register('deactivate', async ({ID}) => {
+Actinium.Hook.register('deactivate', async ({ ID }) => {
     if (ID === PLUGIN.ID) {
         for (const route of PLUGIN_ROUTES) {
             await Actinium.Route.delete(route);
@@ -92,18 +92,20 @@ Actinium.Hook.register('deactivate', async ({ID}) => {
 {{/if}}
 
 {{#if collections}}
-Actinium.Hook.register('schema', async ({ ID }) => {
-    if (ID !== PLUGIN.ID) return;
+Actinium.Hook.register('schema', async () => {
+    if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
     const PLUGIN_SCHEMA = require('./schema');
     PLUGIN_SCHEMA.forEach((item) => {
         const { actions = {}, collection, schema = {} } = item;
-        if (!collection) return;
 
         Actinium.Collection.register(collection, actions, schema);
-        Object.keys(actions).forEach(action => {
-            Actinium.Capability.register(`${collection}.${action}`);
-        });
+
+        Object.keys(actions).forEach(action =>
+            Actinium.Capability.register(
+                String(`${collection}.${action}`).toLowerCase()
+            )
+        );
     });
 });
 {{/if}}

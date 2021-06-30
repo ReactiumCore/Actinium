@@ -113,7 +113,7 @@ const COLLECTION = async (props, count = 0) => {
         },
     ]);
 
-    collection.action = {
+    collection.actions = {
         addField: collection.actions_addField,
         create: collection.actions_create,
         retrieve: collection.actions_retrieve,
