@@ -2,7 +2,6 @@ const chalk = require('chalk');
 const op = require('object-path');
 const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
 
-
 const PLUGIN = {
     ID: '{{ID}}',
     name: '{{name}}',
@@ -59,7 +58,6 @@ Actinium.Plugin.register(PLUGIN, {{activate}});
  * Hook registration
  * ----------------------------------------------------------------------------
  */
-
 {{#if routes}}
 const PLUGIN_ROUTES = require('./routes');
 const saveRoutes = async () => {
@@ -142,7 +140,6 @@ Actinium.Hook.register('activate', ({ ID }) => {
  * Cloud Functions
  * ----------------------------------------------------------------------------
  */
-
 {{#each cloud}}
 // {{this}}
 Actinium.Cloud.define(PLUGIN.ID, '{{this}}', req => {
@@ -168,8 +165,8 @@ Actinium.Cloud.define(PLUGIN.ID, '{{this}}', req => {
  */
 
 {{#each afterFind}}
-Actinium.Cloud.afterFind('{{this}}', async req => {
-    await Actinium.Hook.run('{{this}}-after-find', req);
+Actinium.Cloud.afterFind('{{this.collection}}', async req => {
+    await Actinium.Hook.run('{{this.hook}}-after-find', req);
     return req.objects;
 });
 {{/each}}
@@ -183,8 +180,8 @@ Actinium.Cloud.afterFind('{{this}}', async req => {
  */
 
 {{#each afterDelete}}
-Actinium.Cloud.afterDelete('{{this}}', async req => {
-    await Actinium.Hook.run('{{this}}-after-delete', req);
+Actinium.Cloud.afterDelete('{{this.collection}}', async req => {
+    await Actinium.Hook.run('{{this.hook}}-after-delete', req);
 });
 {{/each~}}
 {{/if}}
@@ -197,8 +194,8 @@ Actinium.Cloud.afterDelete('{{this}}', async req => {
  */
 
 {{#each afterSave}}
-Actinium.Cloud.afterSave('{{this}}', async req => {
-    await Actinium.Hook.run('{{this}}-after-save', req);
+Actinium.Cloud.afterSave('{{this.collection}}', async req => {
+    await Actinium.Hook.run('{{this.hook}}-after-save', req);
 });
 {{/each}}
 {{/if}}
@@ -211,8 +208,8 @@ Actinium.Cloud.afterSave('{{this}}', async req => {
  */
 
 {{#each beforeDelete}}
-Actinium.Cloud.beforeDelete('{{this}}', async req => {
-    await Actinium.Hook.run('{{this}}-before-delete', req);
+Actinium.Cloud.beforeDelete('{{this.collection}}', async req => {
+    await Actinium.Hook.run('{{this.hook}}-before-delete', req);
 });
 {{/each}}
 {{/if}}
@@ -225,8 +222,8 @@ Actinium.Cloud.beforeDelete('{{this}}', async req => {
  */
 
 {{#each beforeSave}}
-Actinium.Cloud.beforeSave('{{this}}', async req => {
-    await Actinium.Hook.run('{{this}}-before-save', req);
+Actinium.Cloud.beforeSave('{{this.collection}}', async req => {
+    await Actinium.Hook.run('{{this.hook}}-before-save', req);
 });
 
 {{/each}}

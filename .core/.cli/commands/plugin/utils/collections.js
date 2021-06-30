@@ -264,7 +264,10 @@ const COLLECTIONS = async (props, params) => {
 
         Object.entries(hooks).forEach(([key, val]) => {
             if (val !== true) return;
-            collectionHooks[key].push(String(item.collection).toLowerCase());
+            collectionHooks[key].push({
+                hook: String(item.collection).toLowerCase(),
+                collection: item.collection,
+            });
         });
 
         delete item.hooks;
