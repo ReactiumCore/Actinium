@@ -60,7 +60,6 @@ const TEXTS = (props, params) =>
                 suffix,
                 name: 'sdk',
                 message: 'SDK',
-                default: parseID(params.ID),
                 when: () => !params.sdk || params.sdk === true,
             },
             {

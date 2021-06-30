@@ -35,7 +35,10 @@ Example:
 `);
 
 const PREFLIGHT = ({ params, props }) => {
-    const inputs = CONFORM(params, props);
+    const inputs = { ...params };
+    if (inputs.cloud) {
+        inputs.cloud = parseArray(inputs.cloud);
+    }
 
     // prettier-ignore
     message('An Actinium Plugin will be created from the following configuration:');

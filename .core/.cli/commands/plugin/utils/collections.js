@@ -199,6 +199,7 @@ const FIELD = async (props, params, count = 0) => {
             choices: [
                 'String',
                 'Number',
+                'Boolean',
                 'Date',
                 'Object',
                 'Array',
