@@ -1,9 +1,7 @@
-const chalk = require('chalk');
-const copy = require('clipboardy');
-const coreFeatures = require('./core-features');
-
 Actinium.Hook.register('start', () => {
     if (ENV.FEATURE_GEN) {
+        const chalk = require('chalk');
+        const copy = require('clipboardy');
         const regex = /^[A-Z]/;
 
         copy.writeSync(
@@ -22,6 +20,8 @@ Actinium.Hook.register('start', () => {
 });
 
 if (ENV.RUN_TEST === true) {
+    const coreFeatures = require('./core-features');
+
     Actinium.Hook.register(
         'init',
         () => coreFeatures.forEach(ID => FEATURES.register(ID)),
