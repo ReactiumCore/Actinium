@@ -28,7 +28,7 @@ module.exports = {
                     '@atomic-reactor/actinium-blueprint': '1.0.7',
                     '@atomic-reactor/actinium-capability': '1.0.7',
                     '@atomic-reactor/actinium-component-manager': '1.0.7',
-                    '@atomic-reactor/actinium-content': '1.0.8',
+                    '@atomic-reactor/actinium-content': '1.0.16',
                     '@atomic-reactor/actinium-env': '1.0.7',
                     '@atomic-reactor/actinium-fs-adapter': '1.0.7',
                     '@atomic-reactor/actinium-io': '1.0.7',
