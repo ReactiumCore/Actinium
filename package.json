@@ -41,7 +41,7 @@
         "@atomic-reactor/actinium-wizard": "file:actinium_modules/@atomic-reactor/actinium-wizard/_npm",
         "action-sequence": "^1.1.2",
         "apidoc": "^0.25.0",
-        "axios": "^0.21.1",
+        "axios": "^0.21.2",
         "body-parser": "*",
         "camelcase": "^6.2.1",
         "chalk": "^4.1.2",
