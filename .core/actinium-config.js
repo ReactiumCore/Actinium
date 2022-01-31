@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.10',
+    version: '3.7.11',
     semver: '^3.0.0',
     update: {
         package: {

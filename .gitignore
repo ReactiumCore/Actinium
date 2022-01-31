@@ -79,3 +79,5 @@ src/env.client.json
 src/env.server.json
 src/env.tls.json
 *.pem
+
+*.code-workspace
