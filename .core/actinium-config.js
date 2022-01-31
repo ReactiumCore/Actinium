@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.13',
+    version: '3.7.14',
     semver: '^3.0.0',
     update: {
         package: {
@@ -48,7 +48,7 @@ module.exports = {
                     '@atomic-reactor/actinium-taxonomy': '1.0.7',
                     '@atomic-reactor/actinium-type': '1.0.7',
                     '@atomic-reactor/actinium-users': '1.0.8',
-                    '@atomic-reactor/actinium-wizard': '1.0.8',
+                    '@atomic-reactor/actinium-wizard': '1.0.9',
                 },
             },
         },
