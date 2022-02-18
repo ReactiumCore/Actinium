@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.16',
+    version: '3.7.17',
     semver: '^3.0.0',
     update: {
         package: {
@@ -25,15 +25,15 @@ module.exports = {
             actiniumDependencies: {
                 add: {
                     '@atomic-reactor/actinium-block': '1.0.6',
-                    '@atomic-reactor/actinium-blueprint': '1.0.7',
-                    '@atomic-reactor/actinium-capability': '1.0.7',
+                    '@atomic-reactor/actinium-blueprint': '1.0.8',
+                    '@atomic-reactor/actinium-capability': '1.0.8',
                     '@atomic-reactor/actinium-component-manager': '1.0.7',
-                    '@atomic-reactor/actinium-content': '1.0.20',
+                    '@atomic-reactor/actinium-content': '1.0.21',
                     '@atomic-reactor/actinium-env': '1.0.7',
                     '@atomic-reactor/actinium-fs-adapter': '1.0.7',
                     '@atomic-reactor/actinium-io': '1.0.7',
                     '@atomic-reactor/actinium-mailer': '1.0.7',
-                    '@atomic-reactor/actinium-media': '1.0.7',
+                    '@atomic-reactor/actinium-media': '1.0.8',
                     '@atomic-reactor/actinium-plugin-manager': '1.0.7',
                     '@atomic-reactor/actinium-pulse': '1.0.7',
                     '@atomic-reactor/actinium-recycle': '1.0.7',
@@ -45,8 +45,8 @@ module.exports = {
                     '@atomic-reactor/actinium-shortcodes': '1.0.8',
                     '@atomic-reactor/actinium-syndicate': '1.0.7',
                     '@atomic-reactor/actinium-syndicate-client': '1.0.7',
-                    '@atomic-reactor/actinium-taxonomy': '1.0.7',
-                    '@atomic-reactor/actinium-type': '1.0.7',
+                    '@atomic-reactor/actinium-taxonomy': '1.0.8',
+                    '@atomic-reactor/actinium-type': '1.0.8',
                     '@atomic-reactor/actinium-users': '1.0.9',
                     '@atomic-reactor/actinium-wizard': '1.0.9',
                 },
