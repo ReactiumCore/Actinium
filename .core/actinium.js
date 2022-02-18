@@ -216,6 +216,7 @@ Actinium.start = options =>
                     );
                     BOOT('');
 
+                    Actinium.running = true;
                     await Actinium.Hook.run('running');
 
                     BOOT('');
