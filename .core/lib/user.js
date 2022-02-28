@@ -375,7 +375,7 @@ User.save = async (params, options) => {
         if (params.password === null) {
             op.del(params, 'password');
         } else if (!params.confirm || params.password !== params.confirm) {
-            return new Error('passwords do not match');
+            return Promise.reject(new Error('passwords do not match'));
         }
     }
 
