@@ -400,9 +400,9 @@ User.save = async (params, options) => {
     // Save the user
     let user;
     try {
-        user = await userObj.save(params, options);
+        user = await userObj.save(null, options);
     } catch (err) {
-        ERROR('User.save() -> Error', params);
+        ERROR('User.save() -> Error', err.message + '\n', params);
         throw new Error(err);
         return err;
     }
@@ -433,7 +433,7 @@ User.save = async (params, options) => {
                 object: { ...user, password: null },
                 user: current,
             },
-            options,
+            { useMasterKey: true },
         );
     }
 
