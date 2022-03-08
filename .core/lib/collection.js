@@ -234,7 +234,7 @@ Collection.load = async (collection = false) => {
                 ? collectionSchema[collection]
                 : {};
 
-            const newIndexes = op
+            let newIndexes = op
                 .get(collectionIndexes, collection, [])
                 .reduce((fieldIndex, fieldName) => {
                     if (!op.has(schema, ['indexes', fieldName])) {
@@ -265,15 +265,25 @@ Collection.load = async (collection = false) => {
                 }
             });
 
+            let CLP = { ...schema.classLevelPermissions };
+
+            await Actinium.Hook.run('collection-clp', { collection, CLP });
+
+            let indexes = Array.from(newIndexes);
+            await Actinium.Hook.run('collection-indexes', {
+                collection,
+                indexes,
+            });
+
             // Update Schema
             if (className) {
                 return schemaController.update(
                     collection,
                     {
                         className: collection,
-                        classLevelPermissions: schema.classLevelPermissions,
+                        classLevelPermissions: CLP,
                         fields,
-                        indexes: newIndexes,
+                        indexes,
                     },
                     Actinium.Utils.MasterOptions(),
                 );
@@ -284,9 +294,9 @@ Collection.load = async (collection = false) => {
                 collection,
                 {
                     className: collection,
-                    classLevelPermissions: schema.classLevelPermissions,
+                    classLevelPermissions: CLP,
                     fields,
-                    indexes: newIndexes,
+                    indexes,
                 },
                 Actinium.Utils.MasterOptions(),
             );
