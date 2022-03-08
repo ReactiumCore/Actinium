@@ -3,7 +3,7 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.19',
+    version: '3.7.21',
     semver: '^3.0.0',
     update: {
         package: {
@@ -28,7 +28,7 @@ module.exports = {
                     '@atomic-reactor/actinium-blueprint': '1.0.8',
                     '@atomic-reactor/actinium-capability': '1.0.8',
                     '@atomic-reactor/actinium-component-manager': '1.0.7',
-                    '@atomic-reactor/actinium-content': '1.0.21',
+                    '@atomic-reactor/actinium-content': '1.0.23',
                     '@atomic-reactor/actinium-env': '1.0.7',
                     '@atomic-reactor/actinium-fs-adapter': '1.0.7',
                     '@atomic-reactor/actinium-io': '1.0.7',
