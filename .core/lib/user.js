@@ -402,9 +402,10 @@ User.save = async (params, options) => {
     try {
         user = await userObj.save(null, options);
     } catch (err) {
-        ERROR('User.save() -> Error', err.message + '\n', params);
-        throw new Error(err);
-        return err;
+        ERROR('User.save() -> Error', err.message);
+        console.log(params);
+        console.log(options);
+        throw err;
     }
 
     // Apply the role
