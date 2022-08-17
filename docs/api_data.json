@@ -23,8 +23,8 @@
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "/Users/cam/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
-    "groupTitle": "/Users/cam/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
+    "group": "/home/john/dev/atomic-reactor/Actinium/.core/middleware/docs/content/main.js",
+    "groupTitle": "/home/john/dev/atomic-reactor/Actinium/.core/middleware/docs/content/main.js",
     "name": ""
   },
   {
@@ -333,6 +333,13 @@
     },
     "name": "CloudACL",
     "group": "Actinium",
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "        \nActinium.Cloud.define(PLUGIN.ID, 'save-high-score', async req => {\n    const { params, user } = req;\n    const { scoreValue } = params;\n    const options = CloudRunOptions(req);\n    const score = new Actinium.Object('Score');\n\n    // create ACL for current user, and any user with role that\n    // has the 'read-score' and 'write-score' capabilities\n    const groupACL = await Actinium.Utils.CloudACL(\n            [\n                {\n                    permission: 'read',\n                    type: 'public',\n                    allow: true,\n                },\n                {\n                    permission: 'read',\n                    type: 'user',\n                    allow: true,\n                    objectId: user.id,\n                },\n                {\n                    permission: 'write',\n                    type: 'user',\n                    allow: true,\n                    objectId: user.id,\n                },\n            ],\n            'read-score', // no read capability mapping\n            'write-score', // no write capability mapping\n            score.getACL(),\n        );\n\n        score.setACL(groupACL);\n\n    return score.save(null, options);\n});",
+        "type": "json"
+      }
+    ],
     "version": "0.0.0",
     "filename": ".core/lib/utils/acl.js",
     "groupTitle": "Actinium"
@@ -13512,6 +13519,44 @@
       }
     },
     "name": "content-query",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": "actinium_modules/@atomic-reactor/actinium-content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-query-count",
+    "title": "content-query-count",
+    "description": "<p>Called before a content query count has taken place via Content.list() function.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "query",
+            "description": "<p>Actinium Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content-query-count",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": "actinium_modules/@atomic-reactor/actinium-content/sdk.js",
