@@ -185,8 +185,8 @@ const AclTargets = async req => {
                     objectId: user.id,
                 },
             ],
-            'read-score', // no read capability mapping
-            'write-score', // no write capability mapping
+            'read-score', // any role with read-score capability
+            'write-score', // any role with write-score capability
             score.getACL(),
         );
 
