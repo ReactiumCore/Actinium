@@ -163,6 +163,8 @@ const AclTargets = async req => {
     const options = CloudRunOptions(req);
     const score = new Actinium.Object('Score');
 
+    score.set('high', scoreValue);
+
     // create ACL for current user, and any user with role that
     // has the 'read-score' and 'write-score' capabilities
     const groupACL = await Actinium.Utils.CloudACL(
