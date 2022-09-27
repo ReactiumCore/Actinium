@@ -269,10 +269,9 @@ Collection.load = async (collection = false) => {
 
             await Actinium.Hook.run('collection-clp', { collection, CLP });
 
-            let indexes = Array.from(newIndexes);
             await Actinium.Hook.run('collection-indexes', {
                 collection,
-                indexes,
+                newIndexes,
             });
 
             // Update Schema
@@ -283,7 +282,7 @@ Collection.load = async (collection = false) => {
                         className: collection,
                         classLevelPermissions: CLP,
                         fields,
-                        indexes,
+                        indexes: newIndexes,
                     },
                     Actinium.Utils.MasterOptions(),
                 );
@@ -296,7 +295,7 @@ Collection.load = async (collection = false) => {
                     className: collection,
                     classLevelPermissions: CLP,
                     fields,
-                    indexes,
+                    indexes: newIndexes,
                 },
                 Actinium.Utils.MasterOptions(),
             );
