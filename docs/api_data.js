@@ -12459,7 +12459,7 @@ define({ "api": [
     },
     "permission": [
       {
-        "name": "`Setting.retrieve` or `setting.${key}-get` capabilities."
+        "name": "`Setting.retrieve` or `setting.${key}-get` capabilities. e.g. If your top-level key is site, the `setting.site-get` capability with grant a role the ability to read this setting. Note that sub-keys, such as `site.hostname` will use the top-level `setting.site-get` capability."
       }
     ],
     "examples": [
@@ -12499,23 +12499,23 @@ define({ "api": [
           },
           {
             "group": "Parameter",
-            "type": "Boolean",
+            "type": "Object",
             "optional": true,
             "field": "permissions",
-            "description": "<p>List of permissions to be applied to the setting.</p>"
+            "description": "<p>List of permissions to be applied to the setting. See <a href=\"#api-Actinium-CloudACL\">CloudACL</a> helper for more information.</p>"
           }
         ]
       }
     },
     "permission": [
       {
-        "name": "`Setting.create`, `Setting.update` or `setting.${key}-set` capabilities."
+        "name": "`Setting.create`, `Setting.update` or `setting.${key}-set` capabilities. e.g. If you wish to allow a role to modify the `site` setting (or `site.hostname`), you would give that role the `setting.site-set` capability."
       }
     ],
     "examples": [
       {
         "title": "Example Usage:",
-        "content": "Actinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, public: true});",
+        "content": "// Create a publicly readable site setting object\nActinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, permissions: [\n        {\n            permission: 'read',\n            type: 'public',\n            allow: true,\n        },\n        {\n            permission: 'write',\n            type: 'public',\n            allow: false,\n        },\n\n]});",
         "type": "json"
       }
     ],
