@@ -226,7 +226,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     });
 
     // public write
-    op.get(readPerms, 'public', []).forEach(publicAccess => {
+    op.get(writePerms, 'public', []).forEach(publicAccess => {
         const allowed = op.has(publicAccess, 'allow')
             ? !!publicAccess.allow
             : true;

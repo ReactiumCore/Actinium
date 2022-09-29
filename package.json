@@ -1,6 +1,6 @@
 {
     "name": "Actinium",
-    "version": "3.7.3",
+    "version": "3.7.22",
     "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
