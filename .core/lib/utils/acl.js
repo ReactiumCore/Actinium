@@ -155,6 +155,48 @@ const AclTargets = async req => {
  * @apiParam (permission) {Boolean} [allowed=true] Access to true or false, default true.
  * @apiName CloudACL
  * @apiGroup Actinium
+ * @apiExample Example Usage
+ *         
+ * Actinium.Cloud.define(PLUGIN.ID, 'save-high-score', async req => {
+    const { params, user } = req;
+    const { scoreValue } = params;
+    const options = CloudRunOptions(req);
+    const score = new Actinium.Object('Score');
+
+    score.set('high', scoreValue);
+
+    // create ACL for current user, and any user with role that
+    // has the 'read-score' and 'write-score' capabilities
+    const groupACL = await Actinium.Utils.CloudACL(
+            [
+                {
+                    permission: 'read',
+                    type: 'public',
+                    allow: true,
+                },
+                {
+                    permission: 'read',
+                    type: 'user',
+                    allow: true,
+                    objectId: user.id,
+                },
+                {
+                    permission: 'write',
+                    type: 'user',
+                    allow: true,
+                    objectId: user.id,
+                },
+            ],
+            'read-score', // any role with read-score capability
+            'write-score', // any role with write-score capability
+            score.getACL(),
+        );
+
+        score.setACL(groupACL);
+
+    return score.save(null, options);
+});
+ * 
  */
 const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     if (!groupACL || !(groupACL instanceof Parse.ACL)) {

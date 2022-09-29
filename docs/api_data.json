@@ -23,8 +23,8 @@
     "url": "",
     "version": "0.0.0",
     "filename": ".core/middleware/docs/content/main.js",
-    "group": "/Users/cam/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
-    "groupTitle": "/Users/cam/Development/Atomic Reactor/Actinium/.core/middleware/docs/content/main.js",
+    "group": "/home/john/dev/atomic-reactor/Actinium/.core/middleware/docs/content/main.js",
+    "groupTitle": "/home/john/dev/atomic-reactor/Actinium/.core/middleware/docs/content/main.js",
     "name": ""
   },
   {
@@ -333,6 +333,13 @@
     },
     "name": "CloudACL",
     "group": "Actinium",
+    "examples": [
+      {
+        "title": "Example Usage",
+        "content": "        \nActinium.Cloud.define(PLUGIN.ID, 'save-high-score', async req => {\n    const { params, user } = req;\n    const { scoreValue } = params;\n    const options = CloudRunOptions(req);\n    const score = new Actinium.Object('Score');\n\n    score.set('high', scoreValue);\n\n    // create ACL for current user, and any user with role that\n    // has the 'read-score' and 'write-score' capabilities\n    const groupACL = await Actinium.Utils.CloudACL(\n            [\n                {\n                    permission: 'read',\n                    type: 'public',\n                    allow: true,\n                },\n                {\n                    permission: 'read',\n                    type: 'user',\n                    allow: true,\n                    objectId: user.id,\n                },\n                {\n                    permission: 'write',\n                    type: 'user',\n                    allow: true,\n                    objectId: user.id,\n                },\n            ],\n            'read-score', // any role with read-score capability\n            'write-score', // any role with write-score capability\n            score.getACL(),\n        );\n\n        score.setACL(groupACL);\n\n    return score.save(null, options);\n});",
+        "type": "json"
+      }
+    ],
     "version": "0.0.0",
     "filename": ".core/lib/utils/acl.js",
     "groupTitle": "Actinium"
@@ -12452,7 +12459,7 @@
     },
     "permission": [
       {
-        "name": "`Setting.retrieve` or `setting.${key}-get` capabilities."
+        "name": "`Setting.retrieve` or `setting.${key}-get` capabilities. e.g. If your top-level key is site, the `setting.site-get` capability with grant a role the ability to read this setting. Note that sub-keys, such as `site.hostname` will use the top-level `setting.site-get` capability."
       }
     ],
     "examples": [
@@ -12492,23 +12499,23 @@
           },
           {
             "group": "Parameter",
-            "type": "Boolean",
+            "type": "Object",
             "optional": true,
             "field": "permissions",
-            "description": "<p>List of permissions to be applied to the setting.</p>"
+            "description": "<p>List of permissions to be applied to the setting. See <a href=\"#api-Actinium-CloudACL\">CloudACL</a> helper for more information.</p>"
           }
         ]
       }
     },
     "permission": [
       {
-        "name": "`Setting.create`, `Setting.update` or `setting.${key}-set` capabilities."
+        "name": "`Setting.create`, `Setting.update` or `setting.${key}-set` capabilities. e.g. If you wish to allow a role to modify the `site` setting (or `site.hostname`), you would give that role the `setting.site-set` capability."
       }
     ],
     "examples": [
       {
         "title": "Example Usage:",
-        "content": "Actinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, public: true});",
+        "content": "// Create a publicly readable site setting object\nActinium.Cloud.run('setting-set', { key: 'site', value: {title: 'My Site', hostname: 'mysite.com'}, permissions: [\n        {\n            permission: 'read',\n            type: 'public',\n            allow: true,\n        },\n        {\n            permission: 'write',\n            type: 'public',\n            allow: false,\n        },\n\n]});",
         "type": "json"
       }
     ],
@@ -13512,6 +13519,44 @@
       }
     },
     "name": "content-query",
+    "group": "Hooks",
+    "version": "0.0.0",
+    "filename": "actinium_modules/@atomic-reactor/actinium-content/sdk.js",
+    "groupTitle": "Hooks"
+  },
+  {
+    "type": "Hook",
+    "url": "content-query-count",
+    "title": "content-query-count",
+    "description": "<p>Called before a content query count has taken place via Content.list() function.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "query",
+            "description": "<p>Actinium Query object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "params",
+            "description": "<p>The request.params object</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "Object",
+            "optional": false,
+            "field": "options",
+            "description": "<p>The request options object</p>"
+          }
+        ]
+      }
+    },
+    "name": "content-query-count",
     "group": "Hooks",
     "version": "0.0.0",
     "filename": "actinium_modules/@atomic-reactor/actinium-content/sdk.js",
