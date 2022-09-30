@@ -1,6 +1,6 @@
 {
   "name": "Actinium",
-  "version": "3.6.6",
+  "version": "4.0.0",
   "description": "Actinium Documentation",
   "title": "Actinium Documentation",
   "sampleUrl": false,
@@ -8,7 +8,7 @@
   "apidoc": "0.3.0",
   "generator": {
     "name": "apidoc",
-    "time": "2022-09-28T19:22:15.129Z",
+    "time": "2022-09-30T14:44:25.939Z",
     "url": "https://apidocjs.com",
     "version": "0.25.0"
   }

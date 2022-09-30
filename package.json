@@ -1,6 +1,6 @@
 {
     "name": "Actinium",
-    "version": "3.7.22",
+    "version": "4.0.0",
     "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
@@ -96,7 +96,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/Atomic-Reactor/Actinium-2.0"
+        "url": "https://github.com/Atomic-Reactor/Actinium"
     },
     "engines": {
         "node": "14.7.0",
