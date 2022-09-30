@@ -3,12 +3,16 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.22',
-    semver: '^3.0.0',
+    version: '4.0.0',
+    semver: '^4.0.0',
     update: {
         package: {
             dependencies: {
-                remove: [],
+                remove: [
+                    '@atomic-reactor/actinium-auth',
+                    'promise',
+                    'kerberos',
+                ],
             },
             devDependencies: {
                 add: { clipboardy: '^2.3.0' },
