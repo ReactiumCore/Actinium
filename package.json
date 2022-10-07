@@ -13,7 +13,7 @@
         "plugin:install": "npx -p @atomic-reactor/cli arcli install -s"
     },
     "dependencies": {
-        "@atomic-reactor/actinium-auth": "^1.1.3",
+        "@atomic-reactor/actinium-auth": "^1.1.5",
         "@atomic-reactor/actinium-block": "file:actinium_modules/@atomic-reactor/actinium-block/_npm",
         "@atomic-reactor/actinium-blueprint": "file:actinium_modules/@atomic-reactor/actinium-blueprint/_npm",
         "@atomic-reactor/actinium-capability": "file:actinium_modules/@atomic-reactor/actinium-capability/_npm",
@@ -117,7 +117,7 @@
         ]
     },
     "actiniumDependencies": {
-        "@atomic-reactor/actinium-block": "1.0.6",
+        "@atomic-reactor/actinium-block": "1.0.7",
         "@atomic-reactor/actinium-blueprint": "1.0.8",
         "@atomic-reactor/actinium-capability": "1.0.8",
         "@atomic-reactor/actinium-component-manager": "1.0.7",
