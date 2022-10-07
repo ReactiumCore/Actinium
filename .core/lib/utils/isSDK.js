@@ -1,3 +1,23 @@
+const _ = require('underscore');
+
+const SDK = Actinium => (check, ...args) => {
+    check = Array.isArray(check) ? Array.from(check) : [check];
+    args = Array.from(args);
+
+    // append the args to the check array
+    if (args.length > 0) args.forEach(key => check.push(key));
+
+    // normalize the check string values
+    check = check.map(key => String(key).toLowerCase());
+
+    // get the Actinium SDK keys
+    const keys = Object.keys(Actinium).map(key => String(key).toLowerCase());
+
+    return _.intersection(keys, check).length === check.length;
+};
+
+module.exports = SDK;
+
 /**
  * @api {Function} Utils.isSDK(feature,feature2,feature3) Utils.isSDK()
  * @apiName isSDK
@@ -24,21 +44,4 @@ if (Actinium.Utils.isSDK(['Recycle', 'User'])) {
 if (Actinium.Utils.isSDK(['Recycle', 'User'], 'Media')) {
   // Recycle a User and some Media
 }
- */
-const _ = require('underscore');
-
-module.exports = (check, ...args) => {
-    check = Array.isArray(check) ? Array.from(check) : [check];
-    args = Array.from(args);
-
-    // append the args to the check array
-    if (args.length > 0) args.forEach(key => check.push(key));
-
-    // normalize the check string values
-    check = check.map(key => String(key).toLowerCase());
-
-    // get the Actinium SDK keys
-    const keys = Object.keys(Actinium).map(key => String(key).toLowerCase());
-
-    return _.intersection(keys, check).length === check.length;
-};
+*/

@@ -1,17 +1,7 @@
 const op = require('object-path');
 const serialize = require('./serialize');
 
-/**
- * @apiDefine HookedRetrieve
- * @apiParam {Object} params Request params
- * @apiParam {Object} options Parse options for request
- * @apiParam (params) {String} [objectId] specific objectId for query
- * @apiParam (params) {String} [order=descending] list order
- * @apiParam (params) {String} [orderBy=updatedAt] field to order by
- * @apiParam (params) {String} [outputType=JSON]
- */
-
-module.exports = async (
+const SDK = Actinium => async (
     params,
     options,
     collection,
@@ -48,3 +38,15 @@ module.exports = async (
     // 6.0 - Return response
     return resp;
 };
+
+module.exports = SDK;
+
+/**
+ * @apiDefine HookedRetrieve
+ * @apiParam {Object} params Request params
+ * @apiParam {Object} options Parse options for request
+ * @apiParam (params) {String} [objectId] specific objectId for query
+ * @apiParam (params) {String} [order=descending] list order
+ * @apiParam (params) {String} [orderBy=updatedAt] field to order by
+ * @apiParam (params) {String} [outputType=JSON]
+ */

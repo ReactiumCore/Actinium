@@ -1,48 +1,56 @@
-Actinium.Hook.register('start', () => {
-    if (ENV.FEATURE_GEN) {
-        const chalk = require('chalk');
-        const copy = require('clipboardy');
-        const regex = /^[A-Z]/;
+module.exports = Actinium => {
+    Actinium.Hook.register('start', () => {
+        if (Actinium.options.FEATURE_GEN) {
+            const chalk = require('chalk');
+            const copy = require('clipboardy');
+            const regex = /^[A-Z]/;
 
-        copy.writeSync(
-            JSON.stringify(
-                Object.keys(Actinium)
-                    .sort()
-                    .filter(key => regex.test(key)),
-                null,
-                2,
-            ),
+            copy.writeSync(
+                JSON.stringify(
+                    Object.keys(Actinium)
+                        .sort()
+                        .filter(key => regex.test(key)),
+                    null,
+                    2,
+                ),
+            );
+
+            BOOT('');
+            BOOT(
+                chalk.green('✓'),
+                'Actinium SDK feature list copied to clipboard',
+            );
+        }
+    });
+
+    if (Actinium.options.RUN_TEST === true) {
+        const coreFeatures = require('./core-features');
+
+        Actinium.Hook.register(
+            'init',
+            () => coreFeatures.forEach(ID => FEATURES.register(ID)),
+            -1000000,
         );
 
-        BOOT('');
-        BOOT(chalk.green('✓'), 'Actinium SDK feature list copied to clipboard');
+        Actinium.Hook.register('start', () =>
+            FEATURES.list
+                .map(({ id }) => id)
+                .sort()
+                .forEach(
+                    key =>
+                        Actinium.Harness.test(
+                            `Actinium.${key}`,
+                            assert =>
+                                assert.strictEqual(
+                                    Actinium.Utils.isSDK(key),
+                                    true,
+                                ),
+                            null,
+                            null,
+                            -1000,
+                        ),
+                    1000000,
+                ),
+        );
     }
-});
-
-if (ENV.RUN_TEST === true) {
-    const coreFeatures = require('./core-features');
-
-    Actinium.Hook.register(
-        'init',
-        () => coreFeatures.forEach(ID => FEATURES.register(ID)),
-        -1000000,
-    );
-
-    Actinium.Hook.register('start', () =>
-        FEATURES.list
-            .map(({ id }) => id)
-            .sort()
-            .forEach(
-                key =>
-                    Actinium.Harness.test(
-                        `Actinium.${key}`,
-                        assert =>
-                            assert.strictEqual(Actinium.Utils.isSDK(key), true),
-                        null,
-                        null,
-                        -1000,
-                    ),
-                1000000,
-            ),
-    );
-}
+};

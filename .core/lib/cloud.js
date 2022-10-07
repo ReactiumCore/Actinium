@@ -1,32 +1,40 @@
 const path = require('path');
 const chalk = require('chalk');
+const _ = require('underscore');
 const globby = require('globby').sync;
 
-const Cloud = { ...Parse.Cloud };
+const SDK = Actinium => {
+    const Cloud = { ...Parse.Cloud, FUNCTIONS: null };
 
-Cloud.info = () =>
-    CLOUD_FUNCTIONS.forEach(({ name }) =>
-        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
-    );
+    Cloud.info = () =>
+        Cloud.FUNCTIONS.forEach(({ name }) =>
+            BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
+        );
 
-Cloud.init = () => {
-    // Load cloud functions
-    global.CLOUD_FUNCTIONS = globby(ENV.GLOB_CLOUD).map(item => {
-        const p = path.normalize(item);
-        const name = String(path.basename(item))
-            .split('.')
-            .shift();
+    Cloud.init = () => {
+        // Load cloud functions
+        Cloud.FUNCTIONS = globby(Actinium.options.GLOB_CLOUD).map(item => {
+            const p = path.normalize(item);
+            const name = String(path.basename(item))
+                .split('.')
+                .shift();
 
-        require(p);
-        return { name };
-    });
+            const r = require(p);
+
+            if (_.isFunction(r)) r(Actinium);
+
+            return { name };
+        });
+    };
+
+    Cloud.define = (plugin, name, callback) => {
+        Parse.Cloud.define(name, req =>
+            Actinium.Plugin.gate({ req, ID: plugin, name, callback }),
+        );
+        Cloud.FUNCTIONS.push({ name });
+    };
+
+    return Cloud;
 };
 
-Cloud.define = (plugin, name, callback) => {
-    Parse.Cloud.define(name, req =>
-        Actinium.Plugin.gate({ req, ID: plugin, name, callback }),
-    );
-    CLOUD_FUNCTIONS.push({ name });
-};
-
-module.exports = Cloud;
+module.exports = SDK;

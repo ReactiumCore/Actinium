@@ -1,78 +1,76 @@
-const chalk = require('chalk');
 const _ = require('underscore');
 const op = require('object-path');
-const slugify = require('slugify');
-const {
-    hookedQuery,
-    Registry,
-    serialize,
-} = require(`${ACTINIUM_DIR}/lib/utils`);
 
-const COLLECTION = 'Capability';
+const SDK = Actinium => {
+    const { hookedQuery, Registry } = Actinium.Utils;
 
-const getRelation = async (cap, field, queryParams = {}) => {
-    const limit = op.get(queryParams, 'limit', 100);
-    const useMasterKey = true;
-    const rel = cap.relation(field);
-    let results = await rel
-        .query()
-        .limit(limit)
-        .ascending('name')
-        .find({ useMasterKey });
+    const COLLECTION = 'Capability';
 
-    const outputType = String(
-        op.get(queryParams, 'outputType', 'OBJECT'),
-    ).toUpperCase();
+    const getRelation = async (cap, field, queryParams = {}) => {
+        const limit = op.get(queryParams, 'limit', 100);
+        const useMasterKey = true;
+        const rel = cap.relation(field);
+        let results = await rel
+            .query()
+            .limit(limit)
+            .ascending('name')
+            .find({ useMasterKey });
 
-    if (outputType === 'LIST') {
-        results = _.pluck(
-            results.map(item => item.toJSON()),
-            'name',
-        ).map(role => String(role).toLowerCase());
-    }
+        const outputType = String(
+            op.get(queryParams, 'outputType', 'OBJECT'),
+        ).toUpperCase();
 
-    return outputType === 'JSON' ? results.map(item => item.toJSON()) : results;
-};
+        if (outputType === 'LIST') {
+            results = _.pluck(
+                results.map(item => item.toJSON()),
+                'name',
+            ).map(role => String(role).toLowerCase());
+        }
 
-const getRoles = async () => {
-    const { results } = await hookedQuery(
-        { limit: 100, outputType: 'JSON' },
-        { useMasterKey: true },
-        Parse.Role,
-        'capability-role-query',
-        'capability-roles',
-        'results',
-        'ARRAY',
-    );
-
-    return results;
-};
-
-const normalizeCapability = (capabilityObj = {}) => {
-    let allowed = op.get(capabilityObj, 'allowed', []) || [];
-    let excluded = op.get(capabilityObj, 'excluded', []) || [];
-
-    // banned is always excluded. super-admin may not be excluded, administrator may.
-    excluded = _.uniq(_.flatten([excluded, 'banned'])).filter(
-        role => role !== 'super-admin',
-    );
-
-    // administrator and super admin are always added to allowed
-    allowed = _.uniq(
-        _.flatten([allowed, 'administrator', 'super-admin']).filter(
-            role => !excluded.includes(role),
-        ),
-    );
-
-    return {
-        ...capabilityObj,
-        allowed,
-        excluded,
+        return outputType === 'JSON'
+            ? results.map(item => item.toJSON())
+            : results;
     };
-};
 
-const User = Capability => ({
-    /**
+    const getRoles = async () => {
+        const { results } = await hookedQuery(
+            { limit: 100, outputType: 'JSON' },
+            { useMasterKey: true },
+            Parse.Role,
+            'capability-role-query',
+            'capability-roles',
+            'results',
+            'ARRAY',
+        );
+
+        return results;
+    };
+
+    const normalizeCapability = (capabilityObj = {}) => {
+        let allowed = op.get(capabilityObj, 'allowed', []) || [];
+        let excluded = op.get(capabilityObj, 'excluded', []) || [];
+
+        // banned is always excluded. super-admin may not be excluded, administrator may.
+        excluded = _.uniq(_.flatten([excluded, 'banned'])).filter(
+            role => role !== 'super-admin',
+        );
+
+        // administrator and super admin are always added to allowed
+        allowed = _.uniq(
+            _.flatten([allowed, 'administrator', 'super-admin']).filter(
+                role => !excluded.includes(role),
+            ),
+        );
+
+        return {
+            ...capabilityObj,
+            allowed,
+            excluded,
+        };
+    };
+
+    const User = Capability => ({
+        /**
      * @api {Function} Capability.User.can(capability,user) Capability.User.can()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -91,11 +89,11 @@ const User = Capability => ({
         console.log('All good buddy!');
      }
      */
-    can: (cap, user) =>
-        _.intersection(Capability.User.roles(user), Capability.granted(cap))
-            .length > 0,
+        can: (cap, user) =>
+            _.intersection(Capability.User.roles(user), Capability.granted(cap))
+                .length > 0,
 
-    /**
+        /**
      * @api {Function} Capability.User.get(user) Capability.User.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -105,63 +103,63 @@ const User = Capability => ({
      * @apiExample Example Usage
     Actinium.Capability.User.get(req.user);
      */
-    get: user => {
-        const userRoles = Capability.User.roles(user);
-        const caps = _.sortBy(
-            Capability.get().filter(cap => {
-                // Super Admin bi-pass.
-                if (userRoles.includes('super-admin')) {
-                    return true;
-                }
+        get: user => {
+            const userRoles = Capability.User.roles(user);
+            const caps = _.sortBy(
+                Capability.get().filter(cap => {
+                    // Super Admin bi-pass.
+                    if (userRoles.includes('super-admin')) {
+                        return true;
+                    }
 
-                // Administrator bi-pass
-                if (
-                    userRoles.includes('administrator') &&
-                    !Capability.restricted(cap.group, 'administrator')
-                ) {
-                    return true;
-                }
+                    // Administrator bi-pass
+                    if (
+                        userRoles.includes('administrator') &&
+                        !Capability.restricted(cap.group, 'administrator')
+                    ) {
+                        return true;
+                    }
 
-                // Intersectional match
-                const granted = Capability.granted(cap.group);
-                return _.intersection(userRoles, granted).length > 0;
-            }),
-            'group',
-        );
+                    // Intersectional match
+                    const granted = Capability.granted(cap.group);
+                    return _.intersection(userRoles, granted).length > 0;
+                }),
+                'group',
+            );
 
-        return caps;
-    },
+            return caps;
+        },
 
-    roles: user => {
-        // Get the user ID
-        if (_.isObject(user)) {
-            // parse user object
-            user = op.get(user, 'id', user);
+        roles: user => {
+            // Get the user ID
+            if (_.isObject(user)) {
+                // parse user object
+                user = op.get(user, 'id', user);
 
-            // json user object
-            user = _.isObject(user) ? op.get(user, 'objectId', user) : user;
+                // json user object
+                user = _.isObject(user) ? op.get(user, 'objectId', user) : user;
 
-            // request object
-            user = _.isObject(user) ? op.get(user, 'user.id', user) : user;
-        }
+                // request object
+                user = _.isObject(user) ? op.get(user, 'user.id', user) : user;
+            }
 
-        // Get the roles
-        const roleObj = Actinium.Roles.User.get(user);
+            // Get the roles
+            const roleObj = Actinium.Roles.User.get(user);
 
-        const roles = Object.keys(roleObj).map(role =>
-            String(role).toLowerCase(),
-        );
+            const roles = Object.keys(roleObj).map(role =>
+                String(role).toLowerCase(),
+            );
 
-        // Add the anonymous role
-        roles.push('anonymous');
+            // Add the anonymous role
+            roles.push('anonymous');
 
-        // Clean up the roles and output
-        return _.uniq(roles);
-    },
-});
+            // Clean up the roles and output
+            return _.uniq(roles);
+        },
+    });
 
-const Role = Capability => ({
-    /**
+    const Role = Capability => ({
+        /**
      * @api {Function} Capability.Role.can(capability,role) Capability.Role.can()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -174,13 +172,13 @@ const Role = Capability => ({
         console.log('Looks like you got it!');
     }
      */
-    can: (cap, role) => {
-        const roles = _.flatten([role]);
-        const granted = Capability.granted(cap);
-        return _.intersection(granted, roles).length > 0;
-    },
+        can: (cap, role) => {
+            const roles = _.flatten([role]);
+            const granted = Capability.granted(cap);
+            return _.intersection(granted, roles).length > 0;
+        },
 
-    /**
+        /**
      * @api {Function} Capability.Role.get(role) Capability.Role.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -190,25 +188,25 @@ const Role = Capability => ({
      * @apiExample Example Usage
     Actinium.Capability.Role.get('contributor');
      */
-    get: role =>
-        _.compact(
-            Capability.get().map(cap => {
-                const { group } = cap;
-                const granted = Capability.granted(group);
-                return granted.includes(role) ? group : null;
-            }),
-        ),
-});
+        get: role =>
+            _.compact(
+                Capability.get().map(cap => {
+                    const { group } = cap;
+                    const granted = Capability.granted(group);
+                    return granted.includes(role) ? group : null;
+                }),
+            ),
+    });
 
-class Capability {
-    constructor() {
-        this.roleList = [];
-        this.Registry = new Registry('capability', 'group');
-        this.Role = Role(this);
-        this.User = User(this);
-    }
+    class Capability {
+        constructor() {
+            this.roleList = [];
+            this.Registry = new Registry('capability', 'group');
+            this.Role = Role(this);
+            this.User = User(this);
+        }
 
-    /**
+        /**
      * @api {Array} Capability.anonymous Capability.anonymous
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -217,16 +215,18 @@ class Capability {
      * @apiExample Example Usage
      console.log(Actinium.Capability.anonymous);
      */
-    get anonymous() {
-        const _granted = cap => {
-            const { allowed = [], excluded = [] } = cap;
-            return _.without(allowed, ...excluded);
-        };
+        get anonymous() {
+            const _granted = cap => {
+                const { allowed = [], excluded = [] } = cap;
+                return _.without(allowed, ...excluded);
+            };
 
-        return this.get().filter(cap => _granted(cap).includes('anonymous'));
-    }
+            return this.get().filter(cap =>
+                _granted(cap).includes('anonymous'),
+            );
+        }
 
-    /**
+        /**
      * @api {Array} Capability.list Capability.list
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -235,11 +235,11 @@ class Capability {
      * @apiExample Example Usage
      console.log(Actinium.Capability.list);
      */
-    get list() {
-        return this.Registry.list;
-    }
+        get list() {
+            return this.Registry.list;
+        }
 
-    /**
+        /**
      * @api {Async} Capability.delete(capabilites) Capability.delete()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -250,21 +250,26 @@ class Capability {
      Actinium.Capability.delete('user.view');
      Actinium.Capability.delete(['user.view']);
      */
-    delete(capabilities = []) {
-        capabilities = _.compact(
-            _.flatten([capabilities]).map(cap => {
-                cap = this.get(cap);
-                if (!cap) return;
-                return new Actinium.Object(COLLECTION).set('id', cap.objectId);
-            }),
-        );
+        delete(capabilities = []) {
+            capabilities = _.compact(
+                _.flatten([capabilities]).map(cap => {
+                    cap = this.get(cap);
+                    if (!cap) return;
+                    return new Actinium.Object(COLLECTION).set(
+                        'id',
+                        cap.objectId,
+                    );
+                }),
+            );
 
-        return capabilities.length > 0
-            ? Actinium.Object.destroyAll(capabilities, { useMasterKey: true })
-            : [];
-    }
+            return capabilities.length > 0
+                ? Actinium.Object.destroyAll(capabilities, {
+                      useMasterKey: true,
+                  })
+                : [];
+        }
 
-    /**
+        /**
      * @api {Function} Capability.get(capability) Capability.get()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -276,39 +281,39 @@ class Capability {
      console.log(Actinium.Capability.get('user.view'));
      console.log(Actinium.Capability.get(['user.view']));
      */
-    get(capability) {
-        const capabilities = _.chain([capability])
-            .flatten()
-            .compact()
-            .uniq()
-            .value()
-            .map(cap => String(cap).toLowerCase());
+        get(capability) {
+            const capabilities = _.chain([capability])
+                .flatten()
+                .compact()
+                .uniq()
+                .value()
+                .map(cap => String(cap).toLowerCase());
 
-        let results =
-            capabilities.length > 0
-                ? _.compact(
-                      capabilities.map(
-                          group =>
-                              _.findWhere(this.list, { group }) ||
-                              normalizeCapability({ group }),
-                      ),
-                  )
-                : this.list;
+            let results =
+                capabilities.length > 0
+                    ? _.compact(
+                          capabilities.map(
+                              group =>
+                                  _.findWhere(this.list, { group }) ||
+                                  normalizeCapability({ group }),
+                          ),
+                      )
+                    : this.list;
 
-        results = results.map(cap => normalizeCapability(cap));
+            results = results.map(cap => normalizeCapability(cap));
 
-        // prettier-ignore
-        try { Actinium.Hook.runSync('capabilites', results); }
+            // prettier-ignore
+            try { Actinium.Hook.runSync('capabilites', results); }
         catch (err) { /* empty on purpose */ }
 
-        if (!capability) return results;
+            if (!capability) return results;
 
-        return _.isArray(capability)
-            ? _.indexBy(results, 'group')
-            : _.first(results);
-    }
+            return _.isArray(capability)
+                ? _.indexBy(results, 'group')
+                : _.first(results);
+        }
 
-    /**
+        /**
      * @api {Function} Capability.granted(capability,role) Capability.granted()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -320,32 +325,32 @@ class Capability {
      console.log(Actinium.Capability.granted('user.view'));
      console.log(Actinium.Capability.granted('user.view', 'administrator'))
      */
-    granted(capability, role) {
-        if (!_.isString(capability)) {
-            throw new Error('capability must be of type String');
+        granted(capability, role) {
+            if (!_.isString(capability)) {
+                throw new Error('capability must be of type String');
+            }
+
+            if (role && !_.isString(role)) {
+                throw new Error('role must boe of type String');
+            }
+
+            let cap = this.get(capability) || {};
+            cap = normalizeCapability(cap);
+
+            const { allowed = [] } = cap;
+            const roles = _.chain(allowed)
+                .without(this.restricted(capability))
+                .uniq()
+                .compact()
+                .value()
+                .map(r => String(r).toLowerCase());
+
+            if (role) return roles.includes(String(role).toLowerCase());
+
+            return roles;
         }
 
-        if (role && !_.isString(role)) {
-            throw new Error('role must boe of type String');
-        }
-
-        let cap = this.get(capability) || {};
-        cap = normalizeCapability(cap);
-
-        const { allowed = [] } = cap;
-        const roles = _.chain(allowed)
-            .without(this.restricted(capability))
-            .uniq()
-            .compact()
-            .value()
-            .map(r => String(r).toLowerCase());
-
-        if (role) return roles.includes(String(role).toLowerCase());
-
-        return roles;
-    }
-
-    /**
+        /**
      * @api {Function} Capability.isRegistered(capability) Capability.isRegistered()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -355,11 +360,11 @@ class Capability {
      * @apiExample Example Usage
      Actinium.Capability.isRegistered('user.view');
      */
-    isRegistered(capability) {
-        return this.Registry.isRegistered(capability);
-    }
+        isRegistered(capability) {
+            return this.Registry.isRegistered(capability);
+        }
 
-    /**
+        /**
      * @api {Function} Capability.register(id,capability,order) Capability.register()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -374,27 +379,27 @@ class Capability {
       excluded: ['banned'],
     });
      */
-    register(id, capability = {}, order) {
-        id = String(id).toLowerCase();
-        id = String(id).substr(0, 1) === '_' ? id.split('_').pop() : id;
+        register(id, capability = {}, order) {
+            id = String(id).toLowerCase();
+            id = String(id).substr(0, 1) === '_' ? id.split('_').pop() : id;
 
-        if (!this.isRegistered(id)) {
-            capability = _.isObject(capability) ? capability : {};
-            capability = normalizeCapability(capability);
-            if (!op.get(capability, 'objectId')) {
-                op.set(capability, 'pending', true);
+            if (!this.isRegistered(id)) {
+                capability = _.isObject(capability) ? capability : {};
+                capability = normalizeCapability(capability);
+                if (!op.get(capability, 'objectId')) {
+                    op.set(capability, 'pending', true);
+                }
+                this.Registry.register(id, capability, order);
             }
-            this.Registry.register(id, capability, order);
+
+            return this.get();
         }
 
-        return this.get();
-    }
+        relation(...args) {
+            return getRelation(...args);
+        }
 
-    relation(...args) {
-        return getRelation(...args);
-    }
-
-    /**
+        /**
      * @api {Function} Capability.restricted(capability,role) Capability.restricted()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -406,33 +411,33 @@ class Capability {
      console.log(Actinium.Capability.restricted('user.view'));
      console.log(Actinium.Capability.restricted('user.view', 'administrator'))
      */
-    restricted(capability, role) {
-        if (!_.isString(capability)) {
-            throw new Error('capability must be of type String');
+        restricted(capability, role) {
+            if (!_.isString(capability)) {
+                throw new Error('capability must be of type String');
+            }
+
+            if (role && !_.isString(role)) {
+                throw new Error('role must boe of type String');
+            }
+
+            let cap = this.get(capability) || {};
+            cap = normalizeCapability(cap);
+
+            const { excluded = [] } = cap;
+
+            const roles = _.chain([excluded, 'banned'])
+                .flatten()
+                .uniq()
+                .compact()
+                .value()
+                .map(r => String(r).toLowerCase());
+
+            if (role) return roles.includes(String(role).toLowerCase());
+
+            return roles;
         }
 
-        if (role && !_.isString(role)) {
-            throw new Error('role must boe of type String');
-        }
-
-        let cap = this.get(capability) || {};
-        cap = normalizeCapability(cap);
-
-        const { excluded = [] } = cap;
-
-        const roles = _.chain([excluded, 'banned'])
-            .flatten()
-            .uniq()
-            .compact()
-            .value()
-            .map(r => String(r).toLowerCase());
-
-        if (role) return roles.includes(String(role).toLowerCase());
-
-        return roles;
-    }
-
-    /**
+        /**
      * @api {Function} Capability.update(id,capability,order) Capability.update()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -446,167 +451,172 @@ class Capability {
       excluded: ['banned'],
     });
      */
-    update(id, capability = {}) {
-        this.Registry.cleanup(id);
-        return this.register(id, capability);
-    }
-
-    async _ensureContentTypeCapabilities() {
-        const caps = [
-            'create',
-            'retrieve',
-            'retrieveany',
-            'update',
-            'updateany',
-            'delete',
-            'deleteany',
-            'addField',
-        ];
-
-        const { types } = await Actinium.Type.list({}, { useMasterKey: true });
-        types.forEach(({ type }) => {
-            const group = `content.${String(type).toLowerCase()}`;
-            const config = normalizeCapability({ group });
-            caps.forEach(cap => {
-                if (this.get(group)) return;
-                this.register(`${group}.${cap}`, config);
-            });
-        });
-    }
-
-    async _mapCapabilityRelations(cap) {
-        if (!cap) return [(allowed = []), (excluded = [])];
-        try {
-            if (!this.roleList) this.roleList = await getRoles();
-
-            const [allowed, excluded] = await Promise.all([
-                getRelation(cap, 'allowed', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-                getRelation(cap, 'excluded', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-            ]);
-
-            return [allowed, excluded];
-        } catch (error) {
-            console.log({ error });
+        update(id, capability = {}) {
+            this.Registry.cleanup(id);
+            return this.register(id, capability);
         }
-    }
 
-    async _updateCapabilityRoles(
-        params = {},
-        options = { useMasterKey: true },
-    ) {
-        let { action, capability, field, role, roleList } = params;
+        async _ensureContentTypeCapabilities() {
+            const caps = [
+                'create',
+                'retrieve',
+                'retrieveany',
+                'update',
+                'updateany',
+                'delete',
+                'deleteany',
+                'addField',
+            ];
 
-        if (!options) return new Error('Permission denied 2');
-
-        let err;
-        const requiredParams = ['action', 'capability', 'field', 'role'];
-        requiredParams.forEach(key => {
-            if (!op.get(params, key)) {
-                err = new Error(`${key} is a required parameter`);
-            }
-        });
-        if (err) return err;
-
-        action = String(action).toLowerCase();
-
-        // Get the Capability Object
-        let cap = await new Actinium.Query(COLLECTION)
-            .equalTo('group', capability)
-            .first(options);
-
-        // Create if no cap found
-        if (!cap) {
-            cap = await new Actinium.Object(COLLECTION).set(
-                'group',
-                capability,
+            const { types } = await Actinium.Type.list(
+                {},
+                { useMasterKey: true },
             );
+            types.forEach(({ type }) => {
+                const group = `content.${String(type).toLowerCase()}`;
+                const config = normalizeCapability({ group });
+                caps.forEach(cap => {
+                    if (this.get(group)) return;
+                    this.register(`${group}.${cap}`, config);
+                });
+            });
         }
 
-        // Get relation
-        const rel = cap.relation(field);
+        async _mapCapabilityRelations(cap) {
+            if (!cap) return [(allowed = []), (excluded = [])];
+            try {
+                if (!this.roleList) this.roleList = await getRoles();
 
-        // Normalize the role parameter into an array adding or removing iconic roles.
-        let roles =
-            field === 'allowed'
-                ? _.chain([role, 'super-admin', 'administrator'])
-                      .flatten()
-                      .uniq()
-                      .value()
-                : _.chain([role])
-                      .without('super-admin')
-                      .flatten()
-                      .uniq()
-                      .value();
+                const [allowed, excluded] = await Promise.all([
+                    getRelation(cap, 'allowed', {
+                        limit: this.roleList.length,
+                        outputType: 'LIST',
+                    }),
+                    getRelation(cap, 'excluded', {
+                        limit: this.roleList.length,
+                        outputType: 'LIST',
+                    }),
+                ]);
 
-        // Add the roles to the relation
-        roles.forEach(name => {
-            let role = _.findWhere(roleList, { name });
+                return [allowed, excluded];
+            } catch (error) {
+                console.log({ error });
+            }
+        }
 
-            if (!role) return;
+        async _updateCapabilityRoles(
+            params = {},
+            options = { useMasterKey: true },
+        ) {
+            let { action, capability, field, role, roleList } = params;
 
-            role = new Actinium.Role().set('id', role.objectId);
+            if (!options) return new Error('Permission denied 2');
 
-            if (action === 'add') rel.add(role);
-            if (action === 'remove') rel.remove(role);
-        });
+            let err;
+            const requiredParams = ['action', 'capability', 'field', 'role'];
+            requiredParams.forEach(key => {
+                if (!op.get(params, key)) {
+                    err = new Error(`${key} is a required parameter`);
+                }
+            });
+            if (err) return err;
 
-        // Save the capability
-        cap = await cap.save(null, options);
+            action = String(action).toLowerCase();
 
-        // get the relations
-        const [allowed, excluded] = await this._mapCapabilityRelations(cap);
+            // Get the Capability Object
+            let cap = await new Actinium.Query(COLLECTION)
+                .equalTo('group', capability)
+                .first(options);
 
-        // output new object
-        return normalizeCapability({
-            group: capability,
-            objectId: cap.id,
-            allowed,
-            excluded,
-        });
-    }
+            // Create if no cap found
+            if (!cap) {
+                cap = await new Actinium.Object(COLLECTION).set(
+                    'group',
+                    capability,
+                );
+            }
 
-    async fetch() {
-        // 1.0 - Get roles
-        this.roleList = await getRoles();
+            // Get relation
+            const rel = cap.relation(field);
 
-        const output = [];
+            // Normalize the role parameter into an array adding or removing iconic roles.
+            let roles =
+                field === 'allowed'
+                    ? _.chain([role, 'super-admin', 'administrator'])
+                          .flatten()
+                          .uniq()
+                          .value()
+                    : _.chain([role])
+                          .without('super-admin')
+                          .flatten()
+                          .uniq()
+                          .value();
 
-        // 2.0 - Create the query
-        const { results = [] } = await hookedQuery(
-            { limit: 200, outputType: 'OBJECT' },
-            { useMasterKey: true },
-            COLLECTION,
-            'capability-query',
-            'capabilities',
-            'results',
-            'ARRAY',
-        );
+            // Add the roles to the relation
+            roles.forEach(name => {
+                let role = _.findWhere(roleList, { name });
 
-        // 3.0 - Get relation fields and map the capability object
-        for (const cap of results) {
-            const group = cap.get('group');
+                if (!role) return;
 
+                role = new Actinium.Role().set('id', role.objectId);
+
+                if (action === 'add') rel.add(role);
+                if (action === 'remove') rel.remove(role);
+            });
+
+            // Save the capability
+            cap = await cap.save(null, options);
+
+            // get the relations
             const [allowed, excluded] = await this._mapCapabilityRelations(cap);
 
-            // prettier-ignore
-            output.push(normalizeCapability({
+            // output new object
+            return normalizeCapability({
+                group: capability,
+                objectId: cap.id,
+                allowed,
+                excluded,
+            });
+        }
+
+        async fetch() {
+            // 1.0 - Get roles
+            this.roleList = await getRoles();
+
+            const output = [];
+
+            // 2.0 - Create the query
+            const { results = [] } = await hookedQuery(
+                { limit: 200, outputType: 'OBJECT' },
+                { useMasterKey: true },
+                COLLECTION,
+                'capability-query',
+                'capabilities',
+                'results',
+                'ARRAY',
+            );
+
+            // 3.0 - Get relation fields and map the capability object
+            for (const cap of results) {
+                const group = cap.get('group');
+
+                const [allowed, excluded] = await this._mapCapabilityRelations(
+                    cap,
+                );
+
+                // prettier-ignore
+                output.push(normalizeCapability({
                 group,
                 objectId: cap.id,
                 allowed,
                 excluded,
             }));
+            }
+
+            return output;
         }
 
-        return output;
-    }
-
-    /**
+        /**
      * @api {Async} Capability.getAsync(capability) Capability.getAsync()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -620,143 +630,152 @@ class Capability {
         return capabilites;
     }
      */
-    async getAsync(group) {
-        const query = new Actinium.Query(COLLECTION);
-        query.equalTo('group', group);
-        const cap = await query.first(Actinium.Utils.MasterOptions());
-        if (cap) {
-            // const [allowed, excluded] = this._mapCapabilityRelations;
-            // For some reason there is a type error if the above is used
-            if (!this.roleList) this.roleList = await getRoles();
-            const [allowed, excluded] = await Promise.all([
-                getRelation(cap, 'allowed', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-                getRelation(cap, 'excluded', {
-                    limit: this.roleList.length,
-                    outputType: 'LIST',
-                }),
-            ]);
+        async getAsync(group) {
+            const query = new Actinium.Query(COLLECTION);
+            query.equalTo('group', group);
+            const cap = await query.first(Actinium.Utils.MasterOptions());
+            if (cap) {
+                // const [allowed, excluded] = this._mapCapabilityRelations;
+                // For some reason there is a type error if the above is used
+                if (!this.roleList) this.roleList = await getRoles();
+                const [allowed, excluded] = await Promise.all([
+                    getRelation(cap, 'allowed', {
+                        limit: this.roleList.length,
+                        outputType: 'LIST',
+                    }),
+                    getRelation(cap, 'excluded', {
+                        limit: this.roleList.length,
+                        outputType: 'LIST',
+                    }),
+                ]);
 
-            const item = normalizeCapability({
-                group,
-                objectId: cap.id,
-                allowed,
-                excluded,
+                const item = normalizeCapability({
+                    group,
+                    objectId: cap.id,
+                    allowed,
+                    excluded,
+                });
+
+                if (this.isRegistered(item.group)) {
+                    this.update(item.group, item);
+                } else {
+                    this.register(item.group, item);
+                }
+            }
+
+            return this.get(group);
+        }
+
+        async load(flush = false, caller) {
+            await Actinium.Hook.run('before-capability-load');
+
+            // Flush registry
+            if (flush === true) this.Registry.flush();
+
+            // Get from DB
+            const capabilities = await this.fetch();
+            Actinium.Cache.set('capability.loaded', true);
+
+            // Create Content Type capabilities if they don't exist
+            this._ensureContentTypeCapabilities();
+
+            // Add to registry
+            capabilities.forEach(cap => {
+                if (this.isRegistered(cap.group)) {
+                    this.update(cap.group, cap);
+                } else {
+                    this.register(cap.group, cap);
+                }
+            });
+        }
+
+        async propagate() {
+            const caps = this.list.filter(item => {
+                if (!op.get(item, 'objectId')) return true;
+                return op.get(item, 'pending');
             });
 
-            if (this.isRegistered(item.group)) {
-                this.update(item.group, item);
-            } else {
-                this.register(item.group, item);
+            let roleEntries = {};
+            if (caps.length > 0) {
+                this.roleList = await getRoles();
+                roleEntries = this.roleList.reduce((entries, role) => {
+                    const { name } = role;
+                    entries[name] = new Actinium.Role().set(
+                        'id',
+                        role.objectId,
+                    );
+                    return entries;
+                }, {});
             }
-        }
 
-        return this.get(group);
-    }
+            let saves = [];
 
-    async load(flush = false, caller) {
-        await Actinium.Hook.run('before-capability-load');
+            for (let item of caps) {
+                item = normalizeCapability(item);
 
-        // Flush registry
-        if (flush === true) this.Registry.flush();
+                const id = op.get(item, 'objectId');
+                const allowed = item.allowed.map(name =>
+                    op.get(roleEntries, name),
+                );
+                const excluded = item.excluded.map(name =>
+                    op.get(roleEntries, name),
+                );
 
-        // Get from DB
-        const capabilities = await this.fetch();
-        Actinium.Cache.set('capability.loaded', true);
+                const data = { ...item };
 
-        // Create Content Type capabilities if they don't exist
-        this._ensureContentTypeCapabilities();
+                op.del(data, 'allowed');
+                op.del(data, 'excluded');
+                op.del(data, 'objectId');
+                op.del(data, 'order');
+                op.del(data, 'pending');
 
-        // Add to registry
-        capabilities.forEach(cap => {
-            if (this.isRegistered(cap.group)) {
-                this.update(cap.group, cap);
-            } else {
-                this.register(cap.group, cap);
+                let obj = await new Actinium.Query(COLLECTION)
+                    .equalTo('group', item.group)
+                    .first({ useMasterKey: true });
+
+                obj = obj || new Actinium.Object(COLLECTION);
+                if (id) obj.set('id', id);
+
+                Object.entries(data).forEach(([key, value]) =>
+                    obj.set(key, value),
+                );
+
+                const allowedRel = obj.relation('allowed');
+                allowed.forEach(role => allowedRel.add(role));
+
+                const excludedRel = obj.relation('excluded');
+                excluded.forEach(role => excludedRel.add(role));
+
+                saves.push(obj);
             }
-        });
-    }
 
-    async propagate() {
-        const caps = this.list.filter(item => {
-            if (!op.get(item, 'objectId')) return true;
-            return op.get(item, 'pending');
-        });
+            if (caps.length > 0) {
+                Actinium.Cache.set('capability.propagating', true);
+            }
 
-        let roleEntries = {};
-        if (caps.length > 0) {
-            this.roleList = await getRoles();
-            roleEntries = this.roleList.reduce((entries, role) => {
-                const { name } = role;
-                entries[name] = new Actinium.Role().set('id', role.objectId);
-                return entries;
-            }, {});
-        }
+            saves = await Actinium.Object.saveAll(saves, {
+                useMasterKey: true,
+            });
 
-        let saves = [];
+            saves.forEach(obj => {
+                const { group, objectId } = obj.toJSON();
+                const newObj = { ...this.get(group), objectId };
+                op.del(newObj, 'pending');
+                this.update(group, newObj);
+            });
 
-        for (let item of caps) {
-            item = normalizeCapability(item);
+            // update registry
+            if (caps.length > 0 && saves.length > 0) {
+                await this.load(false, 'propagate');
+            }
 
-            const id = op.get(item, 'objectId');
-            const allowed = item.allowed.map(name => op.get(roleEntries, name));
-            const excluded = item.excluded.map(name =>
-                op.get(roleEntries, name),
+            Actinium.Cache.del('capability.propagating');
+            Actinium.Cache.set('capability_propagated', Date.now(), 500, () =>
+                this.propagate(),
             );
-
-            const data = { ...item };
-
-            op.del(data, 'allowed');
-            op.del(data, 'excluded');
-            op.del(data, 'objectId');
-            op.del(data, 'order');
-            op.del(data, 'pending');
-
-            let obj = await new Actinium.Query(COLLECTION)
-                .equalTo('group', item.group)
-                .first({ useMasterKey: true });
-
-            obj = obj || new Actinium.Object(COLLECTION);
-            if (id) obj.set('id', id);
-
-            Object.entries(data).forEach(([key, value]) => obj.set(key, value));
-
-            const allowedRel = obj.relation('allowed');
-            allowed.forEach(role => allowedRel.add(role));
-
-            const excludedRel = obj.relation('excluded');
-            excluded.forEach(role => excludedRel.add(role));
-
-            saves.push(obj);
         }
 
-        if (caps.length > 0) {
-            Actinium.Cache.set('capability.propagating', true);
-        }
-
-        saves = await Actinium.Object.saveAll(saves, { useMasterKey: true });
-
-        saves.forEach(obj => {
-            const { group, objectId } = obj.toJSON();
-            const newObj = { ...this.get(group), objectId };
-            op.del(newObj, 'pending');
-            this.update(group, newObj);
-        });
-
-        // update registry
-        if (caps.length > 0 && saves.length > 0) {
-            await this.load(false, 'propagate');
-        }
-
-        Actinium.Cache.del('capability.propagating');
-        Actinium.Cache.set('capability_propagated', Date.now(), 500, () =>
-            this.propagate(),
-        );
-    }
-
-    /**
+        /**
      * @api {Async} Capability.grant(params,options) Capability.grant()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -770,31 +789,31 @@ class Capability {
         { useMasterKey: true }
     );
      */
-    async grant(params = {}, options) {
-        const doUpdate = async () => {
-            op.set(params, 'action', 'add');
-            op.set(params, 'field', 'allowed');
-            op.set(params, 'roleList', this.roleList);
-            const cap = await this._updateCapabilityRoles(params, options);
-            if (_.isError(cap)) throw cap;
-            return _.indexBy(this.get(), 'group');
-        };
+        async grant(params = {}, options) {
+            const doUpdate = async () => {
+                op.set(params, 'action', 'add');
+                op.set(params, 'field', 'allowed');
+                op.set(params, 'roleList', this.roleList);
+                const cap = await this._updateCapabilityRoles(params, options);
+                if (_.isError(cap)) throw cap;
+                return _.indexBy(this.get(), 'group');
+            };
 
-        return new Promise(resolve => {
-            const ival = setInterval(() => {
-                // prettier-ignore
-                const isPropagating = !!Actinium.Cache.get('capability.propagating');
-                if (isPropagating === true) {
-                    return;
-                } else {
-                    clearInterval(ival);
-                    doUpdate().then(resolve);
-                }
+            return new Promise(resolve => {
+                const ival = setInterval(() => {
+                    // prettier-ignore
+                    const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                    if (isPropagating === true) {
+                        return;
+                    } else {
+                        clearInterval(ival);
+                        doUpdate().then(resolve);
+                    }
+                });
             });
-        });
-    }
+        }
 
-    /**
+        /**
          * @api {Async} Capability.revoke(params,options) Capability.revoke()
          * @apiVersion 3.1.2
          * @apiGroup Capability
@@ -808,31 +827,31 @@ class Capability {
             { useMasterKey: true }
         );
          */
-    async revoke(params = {}, options) {
-        const doUpdate = async () => {
-            op.set(params, 'action', 'remove');
-            op.set(params, 'field', 'allowed');
-            op.set(params, 'roleList', this.roleList);
-            const cap = await this._updateCapabilityRoles(params, options);
-            if (_.isError(cap)) throw cap;
-            return _.indexBy(this.get(), 'group');
-        };
+        async revoke(params = {}, options) {
+            const doUpdate = async () => {
+                op.set(params, 'action', 'remove');
+                op.set(params, 'field', 'allowed');
+                op.set(params, 'roleList', this.roleList);
+                const cap = await this._updateCapabilityRoles(params, options);
+                if (_.isError(cap)) throw cap;
+                return _.indexBy(this.get(), 'group');
+            };
 
-        return new Promise(resolve => {
-            const ival = setInterval(() => {
-                // prettier-ignore
-                const isPropagating = !!Actinium.Cache.get('capability.propagating');
-                if (isPropagating === true) {
-                    return;
-                } else {
-                    clearInterval(ival);
-                    doUpdate().then(resolve);
-                }
+            return new Promise(resolve => {
+                const ival = setInterval(() => {
+                    // prettier-ignore
+                    const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                    if (isPropagating === true) {
+                        return;
+                    } else {
+                        clearInterval(ival);
+                        doUpdate().then(resolve);
+                    }
+                });
             });
-        });
-    }
+        }
 
-    /**
+        /**
      * @api {Async} Capability.restrict(params,options) Capability.restrict()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -846,31 +865,31 @@ class Capability {
         { useMasterKey: true }
     );
      */
-    async restrict(params = {}, options) {
-        const doUpdate = async () => {
-            op.set(params, 'action', 'add');
-            op.set(params, 'field', 'excluded');
-            op.set(params, 'roleList', this.roleList);
-            const cap = await this._updateCapabilityRoles(params, options);
-            if (_.isError(cap)) throw cap;
-            return _.indexBy(this.get(), 'group');
-        };
+        async restrict(params = {}, options) {
+            const doUpdate = async () => {
+                op.set(params, 'action', 'add');
+                op.set(params, 'field', 'excluded');
+                op.set(params, 'roleList', this.roleList);
+                const cap = await this._updateCapabilityRoles(params, options);
+                if (_.isError(cap)) throw cap;
+                return _.indexBy(this.get(), 'group');
+            };
 
-        return new Promise(resolve => {
-            const ival = setInterval(() => {
-                // prettier-ignore
-                const isPropagating = !!Actinium.Cache.get('capability.propagating');
-                if (isPropagating === true) {
-                    return;
-                } else {
-                    clearInterval(ival);
-                    doUpdate().then(resolve);
-                }
+            return new Promise(resolve => {
+                const ival = setInterval(() => {
+                    // prettier-ignore
+                    const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                    if (isPropagating === true) {
+                        return;
+                    } else {
+                        clearInterval(ival);
+                        doUpdate().then(resolve);
+                    }
+                });
             });
-        });
-    }
+        }
 
-    /**
+        /**
      * @api {Async} Capability.unrestrict(params,options) Capability.unrestrict()
      * @apiVersion 3.1.2
      * @apiGroup Capability
@@ -884,37 +903,39 @@ class Capability {
         { useMasterKey: true }
     );
      */
-    async unrestrict(params = {}, options) {
-        const doUpdate = async () => {
-            op.set(params, 'action', 'remove');
-            op.set(params, 'field', 'excluded');
-            op.set(params, 'roleList', this.roleList);
-            const cap = await this._updateCapabilityRoles(params, options);
-            if (_.isError(cap)) throw cap;
-            return _.indexBy(this.get(), 'group');
-        };
+        async unrestrict(params = {}, options) {
+            const doUpdate = async () => {
+                op.set(params, 'action', 'remove');
+                op.set(params, 'field', 'excluded');
+                op.set(params, 'roleList', this.roleList);
+                const cap = await this._updateCapabilityRoles(params, options);
+                if (_.isError(cap)) throw cap;
+                return _.indexBy(this.get(), 'group');
+            };
 
-        return new Promise(resolve => {
-            const ival = setInterval(() => {
-                // prettier-ignore
-                const isPropagating = !!Actinium.Cache.get('capability.propagating');
-                if (isPropagating === true) {
-                    return;
-                } else {
-                    clearInterval(ival);
-                    doUpdate().then(resolve);
-                }
+            return new Promise(resolve => {
+                const ival = setInterval(() => {
+                    // prettier-ignore
+                    const isPropagating = !!Actinium.Cache.get('capability.propagating');
+                    if (isPropagating === true) {
+                        return;
+                    } else {
+                        clearInterval(ival);
+                        doUpdate().then(resolve);
+                    }
+                });
             });
-        });
+        }
     }
-}
 
-const instance = new Capability();
+    const instance = new Capability();
 
-Actinium.User.can = instance.User.can;
-Actinium.User.capabilities = instance.User.get;
+    Actinium.User.can = instance.User.can;
+    Actinium.User.capabilities = instance.User.get;
 
-module.exports = instance;
+    return instance;
+};
+module.exports = SDK;
 
 /**
  * @api {Hook} before-capability-save before-capability-save

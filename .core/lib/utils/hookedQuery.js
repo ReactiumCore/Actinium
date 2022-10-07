@@ -2,24 +2,7 @@ const _ = require('underscore');
 const op = require('object-path');
 const serialize = require('./serialize');
 
-/**
- * @apiDefine HookedQuery
- * @apiParam {Object} params Request params
- * @apiParam {Object} options Parse options for request
- * @apiParam {String} collection Parse collection name
- * @apiParam {String} [queryHook='hooked-query-query'] hook name to be invoked before running query
- * @apiParam {String} [outputHook='hooked-query-output'] hook name to be invoked before returning results
- * @apiParam {String} [resultsKey='results'] property where list of results will be found
- * @apiParam {String} [resultsKey='object'] 'object' to get results as an object, indexed by objectId, 'array' to get results as array of objects
- * @apiParam {Object} [req] Parse cloud request object, optional.
- * @apiParam (params) {String} [order=ascending] list order
- * @apiParam (params) {String} [limit=100] number of items per page
- * @apiParam (params) {String} [page=-1] current page, if < 0, all pages will be loaded
- * @apiParam (params) {String} [orderBy=name] field to order by
- * @apiParam (params) {String} [outputType=JSON]
- */
-
-module.exports = async (
+const SDK = Actinium => async (
     params = {},
     options = {},
     collection,
@@ -165,3 +148,22 @@ module.exports = async (
     // 7.0 - Return response
     return resp;
 };
+
+module.exports = SDK;
+
+/**
+ * @apiDefine HookedQuery
+ * @apiParam {Object} params Request params
+ * @apiParam {Object} options Parse options for request
+ * @apiParam {String} collection Parse collection name
+ * @apiParam {String} [queryHook='hooked-query-query'] hook name to be invoked before running query
+ * @apiParam {String} [outputHook='hooked-query-output'] hook name to be invoked before returning results
+ * @apiParam {String} [resultsKey='results'] property where list of results will be found
+ * @apiParam {String} [resultsKey='object'] 'object' to get results as an object, indexed by objectId, 'array' to get results as array of objects
+ * @apiParam {Object} [req] Parse cloud request object, optional.
+ * @apiParam (params) {String} [order=ascending] list order
+ * @apiParam (params) {String} [limit=100] number of items per page
+ * @apiParam (params) {String} [page=-1] current page, if < 0, all pages will be loaded
+ * @apiParam (params) {String} [orderBy=name] field to order by
+ * @apiParam (params) {String} [outputType=JSON]
+ */

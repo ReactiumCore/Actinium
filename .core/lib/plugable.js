@@ -1,411 +1,433 @@
-const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const _ = require('underscore');
 const semver = require('semver');
-const semverValidRange = require('semver/ranges/valid');
 const op = require('object-path');
 const globby = require('globby').sync;
-const appdir = path.normalize(`${APP_DIR}`);
-const coredir = path.normalize(`${BASE_DIR}/.core`);
-const npmdir = path.normalize(`${BASE_DIR}/node_modules`);
+const semverValidRange = require('semver/ranges/valid');
 
-const exp = {};
-const blacklist = [];
-const COLLECTION = 'Plugin';
+const SDK = Actinium => {
+    const exp = {};
+    const blacklist = [];
+    const COLLECTION = 'Plugin';
+    const coredir = path.normalize(`${ACTINIUM_DIR}/.core`);
 
-const loader = p => {
-    const plugin = require(path.normalize(p));
+    const loader = p => {
+        const plugin = require(path.normalize(p));
 
-    const ID = op.get(plugin, 'ID');
-    if (ID) {
-        exp[ID] = plugin;
-        return plugin;
-    }
-};
+        if (_.isFunction(plugin)) plugin(Actinium);
 
-const _isValid = (plugin = {}, strict = false) => {
-    const { ID } = plugin;
-    if (!ID || blacklist.includes(ID)) {
-        return false;
-    }
+        const ID = op.get(plugin, 'ID');
+        if (ID) {
+            exp[ID] = plugin;
+            return plugin;
+        }
+    };
 
-    // Validate if the plugin exists
-    if (!plugin) {
-        return false;
-    }
-
-    // Validate Actinium version
-    const actiniumVer = op.get(ACTINIUM_CONFIG, 'version');
-    const versionRange = op.get(plugin, 'version.actinium', `>=${actiniumVer}`);
-    if (versionRange && semverValidRange(versionRange)) {
-        if (!semver.satisfies(actiniumVer, versionRange)) {
+    const _isValid = (plugin = {}, strict = false) => {
+        const { ID } = plugin;
+        if (!ID || blacklist.includes(ID)) {
             return false;
         }
-    }
 
-    // Validate if the plugin is active
-    if (strict === true && Plugable.isActive(ID) !== true) {
-        return false;
-    }
-
-    return true;
-};
-
-const Plugable = {};
-
-Plugable.schema = async () => {
-    const schema = new Parse.Schema(COLLECTION);
-    let isSchema;
-
-    try {
-        isSchema = await schema.get({ useMasterKey: true });
-    } catch (err) {
-        schema.addBoolean('active');
-        schema.addNumber('order');
-        schema.addObject('meta');
-        schema.addString('description');
-        schema.addString('ID');
-        schema.addString('name');
-        schema.addString('version');
-
-        return schema.save(null, { useMasterKey: true });
-    }
-
-    return Promise.resolve(isSchema);
-};
-
-Plugable.capabilities = [
-    {
-        capability: 'Plugin.create',
-        roles: {},
-    },
-    {
-        capability: 'Plugin.retrieve',
-        roles: {
-            allowed: ['anonymous'],
-        },
-    },
-    {
-        capability: 'Plugin.update',
-        roles: {},
-    },
-    {
-        capability: 'Plugin.delete',
-        roles: {},
-    },
-    {
-        capability: 'Plugin.addField',
-        roles: {},
-    },
-    {
-        capability: 'plugin-ui.view',
-        roles: {
-            allowed: ['super-admin', 'administrator'],
-        },
-    },
-    {
-        capability: 'plugins.activate',
-        roles: {
-            allowed: ['super-admin', 'administrator'],
-        },
-    },
-];
-
-Plugable.exports = key => op.get(exp, key);
-
-Plugable.register = (plugin, active = false) => {
-    const callerFileName = Actinium.Utils.getCallerFile();
-    const ID = op.get(plugin, 'ID');
-    plugin['active'] = active;
-
-    // Validate plugin ID
-    if (!ID || blacklist.includes(ID)) {
-        return;
-    }
-
-    const meta = op.get(plugin, 'meta', {}) || {};
-    const version = op.get(plugin, 'version', {}) || {};
-
-    // Core plugins
-    if (
-        callerFileName &&
-        !/^[.]{2}/.test(path.relative(coredir, callerFileName))
-    ) {
-        op.set(meta, 'builtIn', true);
-        if (!op.get(meta, 'group')) op.set(meta, 'group', 'core');
-
-        // core plugin are always valid for this version of actinium
-        op.set(version, 'actinium', `>=${ACTINIUM_CONFIG.version}`);
-
-        // core plugins that have no version information follow actinium core versioning
-        const pluginVersion = op.get(version, 'plugin');
-        if (!pluginVersion || !semver.valid(pluginVersion))
-            op.set(version, 'plugin', ACTINIUM_CONFIG.version);
-    }
-
-    op.set(plugin, 'meta', meta);
-    op.set(plugin, 'version', version);
-
-    if (_isValid(plugin)) Actinium.Cache.set(`plugins.${ID}`, plugin);
-};
-
-Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
-    if (
-        typeof assetObjectPath !== 'string' ||
-        !/[a-zA-Z_\-.]+/.test(assetObjectPath)
-    ) {
-        throw new Error(
-            'Invalid asset URL type "assetObjectPath". Must be a string or object path (relative to plugin.meta.assets)',
-        );
-    }
-
-    const objectPath = `meta.assets.${assetObjectPath}`;
-    const installAsset = async (pluginObj, obj) => {
-        if (ID !== pluginObj.ID) return;
-
-        const metaAsset = {
-            ID,
-            filePath,
-            objectPath,
-            targetPath: `plugins/${ID}`,
-            targetFileName: path.basename(filePath),
-        };
-
-        await Actinium.Hook.run('add-meta-asset', metaAsset);
-
-        let url;
-        const file = await Actinium.File.create(
-            metaAsset.filePath,
-            metaAsset.targetPath,
-            metaAsset.targetFileName,
-        );
-
-        url = String(file.url()).replace(
-            `${ENV.PUBLIC_SERVER_URI}${ENV.PARSE_MOUNT}`,
-            '',
-        );
-
-        const plugin = Actinium.Cache.get(`plugins.${ID}`);
-        op.set(plugin, metaAsset.objectPath, url);
-        obj.set('meta', op.get(plugin, 'meta'));
-    };
-
-    const installMissingAsset = async (pluginObj, obj, existing) => {
-        if (ID !== pluginObj.ID) return;
-
-        const missingAsset =
-            // Plugin is saved and active
-            op.get(existing, 'active', false) === true &&
-            // asset path is not set on existing
-            !op.has(existing, objectPath);
-
-        const proxy = Actinium.FilesAdapter.getProxy();
-        if (missingAsset === true) {
-            await installAsset(pluginObj, obj);
+        // Validate if the plugin exists
+        if (!plugin) {
+            return false;
         }
+
+        // Validate Actinium version
+        const actiniumVer = op.get(ACTINIUM_CONFIG, 'version');
+        const versionRange = op.get(
+            plugin,
+            'version.actinium',
+            `>=${actiniumVer}`,
+        );
+        if (versionRange && semverValidRange(versionRange)) {
+            if (!semver.satisfies(actiniumVer, versionRange)) {
+                return false;
+            }
+        }
+
+        // Validate if the plugin is active
+        if (strict === true && Plugable.isActive(ID) !== true) {
+            return false;
+        }
+
+        return true;
     };
 
-    Actinium.Hook.register('plugin-before-save', async (data, obj, existing) =>
-        installMissingAsset(data, obj, existing),
-    );
-    Actinium.Hook.register('activate', async (data, req) =>
-        installAsset(data, req.object),
-    );
-    Actinium.Hook.register('update', async (data, req) =>
-        installAsset(data, req.object),
-    );
-};
+    const Plugable = {};
 
-Plugable.addLogo = (ID, filePath, app = 'admin') => {
-    if (typeof app !== 'string') app = 'admin';
-    Plugable.addMetaAsset(ID, filePath, `${app}.logo`);
-};
+    Plugable.schema = async () => {
+        const schema = new Parse.Schema(COLLECTION);
+        let isSchema;
 
-Plugable.addScript = (ID, filePath, app = 'admin') => {
-    if (typeof app !== 'string') app = 'admin';
-    Plugable.addMetaAsset(ID, filePath, `${app}.script`);
-};
-
-Plugable.addStylesheet = (ID, filePath, app = 'admin') => {
-    if (typeof app !== 'string') app = 'admin';
-    Plugable.addMetaAsset(ID, filePath, `${app}.style`);
-};
-
-Plugable.init = () => {
-    Plugable.capabilities.forEach(({ capability, roles }) =>
-        Actinium.Capability.register(
-            capability,
-            roles,
-            Actinium.Enums.priority.highest,
-        ),
-    );
-
-    Actinium.Collection.register('Plugin', {
-        create: false,
-        retrieve: false,
-        update: false,
-        delete: false,
-        addField: false,
-    });
-
-    return globby(ENV.GLOB_PLUGINS).map(item => loader(item));
-};
-
-Plugable.load = async () => {
-    Actinium.pluginsLoaded = false;
-    await Plugable.schema();
-
-    const pluginCache = _.sortBy(
-        Object.values(Actinium.Cache.get('plugins', {})),
-        'order',
-    );
-
-    BOOT('');
-    BOOT(chalk.cyan('Loaded plugins...'));
-
-    const loaded = _.indexBy(
-        (
-            await new Parse.Query(COLLECTION).find(
-                Actinium.Utils.MasterOptions(),
-            )
-        ).map(Actinium.Utils.serialize),
-        'ID',
-    );
-
-    const objects = [];
-    for (const cached of pluginCache) {
-        const { ID, version } = cached;
-        const versionInfo =
-            op.get(cached, 'meta.builtIn') === true
-                ? 'core'
-                : op.get(cached, 'version.plugin');
-
-        const existing = op.get(loaded, ID, {});
-
-        // active if existing is active, or if doesn't exist and default plugin setting loaded from file is active.
-        const active =
-            op.get(existing, 'active', op.get(cached, 'active', false)) ===
-            true;
-
-        // Set new active state as early as reasonable for Actinium.Plugin.isActive() usage
-        Actinium.Cache.set(`plugins.${ID}.active`, active);
-
-        BOOT(
-            chalk.cyan('  Plugin') +
-                (active ? chalk.green('↑') : chalk.yellow('↓')),
-            chalk.cyan('→'),
-            chalk.magenta(ID),
-            chalk.bold.white(versionInfo && `(${versionInfo})`),
-        );
-
-        let objData = {
-            ...existing,
-            ...cached,
-            active,
-            meta: {
-                ...op.get(existing, 'meta', {}),
-                ...op.get(cached, 'meta', {}),
-            },
-            version: op.get(version, 'plugin'),
-        };
-
-        const { objectId, ACL, createdAt, updatedAt, ...merged } = objData;
-
-        const obj = new Parse.Object(COLLECTION);
-        if (objectId) obj.id = objectId;
-        Object.entries(merged).forEach(([key, value]) => obj.set(key, value));
-
-        await Actinium.Hook.run(
-            'plugin-before-save',
-            objData,
-            obj,
-            existing,
-            cached,
-        );
-        objects.push(obj);
-    }
-
-    const plugins = {};
-
-    for (const obj of objects) {
         try {
-            const saved = await obj.save(null, Actinium.Utils.MasterOptions());
-            const item = Actinium.Utils.serialize(saved);
-            plugins[item.ID] = item;
-            Actinium.Cache.set(`plugins.${item.ID}`, item);
+            isSchema = await schema.get({ useMasterKey: true });
+        } catch (err) {
+            schema.addBoolean('active');
+            schema.addNumber('order');
+            schema.addObject('meta');
+            schema.addString('description');
+            schema.addString('ID');
+            schema.addString('name');
+            schema.addString('version');
 
-            await Actinium.Hook.run('plugin-load', plugins[item.ID]);
-        } catch (error) {
-            ERROR(`Error loading plugin ${obj.get('ID')}`, error);
+            return schema.save(null, { useMasterKey: true });
         }
-    }
 
-    Actinium.pluginsLoaded = true;
+        return Promise.resolve(isSchema);
+    };
 
-    return Promise.resolve(plugins);
-};
+    Plugable.capabilities = [
+        {
+            capability: 'Plugin.create',
+            roles: {},
+        },
+        {
+            capability: 'Plugin.retrieve',
+            roles: {
+                allowed: ['anonymous'],
+            },
+        },
+        {
+            capability: 'Plugin.update',
+            roles: {},
+        },
+        {
+            capability: 'Plugin.delete',
+            roles: {},
+        },
+        {
+            capability: 'Plugin.addField',
+            roles: {},
+        },
+        {
+            capability: 'plugin-ui.view',
+            roles: {
+                allowed: ['super-admin', 'administrator'],
+            },
+        },
+        {
+            capability: 'plugins.activate',
+            roles: {
+                allowed: ['super-admin', 'administrator'],
+            },
+        },
+    ];
 
-Plugable.get = ID =>
-    ID
-        ? Actinium.Cache.get(`plugins.${ID}`)
-        : Actinium.Cache.get('plugins', {});
+    Plugable.exports = key => op.get(exp, key);
 
-Plugable.isActive = ID => Actinium.Cache.get(`plugins.${ID}.active`, false);
+    Plugable.register = (plugin, active = false) => {
+        const callerFileName = Actinium.Utils.getCallerFile();
+        const ID = op.get(plugin, 'ID');
+        plugin['active'] = active;
 
-Plugable.isValid = (ID, strict = false) => {
-    const plugin = Plugable.get(ID);
-    return _isValid(plugin, strict);
-};
+        // Validate plugin ID
+        if (!ID || blacklist.includes(ID)) {
+            return;
+        }
 
-Plugable.gate = async ({ req, ID, name, callback }) => {
-    if (Plugable.isValid(ID, true) !== true) {
-        return Promise.reject(`Plugin: ${ID} is not active.`);
-    }
+        const meta = op.get(plugin, 'meta', {}) || {};
+        const version = op.get(plugin, 'version', {}) || {};
 
-    return callback(req);
-};
+        // Core plugins
+        if (
+            callerFileName &&
+            !/^[.]{2}/.test(path.relative(coredir, callerFileName))
+        ) {
+            op.set(meta, 'builtIn', true);
+            if (!op.get(meta, 'group')) op.set(meta, 'group', 'core');
 
-Plugable.deactivate = ID =>
-    Parse.Cloud.run(
-        'plugin-deactivate',
-        { plugin: ID },
-        { useMasterKey: true },
-    );
+            // core plugin are always valid for this version of actinium
+            op.set(version, 'actinium', `>=${ACTINIUM_CONFIG.version}`);
 
-Plugable.activate = ID =>
-    Parse.Cloud.run('plugin-activate', { plugin: ID }, { useMasterKey: true });
+            // core plugins that have no version information follow actinium core versioning
+            const pluginVersion = op.get(version, 'plugin');
+            if (!pluginVersion || !semver.valid(pluginVersion))
+                op.set(version, 'plugin', ACTINIUM_CONFIG.version);
+        }
 
-Plugable.updateHookHelper = (pluginId, migrations = {}) => {
-    const versions = Object.keys(migrations).sort((a, b) => {
-        if (semver.gt(semver.coerce(a), semver.coerce(b))) return 1;
-        if (semver.gt(semver.coerce(b), semver.coerce(a))) return -1;
-        return 0;
-    });
+        op.set(plugin, 'meta', meta);
+        op.set(plugin, 'version', version);
 
-    return async (current, req, old) => {
-        if (pluginId === current.ID) {
-            const newVer = semver.coerce(op.get(current, 'version'));
-            const oldVer = semver.coerce(op.get(old, 'version'));
+        if (_isValid(plugin)) Actinium.Cache.set(`plugins.${ID}`, plugin);
+    };
 
-            for (const version of versions) {
-                const spec = migrations[version];
-                const test = op.get(spec, 'test', () =>
-                    semver.gt(version, oldVer),
+    Plugable.addMetaAsset = (
+        ID,
+        filePath,
+        assetObjectPath = 'admin.assetURL',
+    ) => {
+        if (
+            typeof assetObjectPath !== 'string' ||
+            !/[a-zA-Z_\-.]+/.test(assetObjectPath)
+        ) {
+            throw new Error(
+                'Invalid asset URL type "assetObjectPath". Must be a string or object path (relative to plugin.meta.assets)',
+            );
+        }
+
+        const objectPath = `meta.assets.${assetObjectPath}`;
+        const installAsset = async (pluginObj, obj) => {
+            if (ID !== pluginObj.ID) return;
+
+            const metaAsset = {
+                ID,
+                filePath,
+                objectPath,
+                targetPath: `plugins/${ID}`,
+                targetFileName: path.basename(filePath),
+            };
+
+            await Actinium.Hook.run('add-meta-asset', metaAsset);
+
+            let url;
+            const file = await Actinium.File.create(
+                metaAsset.filePath,
+                metaAsset.targetPath,
+                metaAsset.targetFileName,
+            );
+
+            url = String(file.url()).replace(
+                `${Actinium.options.PUBLIC_SERVER_URI}${Actinium.options.PARSE_MOUNT}`,
+                '',
+            );
+
+            const plugin = Actinium.Cache.get(`plugins.${ID}`);
+            op.set(plugin, metaAsset.objectPath, url);
+            obj.set('meta', op.get(plugin, 'meta'));
+        };
+
+        const installMissingAsset = async (pluginObj, obj, existing) => {
+            if (ID !== pluginObj.ID) return;
+
+            const missingAsset =
+                // Plugin is saved and active
+                op.get(existing, 'active', false) === true &&
+                // asset path is not set on existing
+                !op.has(existing, objectPath);
+
+            const proxy = Actinium.FilesAdapter.getProxy();
+            if (missingAsset === true) {
+                await installAsset(pluginObj, obj);
+            }
+        };
+
+        Actinium.Hook.register(
+            'plugin-before-save',
+            async (data, obj, existing) =>
+                installMissingAsset(data, obj, existing),
+        );
+        Actinium.Hook.register('activate', async (data, req) =>
+            installAsset(data, req.object),
+        );
+        Actinium.Hook.register('update', async (data, req) =>
+            installAsset(data, req.object),
+        );
+    };
+
+    Plugable.addLogo = (ID, filePath, app = 'admin') => {
+        if (typeof app !== 'string') app = 'admin';
+        Plugable.addMetaAsset(ID, filePath, `${app}.logo`);
+    };
+
+    Plugable.addScript = (ID, filePath, app = 'admin') => {
+        if (typeof app !== 'string') app = 'admin';
+        Plugable.addMetaAsset(ID, filePath, `${app}.script`);
+    };
+
+    Plugable.addStylesheet = (ID, filePath, app = 'admin') => {
+        if (typeof app !== 'string') app = 'admin';
+        Plugable.addMetaAsset(ID, filePath, `${app}.style`);
+    };
+
+    Plugable.init = () => {
+        Plugable.capabilities.forEach(({ capability, roles }) =>
+            Actinium.Capability.register(
+                capability,
+                roles,
+                Actinium.Enums.priority.highest,
+            ),
+        );
+
+        Actinium.Collection.register('Plugin', {
+            create: false,
+            retrieve: false,
+            update: false,
+            delete: false,
+            addField: false,
+        });
+
+        return globby(Actinium.options.GLOB_PLUGINS).map(item => loader(item));
+    };
+
+    Plugable.load = async () => {
+        Actinium.pluginsLoaded = false;
+        await Plugable.schema();
+
+        const pluginCache = _.sortBy(
+            Object.values(Actinium.Cache.get('plugins', {})),
+            'order',
+        );
+
+        BOOT('');
+        BOOT(chalk.cyan('Loaded plugins...'));
+
+        const loaded = _.indexBy(
+            (
+                await new Parse.Query(COLLECTION).find(
+                    Actinium.Utils.MasterOptions(),
+                )
+            ).map(Actinium.Utils.serialize),
+            'ID',
+        );
+
+        const objects = [];
+        for (const cached of pluginCache) {
+            const { ID, version } = cached;
+            const versionInfo =
+                op.get(cached, 'meta.builtIn') === true
+                    ? 'core'
+                    : op.get(cached, 'version.plugin');
+
+            const existing = op.get(loaded, ID, {});
+
+            // active if existing is active, or if doesn't exist and default plugin setting loaded from file is active.
+            const active =
+                op.get(existing, 'active', op.get(cached, 'active', false)) ===
+                true;
+
+            // Set new active state as early as reasonable for Actinium.Plugin.isActive() usage
+            Actinium.Cache.set(`plugins.${ID}.active`, active);
+
+            BOOT(
+                chalk.cyan('  Plugin') +
+                    (active ? chalk.green('↑') : chalk.yellow('↓')),
+                chalk.cyan('→'),
+                chalk.magenta(ID),
+                chalk.bold.white(versionInfo && `(${versionInfo})`),
+            );
+
+            let objData = {
+                ...existing,
+                ...cached,
+                active,
+                meta: {
+                    ...op.get(existing, 'meta', {}),
+                    ...op.get(cached, 'meta', {}),
+                },
+                version: op.get(version, 'plugin'),
+            };
+
+            const { objectId, ACL, createdAt, updatedAt, ...merged } = objData;
+
+            const obj = new Parse.Object(COLLECTION);
+            if (objectId) obj.id = objectId;
+            Object.entries(merged).forEach(([key, value]) =>
+                obj.set(key, value),
+            );
+
+            await Actinium.Hook.run(
+                'plugin-before-save',
+                objData,
+                obj,
+                existing,
+                cached,
+            );
+            objects.push(obj);
+        }
+
+        const plugins = {};
+
+        for (const obj of objects) {
+            try {
+                const saved = await obj.save(
+                    null,
+                    Actinium.Utils.MasterOptions(),
                 );
-                const migration = op.get(spec, 'migration', () => {});
-                if (typeof test === 'function') {
-                    const runnable = await test(newVer, oldVer, current);
-                    if (runnable) {
-                        await migration(current, req, old);
+                const item = Actinium.Utils.serialize(saved);
+                plugins[item.ID] = item;
+                Actinium.Cache.set(`plugins.${item.ID}`, item);
+
+                await Actinium.Hook.run('plugin-load', plugins[item.ID]);
+            } catch (error) {
+                ERROR(`Error loading plugin ${obj.get('ID')}`, error);
+            }
+        }
+
+        Actinium.pluginsLoaded = true;
+
+        return Promise.resolve(plugins);
+    };
+
+    Plugable.get = ID =>
+        ID
+            ? Actinium.Cache.get(`plugins.${ID}`)
+            : Actinium.Cache.get('plugins', {});
+
+    Plugable.isActive = ID => Actinium.Cache.get(`plugins.${ID}.active`, false);
+
+    Plugable.isValid = (ID, strict = false) => {
+        const plugin = Plugable.get(ID);
+        return _isValid(plugin, strict);
+    };
+
+    Plugable.gate = async ({ req, ID, name, callback }) => {
+        if (Plugable.isValid(ID, true) !== true) {
+            return Promise.reject(`Plugin: ${ID} is not active.`);
+        }
+
+        return callback(req);
+    };
+
+    Plugable.deactivate = ID =>
+        Parse.Cloud.run(
+            'plugin-deactivate',
+            { plugin: ID },
+            { useMasterKey: true },
+        );
+
+    Plugable.activate = ID =>
+        Parse.Cloud.run(
+            'plugin-activate',
+            { plugin: ID },
+            { useMasterKey: true },
+        );
+
+    Plugable.updateHookHelper = (pluginId, migrations = {}) => {
+        const versions = Object.keys(migrations).sort((a, b) => {
+            if (semver.gt(semver.coerce(a), semver.coerce(b))) return 1;
+            if (semver.gt(semver.coerce(b), semver.coerce(a))) return -1;
+            return 0;
+        });
+
+        return async (current, req, old) => {
+            if (pluginId === current.ID) {
+                const newVer = semver.coerce(op.get(current, 'version'));
+                const oldVer = semver.coerce(op.get(old, 'version'));
+
+                for (const version of versions) {
+                    const spec = migrations[version];
+                    const test = op.get(spec, 'test', () =>
+                        semver.gt(version, oldVer),
+                    );
+                    const migration = op.get(spec, 'migration', () => {});
+                    if (typeof test === 'function') {
+                        const runnable = await test(newVer, oldVer, current);
+                        if (runnable) {
+                            await migration(current, req, old);
+                        }
                     }
                 }
             }
-        }
+        };
     };
+
+    return Plugable;
 };
 
-module.exports = Plugable;
+module.exports = SDK;
 
 /**
  * @api {Object} Actinium.Plugin Plugin

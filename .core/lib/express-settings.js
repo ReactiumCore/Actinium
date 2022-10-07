@@ -1,16 +1,21 @@
 const chalk = require('chalk');
 
-module.exports = {
-    init: (app, opt) => {
-        const options = { ...ENV.EXPRESS_OPTIONS, ...opt };
-        Object.entries(options).forEach(([key, value]) => {
+const SDK = Actinium => {
+    const exp = {};
+
+    exp.init = (app, opt = {}) => {
+        Object.entries(opt).forEach(([key, value]) => {
             app.set(key, value);
-            BOOT(
+            DEBUG(
                 chalk.cyan('  Express'),
                 `${key}`,
                 chalk.cyan('→'),
                 chalk.magenta(value),
             );
         });
-    },
+    };
+
+    return exp;
 };
+
+module.exports = SDK;

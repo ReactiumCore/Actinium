@@ -1,21 +1,21 @@
-const Hook = require('./hook');
 const slugify = require('slugify');
-const op = require('object-path');
 const chalk = require('chalk');
 
-const results = {};
+const SDK = Actinium => {
+    const Harness = {
+        run: async () => {
+            if (
+                process.env.NODE_ENV === 'development' &&
+                ENV.RUN_TEST === true
+            ) {
+                BOOT(' ');
+                BOOT(chalk.cyan('Test Runner:'));
 
-const Harness = {
-    run: async () => {
-        if (process.env.NODE_ENV === 'development' && ENV.RUN_TEST === true) {
-            BOOT(' ');
-            BOOT(chalk.cyan('Test Runner:'));
+                await Actinium.Hook.run('tests');
+            }
+        },
 
-            const response = await Hook.run('tests');
-        }
-    },
-
-    /**
+        /**
  * @api {Function} Harness.test(description,cb,setup,teardown) Harness.test()
  * @apiVersion 3.1.2
  * @apiGroup Actinium
@@ -55,47 +55,50 @@ Actinium.Harness.test('My Test', async assert => {
 }, setup, teardown);
 
  */
-    test: async (description, cb, setup, teardown, order = 100) => {
-        const desc = slugify(description);
-        const assert = require('assert');
+        test: async (description, cb, setup, teardown, order = 100) => {
+            const desc = slugify(description);
+            const assert = require('assert');
 
-        Hook.register(
-            'tests',
-            async context => {
-                try {
-                    if (typeof setup === 'function') {
-                        await setup();
-                    }
+            Actinium.Hook.register(
+                'tests',
+                async context => {
+                    try {
+                        if (typeof setup === 'function') {
+                            await setup();
+                        }
 
-                    context[desc] = await cb(assert);
-                    BOOT(
-                        ' ',
-                        chalk.cyan('Test'),
-                        chalk.cyan('→'),
-                        chalk.magenta(description),
-                        chalk.green.bold('[OK]'),
-                    );
+                        context[desc] = await cb(assert);
+                        BOOT(
+                            ' ',
+                            chalk.cyan('Test'),
+                            chalk.cyan('→'),
+                            chalk.magenta(description),
+                            chalk.green.bold('[OK]'),
+                        );
 
-                    if (typeof teardown === 'function') {
-                        await teardown();
+                        if (typeof teardown === 'function') {
+                            await teardown();
+                        }
+                    } catch (error) {
+                        if (typeof teardown === 'function') {
+                            await teardown();
+                        }
+                        BOOT(
+                            ' ',
+                            chalk.cyan('Test'),
+                            chalk.cyan('→'),
+                            chalk.magenta(description),
+                            chalk.red.bold('[FAIL]'),
+                        );
+                        DEBUG(error);
                     }
-                } catch (error) {
-                    if (typeof teardown === 'function') {
-                        await teardown();
-                    }
-                    BOOT(
-                        ' ',
-                        chalk.cyan('Test'),
-                        chalk.cyan('→'),
-                        chalk.magenta(description),
-                        chalk.red.bold('[FAIL]'),
-                    );
-                    DEBUG(error);
-                }
-            },
-            order,
-        );
-    },
+                },
+                order,
+            );
+        },
+    };
+
+    return Harness;
 };
 
-module.exports = Harness;
+module.exports = SDK;

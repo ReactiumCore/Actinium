@@ -1,9 +1,11 @@
 const morgan = require('morgan');
 
-Actinium.Middleware.register('morgan', app => {
-    if (process.env.NODE_ENV !== 'development') {
-        app.use(morgan('combined'));
-    }
+module.exports = Actinium => {
+    Actinium.Middleware.register('morgan', app => {
+        if (process.env.NODE_ENV !== 'development') {
+            app.use(morgan('combined'));
+        }
 
-    return Promise.resolve();
-});
+        return Promise.resolve();
+    });
+};
