@@ -74,7 +74,7 @@
         "object-path": "^0.11.8",
         "parse": "^3.4.4",
         "parse-dashboard": "^4.1.4",
-        "parse-server": "^4.10.4",
+        "parse-server": "^5.2.7",
         "pluralize": "^8.0.0",
         "promise": "^8.1.0",
         "request": "^2.88.2",
