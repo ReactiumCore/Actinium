@@ -134,7 +134,7 @@
         "@atomic-reactor/actinium-roles": "1.0.7",
         "@atomic-reactor/actinium-route": "1.0.7",
         "@atomic-reactor/actinium-search": "1.0.7",
-        "@atomic-reactor/actinium-settings": "1.0.9",
+        "@atomic-reactor/actinium-settings": "1.0.11",
         "@atomic-reactor/actinium-shortcodes": "1.0.8",
         "@atomic-reactor/actinium-syndicate": "1.0.7",
         "@atomic-reactor/actinium-syndicate-client": "1.0.7",
