@@ -170,6 +170,24 @@ Roles.load = (options = { useMasterKey }) =>
         },
     });
 
+Roles.User.getMany = (users = []) => {
+    const byUser = users.reduce((init, user) => {
+        init[user.id || user.objectId] = { anonymous: 0 };
+        return init;
+    }, {});
+
+    const allRoles = Object.values(Roles.get());
+    allRoles.forEach(role => {
+        const { users = {}, name, level } = role;
+        Object.values(users).forEach(user => {
+            const id = user.id || user.objectId;
+            if (id in byUser) byUser[id][name] = level;
+        });
+    });
+
+    return byUser;
+};
+
 Roles.User.get = search => {
     return _.chain(
         Object.values(Roles.get()).filter(({ users = {} }) => {

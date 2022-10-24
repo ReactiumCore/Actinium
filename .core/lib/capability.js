@@ -105,8 +105,8 @@ const User = Capability => ({
      * @apiExample Example Usage
     Actinium.Capability.User.get(req.user);
      */
-    get: user => {
-        const userRoles = Capability.User.roles(user);
+    get: (user, passedRoles) => {
+        const userRoles = passedRoles || Capability.User.roles(user);
         const caps = _.sortBy(
             Capability.get().filter(cap => {
                 // Super Admin bi-pass.
@@ -130,6 +130,32 @@ const User = Capability => ({
         );
 
         return caps;
+    },
+
+    getMany: (users = [], passedRoles) => {
+        const allUserRoles = passedRoles || Actinium.Roles.User.getMany(users);
+        const allUserCaps = {};
+        Capability.get().forEach(cap => {
+            const granted = Capability.granted(cap.group);
+            users.forEach(user => {
+                const id = user.id || user.objectId;
+                const userRoles = Object.keys(allUserRoles[id]);
+                const caps = op.get(allUserCaps, id, []);
+
+                if (
+                    userRoles.includes('super-admin') ||
+                    (userRoles.includes('administrator') &&
+                        !Capability.restricted(cap.group, 'administrator')) ||
+                    _.intersection(userRoles, granted).length > 0
+                ) {
+                    caps.push(cap);
+                    op.set(allUserCaps, id, caps);
+                    return true;
+                }
+            });
+        });
+
+        return allUserCaps;
     },
 
     roles: user => {
@@ -412,7 +438,7 @@ class Capability {
         }
 
         if (role && !_.isString(role)) {
-            throw new Error('role must boe of type String');
+            throw new Error('role must be of type String');
         }
 
         let cap = this.get(capability) || {};
