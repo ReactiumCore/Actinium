@@ -3,8 +3,8 @@
  * @type {Object}
  */
 module.exports = {
-    version: '3.7.22',
-    semver: '^3.0.0',
+    version: '3.8.0',
+    semver: '^3.8.0',
     update: {
         package: {
             dependencies: {

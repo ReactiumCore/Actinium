@@ -1,6 +1,6 @@
 {
-    "name": "Actinium",
-    "version": "3.7.22",
+    "name": "actinium",
+    "version": "3.8.0",
     "author": "Reactium LLC",
     "scripts": {
         "start": "node ./src/index.js",
@@ -89,7 +89,7 @@
         "uuid": "^3.3.3"
     },
     "devDependencies": {
-        "@atomic-reactor/cli": "^2.2.77",
+        "@atomic-reactor/cli": "^3.0.1",
         "clipboardy": "^2.3.0",
         "eslint": "^5.13.0",
         "husky": "^3.0.9",
