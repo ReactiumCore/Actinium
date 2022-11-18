@@ -1,15 +1,16 @@
-const op = require('object-path');
-const _ = require('underscore');
-const uuidv5 = require('uuid/v5');
-const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
-const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+import _ from 'underscore';
+import op from 'object-path';
+import Hook from '../hook.js';
+import { v5 as uuidv5 } from 'uuid';
+import { Registry, serialize, slugify } from '../utils/index.js';
 
-const {
+
+import {
     PLUGIN,
     STATUS,
     UNINSTALLED_NAMESPACE,
     DEFAULT_TYPE_REGISTRY,
-} = require('./enums');
+} from './enums.js';
 
 const COLLECTION = PLUGIN.ID;
 
@@ -102,7 +103,7 @@ Type.create = async (params, options) => {
     const saved = await contentType.save(null, options);
     const savedObj = serialize(saved);
 
-    await Actinium.Hook.run('type-saved', savedObj);
+    await Hook.run('type-saved', savedObj);
 
     return savedObj;
 };
@@ -176,7 +177,7 @@ Type.update = async (params, options) => {
     const saved = await contentType.save(null, options);
     const savedObj = serialize(saved);
 
-    await Actinium.Hook.run('type-saved', savedObj);
+    await Hook.run('type-saved', savedObj);
     return savedObj;
 };
 
@@ -215,7 +216,7 @@ Type.delete = async (params, options) => {
 
     Actinium.Cache.del('types');
 
-    await Actinium.Hook.run('type-deleted', typeObj);
+    await Hook.run('type-deleted', typeObj);
     return trash;
 };
 
@@ -267,7 +268,7 @@ Type.retrieve = async (params, options) => {
         op.set(result, 'schema', schema);
     }
 
-    await Actinium.Hook.run('type-retrieved', result);
+    await Hook.run('type-retrieved', result);
     return result;
 };
 
@@ -288,7 +289,7 @@ Type.retrieve = async (params, options) => {
  * @apiName Type.getCollection
  * @apiGroup Actinium
  */
-Type.getCollection = async params => {
+Type.getCollection = async (params) => {
     const typeObj = await Actinium.Type.retrieve(
         params,
         Actinium.Utils.MasterOptions(),
@@ -379,7 +380,7 @@ Type.list = async (params = {}, options) => {
             }
         }
 
-        types = types.map(contentType => serialize(contentType));
+        types = types.map((contentType) => serialize(contentType));
 
         // Get schema if specified
         if (op.get(params, 'schema') === true) {
@@ -406,7 +407,7 @@ Type.list = async (params = {}, options) => {
         types,
     };
 
-    await Actinium.Hook.run('type-list', list);
+    await Hook.run('type-list', list);
 
     return Promise.resolve(list);
 };
@@ -469,7 +470,7 @@ Type.validateFields = (fields = {}, regions = {}) => {
     }, true);
 };
 
-Type.saveSchema = async type => {
+Type.saveSchema = async (type) => {
     // ignore malformed types
     if (
         type.machineName === 'undefined' ||
@@ -515,7 +516,7 @@ Type.saveSchema = async type => {
         .uniq()
         .compact()
         .value()
-        .forEach(status =>
+        .forEach((status) =>
             Actinium.Capability.register(
                 `${type.collection}.setstatus-${status}`,
                 { allowed: ['contributor', 'moderator'] },
@@ -531,7 +532,7 @@ Type.saveSchema = async type => {
     });
 };
 
-Type[DEFAULT_TYPE_REGISTRY] = new Actinium.Utils.Registry('machineName');
+Type[DEFAULT_TYPE_REGISTRY] = new Registry('machineName');
 Type.register = async (typeTemplate = {}) => {
     const type = op.get(typeTemplate, 'type');
     const machineName = op.get(typeTemplate, 'machineName');
@@ -563,7 +564,7 @@ Type.register = async (typeTemplate = {}) => {
     });
 };
 
-const ensurePublisher = async typeObj => {
+const ensurePublisher = async (typeObj) => {
     if (!op.has(typeObj, 'fields.publisher')) {
         op.set(typeObj, 'fields.publisher', {
             fieldId: 'publisher',
@@ -576,14 +577,14 @@ const ensurePublisher = async typeObj => {
     }
 };
 
-Actinium.Hook.register('type-retrieved', async typeObj => {
+Hook.register('type-retrieved', async (typeObj) => {
     await ensurePublisher(typeObj);
 });
 
-Actinium.Hook.register('type-list', async result => {
+Hook.register('type-list', async (result) => {
     for (const typeObj of result.types) {
         await ensurePublisher(typeObj);
     }
 });
 
-module.exports = Type;
+export default Type;

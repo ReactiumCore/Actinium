@@ -1,11 +1,15 @@
-const path = require('path');
-const chalk = require('chalk');
-const moment = require('moment');
-const op = require('object-path');
-const fs = require('fs-extra');
-const Enums = require('./lib/enums');
-const Registry = require('./lib/utils/registry');
-const ACTINIUM_CONFIG = require('./actinium-config');
+import fs from 'fs-extra'; 
+import chalk from 'chalk'; 
+import path from 'node:path'; 
+import op from 'object-path';
+import baseENV from './boot.js';
+import Enums from './lib/enums.js';
+import moment from 'moment/moment.js';
+import {fileURLToPath} from 'node:url';
+import Registry from './lib/utils/registry.js';
+import ACTINIUM_CONFIG from './actinium-config.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const stringToBoolean = val => {
     if (typeof val === 'string') {
@@ -28,7 +32,7 @@ global.ACTINIUM_CONFIG = ACTINIUM_CONFIG;
 global.BASE_DIR = path.normalize(path.resolve(path.join(__dirname, '..')));
 global.SRC_DIR = path.normalize(path.resolve(path.join(BASE_DIR, 'src')));
 global.APP_DIR = path.normalize(path.resolve(path.join(SRC_DIR, 'app')));
-global.ENV = require(`${BASE_DIR}/.core/boot`).environment;
+global.ENV = baseENV.environment;
 global.PORT = ENV.PORT;
 global.ACTINIUM_DIR = __dirname;
 global.CLOUD_FUNCTIONS = [];

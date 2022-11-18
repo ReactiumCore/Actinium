@@ -1,10 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const chalk = require('chalk');
-const _ = require('underscore');
-const op = require('object-path');
-const globby = require('./globby-patch').sync;
-const ActionSequence = require('action-sequence');
+import fs from 'fs';
+import chalk from 'chalk';
+import _ from 'underscore';
+import op from 'object-path';
+import ActionSequence from 'action-sequence';
+import { globbySync as globby } from './globby-patch.js';
 
 const matches = [
     'Actinium.Middleware.register',
@@ -39,7 +38,7 @@ const mw = {
     replacements: {},
 };
 
-const isMiddleware = fileContent =>
+const isMiddleware = (fileContent) =>
     matches.reduce((valid, match) => {
         if (valid !== true && String(fileContent).includes(match) === true) {
             valid = true;
@@ -47,12 +46,14 @@ const isMiddleware = fileContent =>
         return valid;
     }, false);
 
-mw.init = app => {
+mw.init = async (app) => {
     app = app || Actinium.app;
 
-    globby(ENV.GLOB_MIDDLEWARE)
-        .filter(file => isMiddleware(fs.readFileSync(file, 'utf8')))
-        .forEach(file => require(file));
+    await Promise.all(
+        globby(ENV.GLOB_MIDDLEWARE)
+            .filter((file) => isMiddleware(fs.readFileSync(file, 'utf8')))
+            .map((file) => import(file)),
+    );
 
     const sorted = _.sortBy(mw.sort, 'order');
     const actions = sorted.reduce((acts, { callback = noop, id }) => {
@@ -82,7 +83,7 @@ mw.init = app => {
     }
 
     // Unregister
-    _.uniq(mw.unregistered).forEach(id => op.del(actions, id));
+    _.uniq(mw.unregistered).forEach((id) => op.del(actions, id));
 
     if (mw.unregistered.length > 0) {
         BOOT(
@@ -120,11 +121,11 @@ mw.registerHook = (...params) => {
     ];
 
     if (typeof path === 'string') args = [path, ...args];
-    mw.register(id, app => app.use(...args), order);
+    mw.register(id, (app) => app.use(...args), order);
 };
 
 mw.replace = (id, callback) => op.set(mw.replacements, id, callback);
 
-mw.unregister = id => mw.unregistered.push(id);
+mw.unregister = (id) => mw.unregistered.push(id);
 
-module.exports = mw;
+export default mw;

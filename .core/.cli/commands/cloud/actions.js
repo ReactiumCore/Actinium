@@ -1,21 +1,17 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const op = require('object-path');
-const zip = require('folder-zipper');
-const homedir = require('os').homedir();
-const handlebars = require('handlebars').compile;
+export default (spinner) => {
+    const { cwd } = arcli.props;
+    const { fileURLToPath, fs, handlebars, homedir, path, zip } = arcli;
 
-module.exports = spinner => {
-    const message = text => {
+    const message = (text) => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
     return {
-        backup: ({ action, params, props }) => {
-            const { cwd } = props;
+        backup: ({ action, params }) => {
             const { destination } = params;
 
             const name = destination.replace(cwd, '').replace(/\//g, '-');
@@ -41,8 +37,7 @@ module.exports = spinner => {
             });
         },
 
-        create: ({ action, params, props }) => {
-            const { cwd } = props;
+        create: ({ action, params }) => {
             const { destination, overwrite } = params;
 
             const actionType = overwrite === true ? 'overwritting' : 'creating';
@@ -53,12 +48,12 @@ module.exports = spinner => {
 
             // Template content
             const template = path.normalize(`${__dirname}/template/cloud.hbs`);
-            const content = handlebars(fs.readFileSync(template, 'utf-8'))(
-                params,
-            );
+            const content = handlebars.compile(
+                fs.readFileSync(template, 'utf-8'),
+            )(params);
 
             return new Promise((resolve, reject) => {
-                fs.writeFile(destination, content, error => {
+                fs.writeFile(destination, content, (error) => {
                     if (error) {
                         reject(error.Error);
                     } else {

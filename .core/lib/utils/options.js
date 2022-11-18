@@ -1,9 +1,8 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const op = require('object-path');
+import _ from 'underscore';
+import semver from 'semver';
+import op from 'object-path';
 
-const isLevel = match => {
+export const isLevel = (match) => {
     match = String(match);
     return (
         match.includes('>') ||
@@ -14,13 +13,13 @@ const isLevel = match => {
     );
 };
 
-const levelCheck = (level, match) => {
+export const levelCheck = (level, match) => {
     level = semver.coerce(String(level));
     match = String(match);
     return isLevel(match) && semver.satisfies(level, match);
 };
 
-const userMeetsLevel = (userId, match) => {
+export const userMeetsLevel = (userId, match) => {
     const roles = Actinium.Roles.User.get(userId);
     return levelCheck(_.max(Object.values(roles)), match);
 };
@@ -36,7 +35,7 @@ const userMeetsLevel = (userId, match) => {
  * @apiName Utils.CloudRunOptions
  * @apiGroup Actinium
  */
-const CloudRunOptions = (req, match = null) => {
+export const CloudRunOptions = (req, match = null) => {
     const { user, master } = req;
     const options = {};
 
@@ -75,7 +74,7 @@ const CloudRunOptions = (req, match = null) => {
  * @apiName Utils.MasterOptions
  * @apiGroup Actinium
  */
-const MasterOptions = (options = {}) => {
+export const MasterOptions = (options = {}) => {
     return {
         ...options,
         useMasterKey: true,
@@ -90,7 +89,7 @@ const MasterOptions = (options = {}) => {
  * @apiName Utils.CloudMasterOptions
  * @apiGroup Actinium
  */
-const CloudMasterOptions = req => {
+export const CloudMasterOptions = (req) => {
     return MasterOptions(CloudRunOptions(req));
 };
 
@@ -106,7 +105,7 @@ const CloudMasterOptions = req => {
  * @apiName Utils.CloudHasCapabilities
  * @apiGroup Actinium
  */
-const CloudHasCapabilities = (req, capability, strict = true) => {
+export const CloudHasCapabilities = (req, capability, strict = true) => {
     const { master } = req;
 
     // if no capabilities specified, deny
@@ -163,7 +162,12 @@ Actinium.Cloud.define('MyPlugin', 'do-something-privileged', async req => {
     return query.find(options);
 })
  */
-const CloudCapOptions = (req, capability, strict = false, match = null) => {
+export const CloudCapOptions = (
+    req,
+    capability,
+    strict = false,
+    match = null,
+) => {
     const options = CloudRunOptions(req, (match = null));
     if (options.useMasterKey) return options;
 
@@ -181,7 +185,7 @@ const CloudCapOptions = (req, capability, strict = false, match = null) => {
  * @apiName Utils.UserFromSession
  * @apiGroup Actinium
  */
-const UserFromSession = async sessionToken => {
+export const UserFromSession = async (sessionToken) => {
     sessionToken =
         typeof sessionToken === 'object'
             ? op.get(sessionToken, 'sessionToken')
@@ -193,16 +197,4 @@ const UserFromSession = async sessionToken => {
         .first({ useMasterKey: true });
 
     return session ? session.get('user') : null;
-};
-
-module.exports = {
-    isLevel,
-    levelCheck,
-    userMeetsLevel,
-    CloudRunOptions,
-    MasterOptions,
-    CloudMasterOptions,
-    CloudHasCapabilities,
-    CloudCapOptions,
-    UserFromSession,
 };

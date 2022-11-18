@@ -1,5 +1,5 @@
-const op = require('object-path');
-const serialize = require('./serialize');
+import op from 'object-path';
+import serialize from './serialize.js';
 
 /**
  * @apiDefine HookedRetrieve
@@ -11,7 +11,7 @@ const serialize = require('./serialize');
  * @apiParam (params) {String} [outputType=JSON]
  */
 
-module.exports = async (
+export default async (
     params,
     options,
     collection,

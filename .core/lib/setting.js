@@ -1,19 +1,11 @@
-const path = require('path');
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const op = require('object-path');
-const config = require(`${BASE_DIR}/.core/actinium-config`);
-
-const {
-    CloudCapOptions,
-    CloudHasCapabilities,
-    Registry,
-} = require(`${ACTINIUM_DIR}/lib/utils`);
+import _ from 'underscore';
+import op from 'object-path';
+import Cache from './cache.js';
+import { CloudHasCapabilities, Registry } from './utils/index.js';
 
 const COLLECTION = 'Setting';
 
-Actinium.Cache.set('setting', ENV.SETTINGS);
+Cache.set('setting', ENV.SETTINGS);
 
 const Setting = {};
 
@@ -91,7 +83,7 @@ Setting.get = async (key, defaultValue, options) => {
 
     if (!group) return Setting.load();
 
-    const cached = Actinium.Cache.get(`setting.${key}`);
+    const cached = Cache.get(`setting.${key}`);
 
     if (typeof cached !== 'undefined') return cached;
 
@@ -108,11 +100,7 @@ Setting.get = async (key, defaultValue, options) => {
         return op.get(result, settingPath, defaultValue);
     }
 
-    Actinium.Cache.set(
-        `setting.${key}`,
-        result,
-        Actinium.Enums.cache.dataLoading,
-    );
+    Cache.set(`setting.${key}`, result, Actinium.Enums.cache.dataLoading);
 
     return typeof obj === 'undefined' ? defaultValue : obj;
 };
@@ -131,7 +119,7 @@ Actinium.Setting.unset('site.title');
 // remove the entire site setting group, including all settings and the capabilities associated
 Actinium.Setting.unset('site');
  */
-Setting.unset = key => {
+Setting.unset = (key) => {
     const options = Actinium.Utils.MasterOptions();
 
     return key.split('.').length > 0
@@ -161,7 +149,7 @@ Setting.list = async (req = {}, fullAccess) => {
     fullAccess =
         fullAccess || CloudHasCapabilities(req, `${COLLECTION}.retrieve`);
     while (results.length > 0) {
-        results.forEach(item => {
+        results.forEach((item) => {
             const { key, value } = item.toJSON();
             if (
                 key &&
@@ -177,9 +165,9 @@ Setting.list = async (req = {}, fullAccess) => {
         results = await qry.find({ useMasterKey: true });
     }
 
-    Actinium.Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
+    Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
 
     return output;
 };
 
-module.exports = Setting;
+export default Setting;

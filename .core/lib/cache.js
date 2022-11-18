@@ -1,7 +1,7 @@
-const memory = require('memory-cache');
-const op = require('object-path');
-const moment = require('moment');
-const _ = require('underscore');
+import memory from 'memory-cache';
+import op from 'object-path';
+import moment from 'moment';
+import _ from 'underscore';
 
 const getKeyRoot = key => {
     const k = String(key).split('.')[0];
@@ -99,4 +99,4 @@ cache.merge = (values, options) => {
 
 cache.set = cache.put;
 
-module.exports = cache;
+export default cache;

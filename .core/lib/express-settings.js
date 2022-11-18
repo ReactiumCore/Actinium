@@ -1,6 +1,6 @@
-const chalk = require('chalk');
+import chalk from 'chalk';
 
-module.exports = {
+export default {
     init: (app, opt) => {
         const options = { ...ENV.EXPRESS_OPTIONS, ...opt };
         Object.entries(options).forEach(([key, value]) => {

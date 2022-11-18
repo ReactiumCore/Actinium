@@ -3,14 +3,9 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import GENERATOR from './generator.js';
 
-const chalk = require('chalk');
-const prettier = require('prettier');
-const path = require('path');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR = require('./generator');
+const { chalk, message, op, prettier } = arcli;
 
 /**
  * NAME String
@@ -57,7 +52,7 @@ const CONFIRM = ({ props, params, msg }) => {
                         required: true,
                         pattern: /^y|n|Y|N/,
                         message: ` `,
-                        before: val => {
+                        before: (val) => {
                             return String(val).toUpperCase() === 'Y';
                         },
                     },
@@ -173,7 +168,7 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
+    const { prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
 
@@ -201,10 +196,8 @@ const ACTION = ({ opt, props }) => {
         .then(() => CONFIRM({ props, params }))
         .then(() => GENERATOR({ params, props }))
         .then(() => prompt.stop())
-        .then(results => {
-            console.log('');
-        })
-        .catch(err => {
+        .then(() => console.log(''))
+        .catch((err) => {
             prompt.stop();
             message(op.get(err, 'message', CANCELED));
         });
@@ -218,7 +211,7 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option('-u, --url [url]', 'Database URL')
         .option('-r, --remote [remote]', 'Update remote env file.')
         .option('-d, --dev [dev]', 'Update development env file.')
@@ -231,7 +224,7 @@ const COMMAND = ({ program, props }) =>
  * @param props Object The CLI props passed from the calling class `arcli.js`.
  * @since 2.0.0
  */
-module.exports = {
+export {
     COMMAND,
     NAME,
 };

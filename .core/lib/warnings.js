@@ -1,8 +1,8 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const op = require('object-path');
+import chalk from 'chalk';
+import _ from 'underscore';
+import op from 'object-path';
 
-module.exports = {
+export default {
     run: (...params) => {
         if (!ENV.NO_PARSE) {
             if (

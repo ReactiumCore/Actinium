@@ -1,15 +1,15 @@
-const isSDK = require('./isSDK');
-const slugify = require('./slugify');
-const FileAPI = require('./file-api');
-const Registry = require('./registry');
-const serialize = require('./serialize');
-const hookedSave = require('./hookedSave');
-const hookedQuery = require('./hookedQuery');
-const { CloudACL, AclTargets } = require('./acl');
-const hookedRetrieve = require('./hookedRetrieve');
-const { getCallStack, getCallerFile } = require('./stack');
+import isSDK from './isSDK.js';
+import slugify from './slugify.js';
+import * as FileAPI from './file-api.js';
+import Registry from './registry.js';
+import serialize from './serialize.js';
+import hookedSave from './hookedSave.js';
+import hookedQuery from './hookedQuery.js';
+import hookedRetrieve from './hookedRetrieve.js';
+import { CloudACL, AclTargets } from './acl.js';
+import { getCallStack, getCallerFile } from './stack.js';
 
-const {
+import {
     CloudRunOptions,
     CloudCapOptions,
     CloudHasCapabilities,
@@ -17,9 +17,9 @@ const {
     CloudMasterOptions,
     UserFromSession,
     userMeetsLevel,
-} = require('./options');
+} from './options.js';
 
-module.exports = {
+export {
     AclTargets,
     CloudRunOptions,
     CloudCapOptions,

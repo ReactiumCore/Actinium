@@ -1,7 +1,7 @@
-const _ = require('underscore');
-const op = require('object-path');
+import _ from 'underscore';
+import op from 'object-path';
 
-module.exports = async (params, options, collection) => {
+export default async (params, options, collection) => {
     const outputType = op.get(params, 'outputType', 'JSON');
 
     op.del(params, 'outputType');

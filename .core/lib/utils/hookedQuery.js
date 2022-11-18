@@ -1,6 +1,6 @@
-const _ = require('underscore');
-const op = require('object-path');
-const serialize = require('./serialize');
+import _ from 'underscore';
+import op from 'object-path';
+import serialize from './serialize.js';
 
 /**
  * @apiDefine HookedQuery
@@ -19,7 +19,7 @@ const serialize = require('./serialize');
  * @apiParam (params) {String} [outputType=JSON]
  */
 
-module.exports = async (
+export default async (
     params = {},
     options = {},
     collection,

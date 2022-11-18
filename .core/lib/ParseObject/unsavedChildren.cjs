@@ -1,5 +1,3 @@
-'use strict';
-
 var _ParseFile = Parse.File;
 
 var _ParseObject = Parse.Object;

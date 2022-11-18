@@ -1,18 +1,18 @@
-const chalk = require('chalk');
-const CONFIRM = require('./confirm');
-const { parseCaps } = require('./parsers');
+import CONFIRM from './confirm.js';
+import { parseCaps } from './parsers.js';
+
+const { chalk, prefix } = arcli; 
 
 const ROUTE = ({ inquirer }, params = {}, count = 0) => {
     count += 1;
-    const prefix = arcli.prefix;
-    const validate = val => !!val;
+    const validate = (val) => !!val;
     const suffix = chalk.magenta(': ');
 
     console.log('');
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, '------------------------------');
     // prettier-ignore
-    console.log(arcli.prefix, chalk.bold('Route'), chalk.bold.magenta(count));
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, chalk.bold('Route'), chalk.bold.magenta(count));
+    console.log(prefix, '------------------------------');
 
     return inquirer.prompt(
         [
@@ -38,7 +38,7 @@ const ROUTE = ({ inquirer }, params = {}, count = 0) => {
                 type: 'input',
                 name: 'capabilities',
                 message: 'Capabilities',
-                filter: input => JSON.stringify(parseCaps(input)),
+                filter: (input) => JSON.stringify(parseCaps(input)),
             },
             {
                 prefix,
@@ -95,4 +95,4 @@ const ROUTES = async (props, params) => {
     return { routes };
 };
 
-module.exports = ROUTES;
+export default ROUTES;

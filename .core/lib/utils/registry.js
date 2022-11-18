@@ -1,6 +1,6 @@
-const _ = require('underscore');
-const uuid = require('uuid/v4');
-const op = require('object-path');
+import _ from 'underscore'; 
+import op from 'object-path';
+import { v4 as uuid } from 'uuid'; 
 
 /**
  * @api {Object} Registry Registry
@@ -201,4 +201,4 @@ Registry.MODES = {
     HISTORY: 'HISTORY',
 };
 
-module.exports = Registry;
+export default Registry;

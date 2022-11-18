@@ -1,21 +1,15 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const op = require('object-path');
-const { CloudHasCapabilities } = require('./options');
+import _ from 'underscore';
+import op from 'object-path';
+import { CloudHasCapabilities } from './options.js';
 
-const AclTargets = async req => {
+export const AclTargets = async (req) => {
     if (!CloudHasCapabilities(req, ['acl-targets']))
         throw new Error('Permission denied');
 
     let { cache, fresh, search } = req.params;
-    search = search
-        ? String(search)
-              .toLowerCase()
-              .trim()
-        : search;
+    search = search ? String(search).toLowerCase().trim() : search;
 
-    const mapUser = user => {
+    const mapUser = (user) => {
         const fields = ['objectId', 'username', 'email', 'fname', 'lname'];
         return fields.reduce((u, field) => {
             const val = op.get(user, field);
@@ -24,7 +18,7 @@ const AclTargets = async req => {
         }, {});
     };
 
-    const mapRole = role => {
+    const mapRole = (role) => {
         const fields = ['objectId', 'name', 'label'];
         return fields.reduce((r, field) => {
             const val = op.get(role, field);
@@ -34,7 +28,7 @@ const AclTargets = async req => {
     };
 
     const filterUsers = (users, search) =>
-        users.filter(user => {
+        users.filter((user) => {
             const username = String(op.get(user, 'username')).toLowerCase();
 
             const email = String(op.get(user, 'email')).toLowerCase();
@@ -43,12 +37,7 @@ const AclTargets = async req => {
                 [op.get(user, 'fname'), op.get(user, 'lname')].join(' '),
             ).toLowerCase();
 
-            const lastname = String(
-                firstname
-                    .split(' ')
-                    .reverse()
-                    .join(' '),
-            );
+            const lastname = String(firstname.split(' ').reverse().join(' '));
 
             return Boolean(
                 !search ||
@@ -63,7 +52,7 @@ const AclTargets = async req => {
         _.chain([roles])
             .flatten()
             .compact()
-            .filter(role => {
+            .filter((role) => {
                 const name = String(op.get(role, 'name')).toLowerCase();
                 const label = String(op.get(role, 'label')).toLowerCase();
 
@@ -88,7 +77,7 @@ const AclTargets = async req => {
         Object.values(Actinium.Cache.get('roles', {})),
         'level',
     )
-        .map(role => mapRole(role))
+        .map((role) => mapRole(role))
         .reverse();
 
     let qry;
@@ -101,7 +90,7 @@ const AclTargets = async req => {
         // Create user queries
         const regex = new RegExp(search, 'gi');
         const fields = ['username', 'email', 'fname', 'lname'];
-        const queries = fields.map(fld =>
+        const queries = fields.map((fld) =>
             new Parse.Query('_User').matches(fld, regex),
         );
 
@@ -119,7 +108,7 @@ const AclTargets = async req => {
     let results = await qry.find(options);
 
     while (results.length > 0) {
-        results = results.map(item => mapUser(item.toJSON()));
+        results = results.map((item) => mapUser(item.toJSON()));
         users = users.concat(results);
 
         if (results.length === 1000) {
@@ -198,7 +187,7 @@ const AclTargets = async req => {
 });
  * 
  */
-const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
+export const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     if (!groupACL || !(groupACL instanceof Parse.ACL)) {
         groupACL = new Parse.ACL(groupACL);
     }
@@ -218,7 +207,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     let readRoles = [];
     if (readCap) {
         readRoles = _.compact(
-            Actinium.Capability.granted(readCap).map(name =>
+            Actinium.Capability.granted(readCap).map((name) =>
                 op.get(allRoles, name),
             ),
         );
@@ -227,7 +216,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     let writeRoles = [];
     if (writeCap) {
         writeRoles = _.compact(
-            Actinium.Capability.granted(writeCap).map(name =>
+            Actinium.Capability.granted(writeCap).map((name) =>
                 op.get(allRoles, name),
             ),
         );
@@ -238,7 +227,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     const readPerms = _.groupBy(op.get(permission, 'read', []), 'type');
 
     // public read
-    op.get(readPerms, 'public', []).forEach(publicAccess => {
+    op.get(readPerms, 'public', []).forEach((publicAccess) => {
         const allowed = op.has(publicAccess, 'allow')
             ? !!publicAccess.allow
             : true;
@@ -248,7 +237,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     // role read
     op.get(readPerms, 'role', [])
         .concat(readRoles)
-        .forEach(roleObj => {
+        .forEach((roleObj) => {
             if (op.has(roleObj, 'name')) {
                 const allowed = op.has(roleObj, 'allow')
                     ? !!roleObj.allow
@@ -260,7 +249,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
         });
 
     // user read
-    op.get(readPerms, 'user', []).forEach(userObj => {
+    op.get(readPerms, 'user', []).forEach((userObj) => {
         if (op.has(userObj, 'objectId')) {
             const allowed = op.has(userObj, 'allow') ? !!userObj.allow : true;
             groupACL.setReadAccess(userObj.objectId, allowed);
@@ -268,7 +257,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     });
 
     // public write
-    op.get(writePerms, 'public', []).forEach(publicAccess => {
+    op.get(writePerms, 'public', []).forEach((publicAccess) => {
         const allowed = op.has(publicAccess, 'allow')
             ? !!publicAccess.allow
             : true;
@@ -278,7 +267,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     // role write
     op.get(writePerms, 'role', [])
         .concat(writeRoles)
-        .forEach(roleObj => {
+        .forEach((roleObj) => {
             if (op.has(roleObj, 'name')) {
                 const allowed = op.has(roleObj, 'allow')
                     ? !!roleObj.allow
@@ -292,7 +281,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
         });
 
     // user write
-    op.get(writePerms, 'user', []).forEach(userObj => {
+    op.get(writePerms, 'user', []).forEach((userObj) => {
         if (op.has(userObj, 'objectId')) {
             const allowed = op.has(userObj, 'allow') ? !!userObj.allow : true;
             groupACL.setWriteAccess(userObj.objectId, allowed);
@@ -302,7 +291,7 @@ const CloudACL = async (perms = [], readCap, writeCap, groupACL) => {
     return groupACL;
 };
 
-module.exports = {
+export default {
     AclTargets,
     CloudACL,
 };

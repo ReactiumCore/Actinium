@@ -4,25 +4,19 @@
  * -----------------------------------------------------------------------------
  */
 
-const message = arcli.message;
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const op = require('object-path');
-const slugify = require('slugify');
-const camelcase = require('camelcase');
-const generator = require('./generator');
+import generator from './generator.js';
 
-const DEST = require('./utils/dest');
-const ROUTES = require('./utils/routes');
-const CONFIRM = require('./utils/confirm');
-const CONFORM = require('./utils/conform');
-const TOGGLES = require('./utils/toggles');
-const TEXTS = require('./utils/text-inputs');
-const BLUEPRINTS = require('./utils/blueprints');
-const COLLECTIONS = require('./utils/collections');
+import DEST from './utils/dest.js';
+import ROUTES from './utils/routes.js';
+import CONFIRM from './utils/confirm.js';
+import CONFORM from './utils/conform.js';
+import TOGGLES from './utils/toggles.js';
+import TEXTS from './utils/text-inputs.js';
+import BLUEPRINTS from './utils/blueprints.js';
+import COLLECTIONS from './utils/collections.js';
+import { parseArray } from './utils/parsers.js';
 
-const { parseArray } = require('./utils/parsers');
+const { chalk, message, op } = arcli;
 
 const NAME = 'plugin';
 const CANCELED = 'Plugin canceled!';
@@ -61,7 +55,7 @@ const flags = [
     'sdk',
 ];
 
-const PLUGINID = props =>
+const PLUGINID = (props) =>
     props.inquirer.prompt([
         {
             name: 'ID',
@@ -96,7 +90,7 @@ const ACTION = async ({ opt, props }) => {
     Object.entries(texts).forEach(([key, val]) => (params[key] = val));
     params.version = { actinium, plugin, reactium };
 
-    await TOGGLES(props, params).then(values =>
+    await TOGGLES(props, params).then((values) =>
         Object.entries(values).forEach(([key, val]) => (params[key] = val)),
     );
 
@@ -144,7 +138,7 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option(
             '-a, --actiniumVersion [actiniumVersion]',
             'Compatible Actinium semver.',
@@ -164,7 +158,4 @@ const COMMAND = ({ program, props }) =>
         .option('--routes [routes]', 'Include the routes file.')
         .on('--help', HELP);
 
-module.exports = {
-    COMMAND,
-    NAME,
-};
+export { COMMAND, NAME };

@@ -1,14 +1,16 @@
+import chalk from 'chalk';
+import copy from 'clipboardy';
+import coreFeatures from './core-features.js';
+
 Actinium.Hook.register('start', () => {
     if (ENV.FEATURE_GEN) {
-        const chalk = require('chalk');
-        const copy = require('clipboardy');
         const regex = /^[A-Z]/;
 
         copy.writeSync(
             JSON.stringify(
                 Object.keys(Actinium)
                     .sort()
-                    .filter(key => regex.test(key)),
+                    .filter((key) => regex.test(key)),
                 null,
                 2,
             ),
@@ -20,11 +22,9 @@ Actinium.Hook.register('start', () => {
 });
 
 if (ENV.RUN_TEST === true) {
-    const coreFeatures = require('./core-features');
-
     Actinium.Hook.register(
         'init',
-        () => coreFeatures.forEach(ID => FEATURES.register(ID)),
+        () => coreFeatures.forEach((ID) => FEATURES.register(ID)),
         -1000000,
     );
 
@@ -33,10 +33,10 @@ if (ENV.RUN_TEST === true) {
             .map(({ id }) => id)
             .sort()
             .forEach(
-                key =>
+                (key) =>
                     Actinium.Harness.test(
                         `Actinium.${key}`,
-                        assert =>
+                        (assert) =>
                             assert.strictEqual(Actinium.Utils.isSDK(key), true),
                         null,
                         null,

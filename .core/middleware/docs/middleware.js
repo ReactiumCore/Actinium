@@ -1,7 +1,6 @@
-const middleware = [];
-const path = require('path');
-const op = require('object-path');
-const express = require('express');
+import path from 'node:path';
+import op from 'object-path';
+import express from 'express';
 
 Actinium.Middleware.register('docs', app => {
     if (!op.get(ENV, 'NO_DOCS', false)) {

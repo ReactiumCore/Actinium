@@ -1,7 +1,7 @@
-const chalk = require('chalk');
-const op = require('object-path');
-const CONFIRM = require('./confirm');
-const { parseDest, parseID } = require('./parsers');
+import CONFIRM from './confirm.js';
+import { parseDest, parseID } from './parsers.js';
+
+const { chalk, isEmpty, op, prefix } = arcli; 
 
 const CHOICES = id => [
     {
@@ -23,7 +23,6 @@ const CHOICES = id => [
 ];
 
 const DEST = async (props, params) => {
-    const prefix = arcli.prefix;
     const suffix = chalk.magenta(': ');
     const id = parseID(params.ID);
     const choices = CHOICES(id);
@@ -60,9 +59,9 @@ const DEST = async (props, params) => {
         params,
     );
 
-    const isEmpty = arcli.isEmpty(input.destination);
+    const empty = isEmpty(input.destination);
 
-    if (!isEmpty) {
+    if (!empty) {
         const { confirm } = await CONFIRM(props, {
             message:
                 'The destination directory is not empty.\n          Overwrite?',
@@ -73,4 +72,4 @@ const DEST = async (props, params) => {
     return input;
 };
 
-module.exports = DEST;
+export default DEST;

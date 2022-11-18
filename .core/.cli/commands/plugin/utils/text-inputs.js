@@ -1,15 +1,8 @@
-const chalk = require('chalk');
-const op = require('object-path');
-const { parseID } = require('./parsers');
+import actiniumConfig from '../../../../actinium-config.js';
 
-const actiniumConfig = require(arcli.normalizePath(
-    process.cwd(),
-    '.core',
-    'actinium-config.js',
-));
+const { chalk, op, prefix } = arcli; 
 
 const type = 'input';
-const prefix = arcli.prefix;
 const suffix = chalk.magenta(': ');
 const when = (answers, key) => !op.get(answers, key);
 const validate = (input, param) =>
@@ -25,7 +18,7 @@ const TEXTS = (props, params) =>
                 name: 'plugin',
                 default: '1.0.0',
                 message: 'Version',
-                when: answers => when(answers, 'version.plugin'),
+                when: (answers) => when(answers, 'version.plugin'),
             },
             {
                 type,
@@ -34,7 +27,7 @@ const TEXTS = (props, params) =>
                 name: 'actinium',
                 message: 'Compatible Actinium semver',
                 default: `>=${actiniumConfig.version}`,
-                when: answers => when(answers, 'version.actinium'),
+                when: (answers) => when(answers, 'version.actinium'),
             },
             {
                 type,
@@ -43,7 +36,7 @@ const TEXTS = (props, params) =>
                 name: 'reactium',
                 message: 'Compatible Reactium semver',
                 default: '>=4.0.0',
-                when: answers => when(answers, 'version.reactium'),
+                when: (answers) => when(answers, 'version.reactium'),
             },
             {
                 type,
@@ -68,7 +61,7 @@ const TEXTS = (props, params) =>
                 suffix,
                 name: 'name',
                 message: 'Title',
-                validate: input => validate(input, 'Title'),
+                validate: (input) => validate(input, 'Title'),
                 when: () => !params.name || params.name === true,
             },
             {
@@ -91,4 +84,4 @@ const TEXTS = (props, params) =>
         params,
     );
 
-module.exports = TEXTS;
+export default TEXTS;

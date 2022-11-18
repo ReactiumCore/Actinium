@@ -1,6 +1,6 @@
-const path = require('path');
-const chalk = require('chalk');
-const globby = require('globby').sync;
+import path from 'path';
+import chalk from 'chalk';
+import { globbySync as globby } from 'globby';
 
 const Cloud = { ...Parse.Cloud };
 
@@ -9,24 +9,29 @@ Cloud.info = () =>
         BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
     );
 
-Cloud.init = () => {
-    // Load cloud functions
-    global.CLOUD_FUNCTIONS = globby(ENV.GLOB_CLOUD).map(item => {
-        const p = path.normalize(item);
-        const name = String(path.basename(item))
-            .split('.')
-            .shift();
+Cloud.init = async () => {
+    const output = [];
+    const files = globby(ENV.GLOB_CLOUD);
 
-        require(p);
-        return { name };
-    });
+    // Load cloud functions
+    global.CLOUD_FUNCTIONS = await Promise.all(
+        files.map((item) => {
+            const p = path.normalize(item);
+            const name = String(path.basename(item)).split('.').shift();
+
+            output.push({ name });
+
+            return import(p);
+        }),
+    );
+    return output;
 };
 
 Cloud.define = (plugin, name, callback) => {
-    Parse.Cloud.define(name, req =>
+    Parse.Cloud.define(name, (req) =>
         Actinium.Plugin.gate({ req, ID: plugin, name, callback }),
     );
     CLOUD_FUNCTIONS.push({ name });
 };
 
-module.exports = Cloud;
+export default Cloud;

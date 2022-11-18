@@ -1,6 +1,6 @@
-const fs = require('fs-extra');
-const path = require('path');
-const { getArrayBuffer } = require('./utils/file-api');
+import fs from 'fs-extra';
+import path from 'node:path';
+import { getArrayBuffer } from './utils/file-api.js';
 
 class ActiniumFile extends Parse.File {
     constructor(name, data, type) {
@@ -49,4 +49,4 @@ ActiniumFile.create = async (filePath, targetPath = '', targetFileName) => {
     throw new Error(`${filePath} does not exist`);
 };
 
-module.exports = ActiniumFile;
+export default ActiniumFile;

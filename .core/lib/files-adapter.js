@@ -1,11 +1,9 @@
-const Plugin = require('./plugable');
-const Hook = require('./hook');
-const Setting = require('./setting');
-const chalk = require('chalk');
-const {
-    GridFSBucketAdapter,
-} = require('parse-server/lib/Adapters/Files/GridFSBucketAdapter');
-const op = require('object-path');
+import chalk from 'chalk';
+import Hook from './hook.js';
+import op from 'object-path';
+import Enums from './enums.js';
+import { pluginRegister } from './plugable.js';
+import { GridFSBucketAdapter } from 'parse-server/lib/Adapters/Files/GridFSBucketAdapter.js';
 
 class FilesAdapterProxy {
     constructor(config) {
@@ -155,7 +153,7 @@ FilesAdapter.register = (plugin, installer, order) => {
 
     op.set(plugins, plugin.ID, hookId);
 
-    return Plugin.register(plugin);
+    return pluginRegister(plugin);
 };
 
 Hook.register(
@@ -165,7 +163,7 @@ Hook.register(
             await FilesAdapter.update(ID, active);
         }
     },
-    Actinium.Enums.priority.highest,
+    Enums.priority.highest,
 );
 
 Hook.register(
@@ -175,7 +173,7 @@ Hook.register(
             await FilesAdapter.update(ID, active);
         }
     },
-    Actinium.Enums.priority.highest,
+    Enums.priority.highest,
 );
 
 Hook.register(
@@ -185,7 +183,7 @@ Hook.register(
             await FilesAdapter.update(ID, active);
         }
     },
-    Actinium.Enums.priority.highest,
+    Enums.priority.highest,
 );
 
-module.exports = FilesAdapter;
+export default FilesAdapter;

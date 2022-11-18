@@ -1,20 +1,14 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
+export default (spinner) => {
+    let env, fname, pkg;
 
-module.exports = spinner => {
-    const message = text => {
+    const { _, chalk, fs, path, op } = arcli;
+    const { cwd } = arcli.props;
+
+    const message = (text) => {
         if (spinner) {
             spinner.text = text;
         }
     };
-
-    let cwd;
-    let env;
-    let fname;
-    let pkg;
 
     return {
         init: ({ params, props }) => {
@@ -31,11 +25,11 @@ module.exports = spinner => {
                     .replace(/\//g, path.sep),
             );
         },
-        env: ({ params, props }) => {
+        env: async () => {
             message(`Fetching ${chalk.cyan(fname)}...`);
-            pkg = require(env);
+            pkg = await import(env, { assert: { type: 'json' } });
         },
-        update: ({ action, params, props }) => {
+        update: ({ params }) => {
             message(`Updating ${chalk.cyan(fname)}...`);
             const { url } = params;
 

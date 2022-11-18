@@ -1,40 +1,63 @@
-require('./globals');
-
-const http = require('http');
-const https = require('https');
-const chalk = require('chalk');
-const op = require('object-path');
-const express = require('express');
-const config = require('./actinium-config');
-const { ParseServer } = require('parse-server');
+import './globals.js';
+import http from 'node:http';
+import https from 'node:https';
+import chalk from 'chalk';
+import op from 'object-path';
+import express from 'express';
+import config from './actinium-config.js';
+import { ParseServer } from 'parse-server';
+import ActiniumObject from './lib/ParseObject/index.js';
+import ActiniumUser from './lib/user.js';
+import ActiniumHarness from './lib/harness.js';
+import ActiniumEnums from './lib/enums.js';
+import ActiniumExp from './lib/express-settings.js';
+import ActiniumCache from './lib/cache.js';
+import ActiniumFileAdapter from './lib/files-adapter.js';
+import ActiniumFile from './lib/file.js';
+import ActiniumPlugin from './lib/plugable.js';
+import ActiniumSetting from './lib/setting.js';
+import ActiniumRoles from './lib/roles.js';
+import ActiniumCloud from './lib/cloud.js';
+import ActiniumCapabilities from './lib/capability.js';
+import ActiniumHook from './lib/hook.js';
+import ActiniumWarnings from './lib/warnings.js';
+import ActiniumMiddleware from './lib/middleware.js';
+import ActiniumPulse from './lib/pulse.js';
+import ActiniumCollection from './lib/collection.js';
+import * as ActiniumUtils from './lib/utils/index.js';
+import ActiniumType from './lib/type/index.js';
 
 Actinium = { ...Parse };
 Actinium.ready = false;
 Actinium.started = false;
 Actinium.server = null;
 Actinium.version = op.get(config, 'version');
-Actinium.Object = require('./lib/ParseObject');
-Actinium.User = require('./lib/user');
-Actinium.Harness = require('./lib/harness');
-Actinium.Enums = require('./lib/enums');
-Actinium.Exp = require('./lib/express-settings');
-Actinium.Cache = require('./lib/cache');
-Actinium.FilesAdapter = require('./lib/files-adapter');
-Actinium.File = require('./lib/file');
-Actinium.Setting = require('./lib/setting');
-Actinium.Roles = require('./lib/roles');
-Actinium.Cloud = require('./lib/cloud');
-Actinium.Hook = require('./lib/hook');
-Actinium.Plugin = require('./lib/plugable');
-Actinium.Warnings = require('./lib/warnings');
-Actinium.Middleware = require('./lib/middleware');
-Actinium.Pulse = require('./lib/pulse');
-Actinium.Capability = require('./lib/capability');
-Actinium.Collection = require('./lib/collection');
-Actinium.Utils = require('./lib/utils');
-Actinium.Type = require('./lib/type');
+Actinium.Object = ActiniumObject;
+Actinium.User = ActiniumUser;
+Actinium.Harness = ActiniumHarness;
+Actinium.Enums = ActiniumEnums;
+Actinium.Exp = ActiniumExp;
+Actinium.Cache = ActiniumCache;
+Actinium.FilesAdapter = ActiniumFileAdapter;
+Actinium.File = ActiniumFile;
+Actinium.Setting = ActiniumSetting;
+Actinium.Roles = ActiniumRoles;
+Actinium.Cloud = ActiniumCloud;
+Actinium.Hook = ActiniumHook;
+Actinium.Plugin = ActiniumPlugin;
+Actinium.Warnings = ActiniumWarnings;
+Actinium.Middleware = ActiniumMiddleware;
+Actinium.Pulse = ActiniumPulse;
+Actinium.Capability = ActiniumCapabilities;
+Actinium.Collection = ActiniumCollection;
+Actinium.Utils = ActiniumUtils;
+Actinium.Type = ActiniumType;
 
-Actinium.init = async options => {
+Actinium.User.isRole = ActiniumRoles.User.is;
+Actinium.User.can = ActiniumCapabilities.User.can;
+Actinium.User.capabilities = ActiniumCapabilities.User.get;
+
+Actinium.init = async (options) => {
     BOOT('');
     BOOT(chalk.cyan('Version'), chalk.magenta(config.version));
     BOOT('');
@@ -50,7 +73,7 @@ Actinium.init = async options => {
     await Actinium.Middleware.init(app);
 
     // Initialize Plugins
-    Actinium.Plugin.init();
+    await Actinium.Plugin.init();
 
     Actinium.ready = true;
 
@@ -73,7 +96,7 @@ Actinium.init = async options => {
     return Promise.resolve(Actinium.app);
 };
 
-Actinium.start = options =>
+Actinium.start = (options) =>
     new Promise(async (resolve, reject) => {
         if (PORT < 1024) {
             if (process.platform === 'win32') {
@@ -127,7 +150,7 @@ Actinium.start = options =>
                     : http.createServer(Actinium.app)
                 : Actinium.server;
 
-            Actinium.server.listen(PORT, async err => {
+            Actinium.server.listen(PORT, async (err) => {
                 if (err) {
                     BOOT(err);
                     reject(err);
@@ -235,4 +258,4 @@ process.on('unhandledRejection', (reason, p) => {
     ERROR('Unhandled Rejection at: Promise', p, 'reason:', reason);
 });
 
-module.exports = Actinium;
+export default Actinium;

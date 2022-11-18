@@ -1,21 +1,19 @@
-const chalk = require('chalk');
-const path = require('path');
-const op = require('object-path');
+import chalk from 'chalk';
+import op from 'object-path';
+import actiniumConfig from '../../../actinium-config.js';
 
 const NAME = 'version';
 const DESC = 'The current Actinium Core version';
 
-const ACTION = ({ opt, props }) => {
-    const configPath = path.normalize(
-        path.join(props.cwd, '/.core', 'actinium-config'),
-    );
-    const actiniumConfig = require(configPath);
+const ACTION = async () => {
     console.log(chalk.cyan('Actinium:'));
+
     console.log(
         ' ',
         'Version:',
         chalk.magenta(op.get(actiniumConfig, 'version')),
     );
+
     console.log(
         ' ',
         'Semver: ',
@@ -24,13 +22,13 @@ const ACTION = ({ opt, props }) => {
     console.log('');
 };
 
-const COMMAND = ({ program, props }) =>
+export const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }));
+        .action((opt) => ACTION({ opt, props }));
 
-module.exports = {
+export {
     COMMAND,
     NAME,
 };

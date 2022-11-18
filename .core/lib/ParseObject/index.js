@@ -1,5 +1,6 @@
+import unsavedChildren from './unsavedChildren.cjs';
+
 const CoreManager = Parse.CoreManager;
-const unsavedChildren = require('./unsavedChildren');
 
 class ParseObject extends Parse.Object {
     async save(arg1, arg2, arg3, context) {
@@ -150,4 +151,4 @@ class ParseObject extends Parse.Object {
     }
 }
 
-module.exports = ParseObject;
+export default ParseObject;

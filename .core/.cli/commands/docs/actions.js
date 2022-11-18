@@ -1,26 +1,22 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
-const { createDoc } = require('apidoc');
-const globby = require('globby');
+import { createDoc } from 'apidoc';
 
-module.exports = spinner => {
-    const message = text => {
+export default (spinner) => {
+    const { _, chalk, globby, op, path } = arcli;
+
+    const message = (text) => {
         if (spinner) {
             spinner.text = text;
         }
     };
 
     return {
-        create: async ({ action, params, props }) => {
+        create: async ({ action, params }) => {
             message(`Creating ${chalk.cyan('docs')}...`);
 
             let { src, dest } = params;
 
             src = _.flatten(
-                src.map(search => {
+                src.map((search) => {
                     if (search === 'node_modules/@atomic-reactor') {
                         const globRoot = path
                             .resolve(process.cwd(), search)
@@ -31,27 +27,23 @@ module.exports = spinner => {
                             `${globRoot}/**/lib/*.js`,
                             `!${globRoot}/**/node_modules/**/*`,
                             `!${globRoot}/cli/**/*`,
-                            `!${globRoot}/reactium-sdk-core/**/*`
+                            `!${globRoot}/reactium-sdk-core/**/*`,
                         ];
 
                         return _.uniq(
-                            globby
-                                .sync(globs)
-                                .map(fn =>
-                                    path.dirname(fn).replace(globRoot, ''),
-                                ),
-                        ).map(p => `${search}${p}`);
+                            globby(globs).map((fn) =>
+                                path.dirname(fn).replace(globRoot, ''),
+                            ),
+                        ).map((p) => `${search}${p}`);
                     }
                     return search;
                 }),
             );
 
-            dest = String(dest)
-                .replace(/ /gi, '')
-                .split(',');
+            dest = String(dest).replace(/ /gi, '').split(',');
             dest = _.flatten([dest]);
 
-            dest.forEach(d => {
+            dest.forEach((d) => {
                 createDoc({
                     src,
                     dest: d,

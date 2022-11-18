@@ -1,5 +1,4 @@
-const chalk = require('chalk');
-const _ = require('underscore');
+const { _, chalk } = arcli;
 
 const CONFIRM = (props, options) => {
     options = _.isObject(options) ? options : {};
@@ -22,4 +21,4 @@ const CONFIRM = (props, options) => {
     ]);
 };
 
-module.exports = CONFIRM;
+export default CONFIRM;

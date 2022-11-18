@@ -1,14 +1,12 @@
-const op = require('object-path');
-const {
-    CloudHasCapabilities,
-    CloudCapOptions,
-    CloudRunOptions,
-} = require(`${ACTINIUM_DIR}/lib/utils`);
-const semver = require('semver');
-const COLLECTION = 'Plugin';
-const path = require('path');
+import semver from 'semver';
+import path from 'node:path';
+import op from 'object-path';
 
-const toggle = req => {
+const { CloudHasCapabilities, CloudCapOptions } = Actinium.Utils;
+
+const COLLECTION = 'Plugin';
+
+const toggle = (req) => {
     const { plugin: ID, active = false } = req.params;
 
     if (!ID) {
@@ -24,13 +22,13 @@ const toggle = req => {
     return new Parse.Query(COLLECTION)
         .equalTo('ID', ID)
         .first(options)
-        .then(plugin =>
+        .then((plugin) =>
             plugin ? plugin.set('active', active).save(null, options) : null,
         )
-        .then(plugin => (plugin ? plugin.toJSON() : null));
+        .then((plugin) => (plugin ? plugin.toJSON() : null));
 };
 
-const del = req => {
+const del = (req) => {
     const { plugin: ID, active = false } = req.params;
 
     if (!ID) {
@@ -42,12 +40,12 @@ const del = req => {
     return new Parse.Query(COLLECTION)
         .equalTo('ID', ID)
         .first(options)
-        .then(plugin => (plugin ? plugin.destroy(options) : null))
-        .then(plugin => (plugin ? plugin.toJSON() : null));
+        .then((plugin) => (plugin ? plugin.destroy(options) : null))
+        .then((plugin) => (plugin ? plugin.toJSON() : null));
 };
 
 const mapPlugins = (plugins = []) =>
-    plugins.map(item => {
+    plugins.map((item) => {
         if (op.has(item, 'id')) {
             return item.toJSON();
         } else {
@@ -55,7 +53,7 @@ const mapPlugins = (plugins = []) =>
         }
     });
 
-Parse.Cloud.define('plugins', async req => {
+Parse.Cloud.define('plugins', async (req) => {
     if (!CloudHasCapabilities(req, ['Plugin.retrieve']))
         throw new Error('Permission denied.');
 
@@ -108,19 +106,19 @@ Parse.Cloud.define('plugins', async req => {
     return list;
 });
 
-Parse.Cloud.define('plugin-activate', req => {
+Parse.Cloud.define('plugin-activate', (req) => {
     op.set(req, 'params.active', true);
     return toggle(req);
 });
 
-Parse.Cloud.define('plugin-deactivate', req => {
+Parse.Cloud.define('plugin-deactivate', (req) => {
     op.set(req, 'params.active', false);
     return toggle(req);
 });
 
 Parse.Cloud.define('plugin-uninstall', del);
 
-Parse.Cloud.beforeDelete(COLLECTION, async req => {
+Parse.Cloud.beforeDelete(COLLECTION, async (req) => {
     const obj = req.object.toJSON();
 
     if (op.get(obj, 'meta.builtIn', false) === true) {
@@ -134,7 +132,7 @@ Parse.Cloud.beforeDelete(COLLECTION, async req => {
     }
 });
 
-Parse.Cloud.beforeSave(COLLECTION, async req => {
+Parse.Cloud.beforeSave(COLLECTION, async (req) => {
     await Actinium.Hook.run('beforeSave-plugin', req);
 
     const obj = req.object.toJSON();
@@ -151,7 +149,7 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
         'meta',
     ];
 
-    Object.keys(obj).forEach(key => {
+    Object.keys(obj).forEach((key) => {
         if (!keys.includes(key)) {
             req.object.unset(key);
         }
@@ -202,7 +200,7 @@ Parse.Cloud.beforeSave(COLLECTION, async req => {
     return Promise.resolve();
 });
 
-Parse.Cloud.afterDelete(COLLECTION, async req => {
+Parse.Cloud.afterDelete(COLLECTION, async (req) => {
     const obj = req.object.toJSON();
 
     if (op.has(obj, 'ID')) {
@@ -214,13 +212,13 @@ Parse.Cloud.afterDelete(COLLECTION, async req => {
     await Actinium.Hook.run('afterDelete-plugin', req);
 });
 
-Parse.Cloud.afterSave(COLLECTION, async req => {
+Parse.Cloud.afterSave(COLLECTION, async (req) => {
     await Actinium.Hook.run('afterSave', req);
 });
 
 Actinium.Hook.register(
     'add-meta-asset',
-    async metaAsset => {
+    async (metaAsset) => {
         const parsedFilename = path.parse(metaAsset.targetFileName);
         const plugin = Actinium.Cache.get(`plugins.${metaAsset.ID}`);
         const appVer = op.get(ACTINIUM_CONFIG, 'version');

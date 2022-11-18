@@ -2,9 +2,9 @@
  * Use liberally for additional core configuration.
  * @type {Object}
  */
-module.exports = {
-    version: '3.8.0',
-    semver: '^3.8.0',
+export default {
+    version: '4.0.0',
+    semver: '^4.0.0',
     update: {
         package: {
             dependencies: {

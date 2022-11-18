@@ -3,26 +3,17 @@
  * Imports
  * -----------------------------------------------------------------------------
  */
+import generator from './generator.js';
 
-const chalk = require('chalk');
-const generator = require('./generator');
-const prettier = require('prettier');
-const fs = require('fs-extra');
-const path = require('path');
-const slugify = require('slugify');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
+const { chalk, fs, message, path, prettier } = arcli;
 
-const beforeBoolean = val => Boolean(String(val).toLowerCase() === 'y');
+const beforeBoolean = (val) => Boolean(String(val).toLowerCase() === 'y');
 
-const formatDefinitions = val => {
+const formatDefinitions = (val) => {
     if (val === '' || !val) {
         return [];
     }
-    return String(val)
-        .replace(/\s+/g, ' ')
-        .replace(/,/g, '')
-        .split(' ');
+    return String(val).replace(/\s+/g, ' ').replace(/,/g, '').split(' ');
 };
 
 const formatDestination = (val, props) => {
@@ -38,7 +29,7 @@ const formatDestination = (val, props) => {
     return path.normalize(val);
 };
 
-const overwritable = prompt => {
+const overwritable = (prompt) => {
     let overwrite;
 
     try {
@@ -53,7 +44,7 @@ const overwritable = prompt => {
     return overwrite;
 };
 
-const collectable = prompt => {
+const collectable = (prompt) => {
     let collection;
 
     try {
@@ -339,12 +330,12 @@ const ACTION = ({ opt, props }) => {
             .then(() => {
                 console.log('');
 
-                generator({ params, props }).then(success => {
+                generator({ params, props }).then((success) => {
                     console.log('');
                 });
             })
             .then(() => prompt.stop())
-            .catch(err => {
+            .catch((err) => {
                 prompt.stop();
                 message(CANCELED);
             });
@@ -359,7 +350,7 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option(
             '-d, --destination [destination]',
             'Cloud function parent directory.',
@@ -405,7 +396,7 @@ const COMMAND = ({ program, props }) =>
  * @param props Object The CLI props passed from the calling class `arcli.js`.
  * @since 2.0.0
  */
-module.exports = {
+export {
     ACTION,
     CONFIRM,
     CONFORM,
