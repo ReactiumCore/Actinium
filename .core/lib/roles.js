@@ -5,7 +5,6 @@ import ActionSequence from 'action-sequence';
 import { CloudRunOptions } from './utils/options.js';
 
 const useMasterKey = true;
-const noop = () => Promise.resolve();
 
 const COLLECTION = Parse.Role;
 
@@ -229,10 +228,6 @@ Roles.User.is = (user, role) => {
         return level >= role;
     }
 };
-
-Roles.can = Capability.Role.can;
-
-Roles.capabilities = Capability.Role.get;
 
 Roles.create = (roleObj = {}, options = { useMasterKey }) => {
     const { label, level = 1, name, roles, acl } = roleObj;

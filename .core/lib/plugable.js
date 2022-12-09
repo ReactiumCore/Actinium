@@ -3,14 +3,14 @@ import _ from 'underscore';
 import semver from 'semver';
 import op from 'object-path';
 import path from 'node:path';
-import { globbySync as globby } from 'globby'; 
 import semverValidRange from 'semver/ranges/valid.js';
+import { globbySync as globby } from '../lib/globby-patch.js';
 
 const exp = {};
 const blacklist = [];
 const COLLECTION = 'Plugin';
 
-const loader = async p => {
+const loader = async (p) => {
     const plugin = await import(path.normalize(p));
 
     const ID = op.get(plugin, 'ID');
@@ -108,7 +108,7 @@ Plugable.capabilities = [
     },
 ];
 
-Plugable.exports = key => op.get(exp, key);
+Plugable.exports = (key) => op.get(exp, key);
 
 Plugable.register = (plugin, active = false) => {
     const coredir = path.normalize(`${BASE_DIR}/.core`);
@@ -247,7 +247,9 @@ Plugable.init = async () => {
         addField: false,
     });
 
-    const output = await Promise.all(globby(ENV.GLOB_PLUGINS).map(item => loader(item))); 
+    const output = await Promise.all(
+        globby(ENV.GLOB_PLUGINS).map((item) => loader(item)),
+    );
 
     return output;
 };
@@ -346,12 +348,12 @@ Plugable.load = async () => {
     return Promise.resolve(plugins);
 };
 
-Plugable.get = ID =>
+Plugable.get = (ID) =>
     ID
         ? Actinium.Cache.get(`plugins.${ID}`)
         : Actinium.Cache.get('plugins', {});
 
-Plugable.isActive = ID => Actinium.Cache.get(`plugins.${ID}.active`, false);
+Plugable.isActive = (ID) => Actinium.Cache.get(`plugins.${ID}.active`, false);
 
 Plugable.isValid = (ID, strict = false) => {
     const plugin = Plugable.get(ID);
@@ -366,14 +368,14 @@ Plugable.gate = async ({ req, ID, name, callback }) => {
     return callback(req);
 };
 
-Plugable.deactivate = ID =>
+Plugable.deactivate = (ID) =>
     Parse.Cloud.run(
         'plugin-deactivate',
         { plugin: ID },
         { useMasterKey: true },
     );
 
-Plugable.activate = ID =>
+Plugable.activate = (ID) =>
     Parse.Cloud.run('plugin-activate', { plugin: ID }, { useMasterKey: true });
 
 Plugable.updateHookHelper = (pluginId, migrations = {}) => {

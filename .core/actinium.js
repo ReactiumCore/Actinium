@@ -6,6 +6,7 @@ import op from 'object-path';
 import express from 'express';
 import config from './actinium-config.js';
 import { ParseServer } from 'parse-server';
+import ActiniumHook from './lib/hook.js';
 import ActiniumObject from './lib/ParseObject/index.js';
 import ActiniumUser from './lib/user.js';
 import ActiniumHarness from './lib/harness.js';
@@ -19,7 +20,6 @@ import ActiniumSetting from './lib/setting.js';
 import ActiniumRoles from './lib/roles.js';
 import ActiniumCloud from './lib/cloud.js';
 import ActiniumCapabilities from './lib/capability.js';
-import ActiniumHook from './lib/hook.js';
 import ActiniumWarnings from './lib/warnings.js';
 import ActiniumMiddleware from './lib/middleware.js';
 import ActiniumPulse from './lib/pulse.js';
@@ -27,41 +27,50 @@ import ActiniumCollection from './lib/collection.js';
 import * as ActiniumUtils from './lib/utils/index.js';
 import ActiniumType from './lib/type/index.js';
 
-Actinium = { ...Parse };
-Actinium.ready = false;
-Actinium.started = false;
-Actinium.server = null;
-Actinium.version = op.get(config, 'version');
-Actinium.Object = ActiniumObject;
-Actinium.User = ActiniumUser;
-Actinium.Harness = ActiniumHarness;
-Actinium.Enums = ActiniumEnums;
-Actinium.Exp = ActiniumExp;
-Actinium.Cache = ActiniumCache;
-Actinium.FilesAdapter = ActiniumFileAdapter;
-Actinium.File = ActiniumFile;
-Actinium.Setting = ActiniumSetting;
-Actinium.Roles = ActiniumRoles;
-Actinium.Cloud = ActiniumCloud;
-Actinium.Hook = ActiniumHook;
-Actinium.Plugin = ActiniumPlugin;
-Actinium.Warnings = ActiniumWarnings;
-Actinium.Middleware = ActiniumMiddleware;
-Actinium.Pulse = ActiniumPulse;
-Actinium.Capability = ActiniumCapabilities;
-Actinium.Collection = ActiniumCollection;
-Actinium.Utils = ActiniumUtils;
-Actinium.Type = ActiniumType;
+process.on('unhandledRejection', (reason, p) => {
+    ERROR('Unhandled Rejection at: Promise', p, 'reason:', reason);
+});
 
-Actinium.User.isRole = ActiniumRoles.User.is;
-Actinium.User.can = ActiniumCapabilities.User.can;
-Actinium.User.capabilities = ActiniumCapabilities.User.get;
+Actinium = { ...Parse };
 
 Actinium.init = async (options) => {
     BOOT('');
     BOOT(chalk.cyan('Version'), chalk.magenta(config.version));
     BOOT('');
     BOOT(chalk.cyan('Initializing...'));
+
+    Actinium.ready = false;
+    Actinium.started = false;
+    Actinium.server = null;
+    Actinium.version = op.get(config, 'version');
+    Actinium.Utils = ActiniumUtils;
+    Actinium.Hook = ActiniumHook;
+    Actinium.Object = ActiniumObject;
+    Actinium.User = ActiniumUser;
+    Actinium.Harness = ActiniumHarness;
+    Actinium.Enums = ActiniumEnums;
+    Actinium.Exp = ActiniumExp;
+    Actinium.Cache = ActiniumCache;
+    Actinium.FilesAdapter = ActiniumFileAdapter;
+    Actinium.File = ActiniumFile;
+    Actinium.Setting = ActiniumSetting;
+    Actinium.Roles = ActiniumRoles;
+    Actinium.Cloud = ActiniumCloud;
+    Actinium.Plugin = ActiniumPlugin;
+    Actinium.Warnings = ActiniumWarnings;
+    Actinium.Middleware = ActiniumMiddleware;
+    Actinium.Pulse = ActiniumPulse;
+    Actinium.Collection = ActiniumCollection;
+    Actinium.Type = ActiniumType;
+
+    Actinium.Capability = ActiniumCapabilities();
+
+    // Cross Alias functions
+    Actinium.User.isRole = Actinium.Roles.User.is;
+    Actinium.User.can = Actinium.Capability.User.can;
+    Actinium.User.capabilities = Actinium.Capability.User.get;
+    Actinium.Roles.can = Actinium.Capability.Role.can;
+    Actinium.Roles.capabilities = Actinium.Capability.Role.get;
 
     const app = Actinium.app || express();
     Actinium.app = app;
@@ -75,10 +84,16 @@ Actinium.init = async (options) => {
     // Initialize Plugins
     await Actinium.Plugin.init();
 
-    Actinium.ready = true;
+    // Initialize FileAdapter
+    await Actinium.FilesAdapter.init();
 
-    // Log cloud function info
-    Actinium.Cloud.info();
+    // Initialize Settings
+    Actinium.Setting.init();
+
+    // Initialize Type
+    Actinium.Type.init();
+
+    Actinium.ready = true;
 
     // Run init Hook
     await Actinium.Hook.run('init', app, options);
@@ -225,6 +240,9 @@ Actinium.start = (options) =>
                     // Run start-up hook
                     await Actinium.Hook.run('start');
 
+                    // Log cloud function info
+                    Actinium.Cloud.info();
+
                     // Run tests in local development
                     await Actinium.Harness.run();
 
@@ -253,9 +271,5 @@ Actinium.start = (options) =>
             reject(err);
         }
     });
-
-process.on('unhandledRejection', (reason, p) => {
-    ERROR('Unhandled Rejection at: Promise', p, 'reason:', reason);
-});
 
 export default Actinium;

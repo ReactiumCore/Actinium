@@ -1,6 +1,5 @@
 import Hook from './hook.js';
 import slugify from 'slugify';
-import op from 'object-path';
 import chalk from 'chalk';
 import assert from 'node:assert';
 

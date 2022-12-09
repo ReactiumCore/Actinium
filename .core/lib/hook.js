@@ -1,10 +1,10 @@
 import chalk from 'chalk';
-import { v4 as uuid } from 'uuid';
 import _ from 'underscore';
-import op from 'object-path';
-import ActionSequence from 'action-sequence';
 import assert from 'assert';
+import op from 'object-path';
 import Enums from './enums.js';
+import { v4 as uuid } from 'uuid';
+import ActionSequence from 'action-sequence';
 
 const noop = {
     sync: () => {},

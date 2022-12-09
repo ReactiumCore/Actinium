@@ -1,6 +1,6 @@
 import path from 'path';
 import chalk from 'chalk';
-import { globbySync as globby } from 'globby';
+import { globbySync as globby } from '../lib/globby-patch.js';
 
 const Cloud = { ...Parse.Cloud };
 
@@ -19,11 +19,12 @@ Cloud.init = async () => {
             const p = path.normalize(item);
             const name = String(path.basename(item)).split('.').shift();
 
-            output.push({ name });
+            output.push({ name, path: p });
 
             return import(p);
         }),
     );
+
     return output;
 };
 

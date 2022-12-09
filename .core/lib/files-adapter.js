@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import Hook from './hook.js';
 import op from 'object-path';
 import Enums from './enums.js';
 import { pluginRegister } from './plugable.js';
@@ -97,11 +96,13 @@ class FilesAdapterProxy {
     }
 }
 
-const plugins = {};
 let proxy;
 
+const plugins = {};
+
 const FilesAdapter = {};
-FilesAdapter.getProxy = config => {
+
+FilesAdapter.getProxy = (config) => {
     if (proxy) return proxy;
     proxy = new FilesAdapterProxy(config);
     return proxy;
@@ -109,7 +110,7 @@ FilesAdapter.getProxy = config => {
 
 FilesAdapter.update = async (ID, active) => {
     try {
-        const { adapter } = await Hook.run(
+        const { adapter } = await Actinium.Hook.run(
             'files-adapter',
             proxy.config,
             ENV,
@@ -140,7 +141,7 @@ FilesAdapter.update = async (ID, active) => {
  * @apiName FilesAdapter.register
  */
 FilesAdapter.register = (plugin, installer, order) => {
-    const hookId = Hook.register(
+    const hookId = Actinium.Hook.register(
         'files-adapter',
         async (config, env, ID, active = false, context) => {
             if (active && ID === plugin.ID) {
@@ -156,34 +157,36 @@ FilesAdapter.register = (plugin, installer, order) => {
     return pluginRegister(plugin);
 };
 
-Hook.register(
-    'plugin-before-save',
-    async ({ ID, active }) => {
-        if (ID in plugins) {
-            await FilesAdapter.update(ID, active);
-        }
-    },
-    Enums.priority.highest,
-);
+FilesAdapter.init = () => {
+    Actinium.Hook.register(
+        'plugin-before-save',
+        async ({ ID, active }) => {
+            if (ID in plugins) {
+                await FilesAdapter.update(ID, active);
+            }
+        },
+        Enums.priority.highest,
+    );
 
-Hook.register(
-    'activate',
-    async ({ ID, active }) => {
-        if (ID in plugins) {
-            await FilesAdapter.update(ID, active);
-        }
-    },
-    Enums.priority.highest,
-);
+    Actinium.Hook.register(
+        'activate',
+        async ({ ID, active }) => {
+            if (ID in plugins) {
+                await FilesAdapter.update(ID, active);
+            }
+        },
+        Enums.priority.highest,
+    );
 
-Hook.register(
-    'deactivate',
-    async ({ ID, active }) => {
-        if (ID in plugins) {
-            await FilesAdapter.update(ID, active);
-        }
-    },
-    Enums.priority.highest,
-);
+    Actinium.Hook.register(
+        'deactivate',
+        async ({ ID, active }) => {
+            if (ID in plugins) {
+                await FilesAdapter.update(ID, active);
+            }
+        },
+        Enums.priority.highest,
+    );
+};
 
 export default FilesAdapter;

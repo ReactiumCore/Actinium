@@ -934,9 +934,9 @@ class Capability {
     }
 }
 
-const instance = new Capability();
+const init = () => new Capability();
 
-export default instance;
+export { Capability, init as default };
 
 /**
  * @api {Hook} before-capability-save before-capability-save

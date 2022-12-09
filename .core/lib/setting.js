@@ -1,11 +1,8 @@
 import _ from 'underscore';
 import op from 'object-path';
-import Cache from './cache.js';
 import { CloudHasCapabilities, Registry } from './utils/index.js';
 
 const COLLECTION = 'Setting';
-
-Cache.set('setting', ENV.SETTINGS);
 
 const Setting = {};
 
@@ -83,7 +80,7 @@ Setting.get = async (key, defaultValue, options) => {
 
     if (!group) return Setting.load();
 
-    const cached = Cache.get(`setting.${key}`);
+    const cached = Actinium.Cache.get(`setting.${key}`);
 
     if (typeof cached !== 'undefined') return cached;
 
@@ -100,7 +97,7 @@ Setting.get = async (key, defaultValue, options) => {
         return op.get(result, settingPath, defaultValue);
     }
 
-    Cache.set(`setting.${key}`, result, Actinium.Enums.cache.dataLoading);
+    Actinium.Cache.set(`setting.${key}`, result, Actinium.Enums.cache.dataLoading);
 
     return typeof obj === 'undefined' ? defaultValue : obj;
 };
@@ -133,11 +130,6 @@ Setting.load = async () => {
     return settings;
 };
 
-// Non-sensitive setting groups only!!
-Setting.anonymousGroup = new Registry('AnonymousGroup');
-Setting.anonymousGroup.register('app', { id: 'app' });
-Setting.anonymousGroup.register('profile', { id: 'profile' });
-
 Setting.list = async (req = {}, fullAccess) => {
     let skip = 0;
     const output = {};
@@ -165,9 +157,18 @@ Setting.list = async (req = {}, fullAccess) => {
         results = await qry.find({ useMasterKey: true });
     }
 
-    Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
+    Actinium.Cache.set('setting', output, Actinium.Enums.cache.dataLoading);
 
     return output;
+};
+
+Setting.init = () => {
+    Actinium.Cache.set('setting', ENV.SETTINGS);
+
+    // Non-sensitive setting groups only!!
+    Setting.anonymousGroup = new Registry('AnonymousGroup');
+    Setting.anonymousGroup.register('app', { id: 'app' });
+    Setting.anonymousGroup.register('profile', { id: 'profile' });
 };
 
 export default Setting;

@@ -1,9 +1,7 @@
 import _ from 'underscore';
 import op from 'object-path';
-import Hook from '../hook.js';
 import { v5 as uuidv5 } from 'uuid';
 import { Registry, serialize, slugify } from '../utils/index.js';
-
 
 import {
     PLUGIN,
@@ -103,7 +101,7 @@ Type.create = async (params, options) => {
     const saved = await contentType.save(null, options);
     const savedObj = serialize(saved);
 
-    await Hook.run('type-saved', savedObj);
+    await Actinium.Hook.run('type-saved', savedObj);
 
     return savedObj;
 };
@@ -177,7 +175,7 @@ Type.update = async (params, options) => {
     const saved = await contentType.save(null, options);
     const savedObj = serialize(saved);
 
-    await Hook.run('type-saved', savedObj);
+    await Actinium.Hook.run('type-saved', savedObj);
     return savedObj;
 };
 
@@ -216,7 +214,7 @@ Type.delete = async (params, options) => {
 
     Actinium.Cache.del('types');
 
-    await Hook.run('type-deleted', typeObj);
+    await Actinium.Hook.run('type-deleted', typeObj);
     return trash;
 };
 
@@ -268,7 +266,7 @@ Type.retrieve = async (params, options) => {
         op.set(result, 'schema', schema);
     }
 
-    await Hook.run('type-retrieved', result);
+    await Actinium.Hook.run('type-retrieved', result);
     return result;
 };
 
@@ -407,7 +405,7 @@ Type.list = async (params = {}, options) => {
         types,
     };
 
-    await Hook.run('type-list', list);
+    await Actinium.Hook.run('type-list', list);
 
     return Promise.resolve(list);
 };
@@ -532,7 +530,6 @@ Type.saveSchema = async (type) => {
     });
 };
 
-Type[DEFAULT_TYPE_REGISTRY] = new Registry('machineName');
 Type.register = async (typeTemplate = {}) => {
     const type = op.get(typeTemplate, 'type');
     const machineName = op.get(typeTemplate, 'machineName');
@@ -577,14 +574,18 @@ const ensurePublisher = async (typeObj) => {
     }
 };
 
-Hook.register('type-retrieved', async (typeObj) => {
-    await ensurePublisher(typeObj);
-});
+Type.init = () => {
+    Type[DEFAULT_TYPE_REGISTRY] = new Registry('machineName');
 
-Hook.register('type-list', async (result) => {
-    for (const typeObj of result.types) {
+    Actinium.Hook.register('type-retrieved', async (typeObj) => {
         await ensurePublisher(typeObj);
-    }
-});
+    });
+
+    Actinium.Hook.register('type-list', async (result) => {
+        for (const typeObj of result.types) {
+            await ensurePublisher(typeObj);
+        }
+    });
+};
 
 export default Type;
