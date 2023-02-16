@@ -3,7 +3,7 @@
  * @type {Object}
  */
 export default {
-    version: '4.0.0',
+    version: '4.0.1',
     semver: '^4.0.0',
     update: {
         package: {
