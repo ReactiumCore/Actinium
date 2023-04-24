@@ -56,6 +56,8 @@ Actinium.init = async (options) => {
     Actinium.Setting = ActiniumSetting;
     Actinium.Roles = ActiniumRoles;
     Actinium.Cloud = ActiniumCloud;
+    await Actinium.Cloud.init(); 
+    
     Actinium.Plugin = ActiniumPlugin;
     Actinium.Warnings = ActiniumWarnings;
     Actinium.Middleware = ActiniumMiddleware;

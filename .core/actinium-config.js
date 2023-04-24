@@ -3,8 +3,8 @@
  * @type {Object}
  */
 export default {
-    version: '4.0.1',
-    semver: '^4.0.0',
+    version: '5.0.1',
+    semver: '^5.0.0',
     update: {
         package: {
             dependencies: {
@@ -24,7 +24,6 @@ export default {
             },
             actiniumDependencies: {
                 add: {
-                    '@atomic-reactor/actinium-block': '1.0.6',
                     '@atomic-reactor/actinium-blueprint': '1.0.8',
                     '@atomic-reactor/actinium-capability': '1.0.8',
                     '@atomic-reactor/actinium-component-manager': '1.0.7',
@@ -42,13 +41,9 @@ export default {
                     '@atomic-reactor/actinium-route': '1.0.7',
                     '@atomic-reactor/actinium-search': '1.0.7',
                     '@atomic-reactor/actinium-settings': '1.0.8',
-                    '@atomic-reactor/actinium-shortcodes': '1.0.8',
-                    '@atomic-reactor/actinium-syndicate': '1.0.7',
-                    '@atomic-reactor/actinium-syndicate-client': '1.0.7',
                     '@atomic-reactor/actinium-taxonomy': '1.0.8',
                     '@atomic-reactor/actinium-type': '1.0.8',
-                    '@atomic-reactor/actinium-users': '1.0.10',
-                    '@atomic-reactor/actinium-wizard': '1.0.9',
+                    '@atomic-reactor/actinium-users': '1.0.10'
                 },
             },
         },

@@ -4,10 +4,15 @@ import { globbySync as globby } from '../lib/globby-patch.js';
 
 const Cloud = { ...Parse.Cloud };
 
-Cloud.info = () =>
-    CLOUD_FUNCTIONS.forEach(({ name }) =>
-        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
-    );
+Cloud.info = () => {
+    BOOT('');
+    BOOT(chalk.cyan('Loading Cloud functions')); 
+
+    CLOUD_FUNCTIONS.forEach(({ name }) => {
+        if (!name) return;
+        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name));
+    });
+};
 
 Cloud.init = async () => {
     const output = [];
@@ -29,6 +34,14 @@ Cloud.init = async () => {
 };
 
 Cloud.define = (plugin, name, callback) => {
+    if (!plugin || !name || !callback) {
+        throw new Error(
+            `Cloud.define(plugin, name, callback) all parameters required: ${
+                (!!plugin, !!name, !!callback)
+            }`,
+        );
+    }
+
     Parse.Cloud.define(name, (req) =>
         Actinium.Plugin.gate({ req, ID: plugin, name, callback }),
     );
