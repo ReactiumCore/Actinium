@@ -3,16 +3,13 @@ import op from 'object-path';
 import { v5 as uuidv5 } from 'uuid';
 import { Registry, serialize, slugify } from '../utils/index.js';
 
-import {
-    PLUGIN,
-    STATUS,
-    UNINSTALLED_NAMESPACE,
-    DEFAULT_TYPE_REGISTRY,
-} from './enums.js';
+import * as ENUMS from './enums.js';
+
+const { PLUGIN, STATUS, UNINSTALLED_NAMESPACE, DEFAULT_TYPE_REGISTRY } = ENUMS;
 
 const COLLECTION = PLUGIN.ID;
 
-const Type = {};
+const Type = { ENUMS };
 
 const getNamespace = () => {
     return (
@@ -445,7 +442,9 @@ Type.validateFields = (fields = {}, regions = {}) => {
             return valid && false;
         }
         if (!op.has(field, 'fieldType')) {
-            WARN(`Missing fieldType defining content type field.`, { field });
+            WARN(`Missing fieldType defining content type field.`, {
+                field,
+            });
             return valid && false;
         }
         if (!op.has(field, 'fieldName') || String(field.fieldName).length < 1) {
@@ -587,5 +586,7 @@ Type.init = () => {
         }
     });
 };
+
+Actinium.Type = Type;
 
 export default Type;

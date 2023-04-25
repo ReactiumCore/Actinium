@@ -22,13 +22,10 @@ const ACTION = async () => {
     console.log('');
 };
 
-export const COMMAND = ({ program, props }) =>
+const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
         .action((opt) => ACTION({ opt, props }));
 
-export {
-    COMMAND,
-    NAME,
-};
+export { COMMAND, NAME };

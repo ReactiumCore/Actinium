@@ -1,6 +1,5 @@
 import _ from 'underscore';
 import op from 'object-path';
-import Capability from './capability.js';
 import ActionSequence from 'action-sequence';
 import { CloudRunOptions } from './utils/options.js';
 
