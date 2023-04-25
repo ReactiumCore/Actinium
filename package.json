@@ -5,14 +5,14 @@
     "type": "module",
     "exports": "./dist/index.js",
     "scripts": {
+        "local": "nodemon",
         "start": "node ./src/index.js",
         "docker": "npm-run-all -s docker:*",
         "docker:build": "docker image build -t atomicreactor/actinium:$npm_package_version .",
         "docker:push": "docker push atomicreactor/actinium:$npm_package_version",
-        "docs": "npx -p @atomic-reactor/cli arcli docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
-        "heroku-prebuild": "npx -p @atomic-reactor/cli arcli install",
-        "local": "nodemon",
-        "plugin:install": "npx -p @atomic-reactor/cli arcli install -s"
+        "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
+        "heroku-prebuild": "npx reactium install",
+        "plugin:install": "npx reactium install -s"
     },
     "dependencies": {
         "@atomic-reactor/actinium-blueprint": "file:actinium_modules/@atomic-reactor/actinium-blueprint/_npm",
@@ -79,7 +79,7 @@
         "uuid": "^9.0.0"
     },
     "devDependencies": {
-        "@atomic-reactor/cli": "^3.0.1",
+        "reactium": "^3.0.11",
         "clipboardy": "^3.0.0",
         "eslint": "^8.27.0",
         "husky": "^8.0.2",
