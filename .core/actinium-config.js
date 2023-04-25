@@ -16,11 +16,9 @@ export default {
             },
             scripts: {
                 add: {
-                    local: 'nodemon',
-                    'plugin:install':
-                        'npx -p @atomic-reactor/cli arcli install -s',
+                    'plugin:install': 'npx reactium install -s',
                 },
-                remove: ['local'],
+                remove: [],
             },
             actiniumDependencies: {
                 add: {
@@ -32,7 +30,6 @@ export default {
                     '@atomic-reactor/actinium-fs-adapter': '5.0.1',
                     '@atomic-reactor/actinium-io': '5.0.1',
                     '@atomic-reactor/actinium-mailer': '5.0.1',
-                    '@atomic-reactor/actinium-navigation': '5.0.1',
                     '@atomic-reactor/actinium-plugin-manager': '5.0.1',
                     '@atomic-reactor/actinium-pulse': '5.0.1',
                     '@atomic-reactor/actinium-recycle': '5.0.1',
@@ -40,11 +37,7 @@ export default {
                     '@atomic-reactor/actinium-roles': '5.0.1',
                     '@atomic-reactor/actinium-route': '5.0.1',
                     '@atomic-reactor/actinium-search': '5.0.1',
-                    '@atomic-reactor/actinium-ses-mailer': '5.0.1',
                     '@atomic-reactor/actinium-settings': '5.0.1',
-                    '@atomic-reactor/actinium-shortcodes': '5.0.1',
-                    '@atomic-reactor/actinium-syndicate': '5.0.1',
-                    '@atomic-reactor/actinium-syndicate-client': '5.0.1',
                     '@atomic-reactor/actinium-taxonomy': '5.0.1',
                     '@atomic-reactor/actinium-type': '5.0.1',
                     '@atomic-reactor/actinium-users': '5.0.1',
@@ -65,13 +58,6 @@ export default {
                     version: '>=3.0.1',
                     destination: '/src/index.js',
                     source: '/tmp/update/src/index.js',
-                },
-                {
-                    overwrite: true,
-                    force: true,
-                    version: '>=3.2.5',
-                    destination: '/actinium_modules/.gitkeep',
-                    source: '/tmp/update/actinium_modules/.gitkeep',
                 },
                 {
                     overwrite: true,
