@@ -81,5 +81,5 @@ src/env.tls.json
 *.pem
 
 *.code-workspace
-.cli/commands/actinium-deps
 .cli/commands/publisher
+.cli/commands/actinium-deps
