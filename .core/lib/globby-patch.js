@@ -1,15 +1,20 @@
-const globby = require('globby');
-const path = require('path');
-const _ = require('underscore');
+import _ from 'underscore';
+import path from 'node:path';
+import { globby as Globby, globbySync as GlobbySync } from 'globby';
 
-const sync = globby.sync;
-globby.sync = (patterns, options) => {
-    return sync(
-        _.compact(_.flatten([patterns])).map(pattern =>
-            pattern.split(/[\\\/]/g).join(path.posix.sep),
-        ),
-        options,
-    );
-};
+const _patterns = str =>
+    _.chain([str])
+        .flatten()
+        .compact()
+        .value()
+        .map(pattern => pattern.split(/[\\\/]/g).join(path.posix.sep));
 
-module.exports = globby;
+export const globbySync = (patterns, options) =>
+    GlobbySync(_patterns(patterns), options);
+
+export const globby = (patterns, options) =>
+    Globby(_patterns(patterns), options);
+
+globby.sync = globbySync;
+
+export default globby;

@@ -1,7 +1,7 @@
-const Hook = require('./hook');
-const slugify = require('slugify');
-const op = require('object-path');
-const chalk = require('chalk');
+import Hook from './hook.js';
+import slugify from 'slugify';
+import chalk from 'chalk';
+import assert from 'node:assert';
 
 const results = {};
 
@@ -57,7 +57,6 @@ Actinium.Harness.test('My Test', async assert => {
  */
     test: async (description, cb, setup, teardown, order = 100) => {
         const desc = slugify(description);
-        const assert = require('assert');
 
         Hook.register(
             'tests',
@@ -98,4 +97,4 @@ Actinium.Harness.test('My Test', async assert => {
     },
 };
 
-module.exports = Harness;
+export default Harness;

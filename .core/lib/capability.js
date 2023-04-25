@@ -1,12 +1,7 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const op = require('object-path');
-const slugify = require('slugify');
-const {
-    hookedQuery,
-    Registry,
-    serialize,
-} = require(`${ACTINIUM_DIR}/lib/utils`);
+import _ from 'underscore';
+import op from 'object-path';
+import Registry from './utils/registry.js';
+import hookedQuery from './utils/hookedQuery.js';
 
 const COLLECTION = 'Capability';
 
@@ -26,12 +21,14 @@ const getRelation = async (cap, field, queryParams = {}) => {
 
     if (outputType === 'LIST') {
         results = _.pluck(
-            results.map(item => item.toJSON()),
+            results.map((item) => item.toJSON()),
             'name',
-        ).map(role => String(role).toLowerCase());
+        ).map((role) => String(role).toLowerCase());
     }
 
-    return outputType === 'JSON' ? results.map(item => item.toJSON()) : results;
+    return outputType === 'JSON'
+        ? results.map((item) => item.toJSON())
+        : results;
 };
 
 const getRoles = async () => {
@@ -54,13 +51,13 @@ const normalizeCapability = (capabilityObj = {}) => {
 
     // banned is always excluded. super-admin may not be excluded, administrator may.
     excluded = _.uniq(_.flatten([excluded, 'banned'])).filter(
-        role => role !== 'super-admin',
+        (role) => role !== 'super-admin',
     );
 
     // administrator and super admin are always added to allowed
     allowed = _.uniq(
         _.flatten([allowed, 'administrator', 'super-admin']).filter(
-            role => !excluded.includes(role),
+            (role) => !excluded.includes(role),
         ),
     );
 
@@ -71,7 +68,7 @@ const normalizeCapability = (capabilityObj = {}) => {
     };
 };
 
-const User = Capability => ({
+const User = (Capability) => ({
     /**
      * @api {Function} Capability.User.can(capability,user) Capability.User.can()
      * @apiVersion 3.1.2
@@ -108,7 +105,7 @@ const User = Capability => ({
     get: (user, passedRoles) => {
         const userRoles = passedRoles || Capability.User.roles(user);
         const caps = _.sortBy(
-            Capability.get().filter(cap => {
+            Capability.get().filter((cap) => {
                 // Super Admin bi-pass.
                 if (userRoles.includes('super-admin')) {
                     return true;
@@ -135,9 +132,9 @@ const User = Capability => ({
     getMany: (users = [], passedRoles) => {
         const allUserRoles = passedRoles || Actinium.Roles.User.getMany(users);
         const allUserCaps = {};
-        Capability.get().forEach(cap => {
+        Capability.get().forEach((cap) => {
             const granted = Capability.granted(cap.group);
-            users.forEach(user => {
+            users.forEach((user) => {
                 const id = user.id || user.objectId;
                 const userRoles = Object.keys(allUserRoles[id]);
                 const caps = op.get(allUserCaps, id, []);
@@ -158,7 +155,7 @@ const User = Capability => ({
         return allUserCaps;
     },
 
-    roles: user => {
+    roles: (user) => {
         // Get the user ID
         if (_.isObject(user)) {
             // parse user object
@@ -174,7 +171,7 @@ const User = Capability => ({
         // Get the roles
         const roleObj = Actinium.Roles.User.get(user);
 
-        const roles = Object.keys(roleObj).map(role =>
+        const roles = Object.keys(roleObj).map((role) =>
             String(role).toLowerCase(),
         );
 
@@ -186,7 +183,7 @@ const User = Capability => ({
     },
 });
 
-const Role = Capability => ({
+const Role = (Capability) => ({
     /**
      * @api {Function} Capability.Role.can(capability,role) Capability.Role.can()
      * @apiVersion 3.1.2
@@ -216,9 +213,9 @@ const Role = Capability => ({
      * @apiExample Example Usage
     Actinium.Capability.Role.get('contributor');
      */
-    get: role =>
+    get: (role) =>
         _.compact(
-            Capability.get().map(cap => {
+            Capability.get().map((cap) => {
                 const { group } = cap;
                 const granted = Capability.granted(group);
                 return granted.includes(role) ? group : null;
@@ -244,12 +241,12 @@ class Capability {
      console.log(Actinium.Capability.anonymous);
      */
     get anonymous() {
-        const _granted = cap => {
+        const _granted = (cap) => {
             const { allowed = [], excluded = [] } = cap;
             return _.without(allowed, ...excluded);
         };
 
-        return this.get().filter(cap => _granted(cap).includes('anonymous'));
+        return this.get().filter((cap) => _granted(cap).includes('anonymous'));
     }
 
     /**
@@ -278,7 +275,7 @@ class Capability {
      */
     delete(capabilities = []) {
         capabilities = _.compact(
-            _.flatten([capabilities]).map(cap => {
+            _.flatten([capabilities]).map((cap) => {
                 cap = this.get(cap);
                 if (!cap) return;
                 return new Actinium.Object(COLLECTION).set('id', cap.objectId);
@@ -308,20 +305,20 @@ class Capability {
             .compact()
             .uniq()
             .value()
-            .map(cap => String(cap).toLowerCase());
+            .map((cap) => String(cap).toLowerCase());
 
         let results =
             capabilities.length > 0
                 ? _.compact(
                       capabilities.map(
-                          group =>
+                          (group) =>
                               _.findWhere(this.list, { group }) ||
                               normalizeCapability({ group }),
                       ),
                   )
                 : this.list;
 
-        results = results.map(cap => normalizeCapability(cap));
+        results = results.map((cap) => normalizeCapability(cap));
 
         // prettier-ignore
         try { Actinium.Hook.runSync('capabilites', results); }
@@ -364,7 +361,7 @@ class Capability {
             .uniq()
             .compact()
             .value()
-            .map(r => String(r).toLowerCase());
+            .map((r) => String(r).toLowerCase());
 
         if (role) return roles.includes(String(role).toLowerCase());
 
@@ -451,7 +448,7 @@ class Capability {
             .uniq()
             .compact()
             .value()
-            .map(r => String(r).toLowerCase());
+            .map((r) => String(r).toLowerCase());
 
         if (role) return roles.includes(String(role).toLowerCase());
 
@@ -493,7 +490,7 @@ class Capability {
         types.forEach(({ type }) => {
             const group = `content.${String(type).toLowerCase()}`;
             const config = normalizeCapability({ group });
-            caps.forEach(cap => {
+            caps.forEach((cap) => {
                 if (this.get(group)) return;
                 this.register(`${group}.${cap}`, config);
             });
@@ -532,7 +529,7 @@ class Capability {
 
         let err;
         const requiredParams = ['action', 'capability', 'field', 'role'];
-        requiredParams.forEach(key => {
+        requiredParams.forEach((key) => {
             if (!op.get(params, key)) {
                 err = new Error(`${key} is a required parameter`);
             }
@@ -571,7 +568,7 @@ class Capability {
                       .value();
 
         // Add the roles to the relation
-        roles.forEach(name => {
+        roles.forEach((name) => {
             let role = _.findWhere(roleList, { name });
 
             if (!role) return;
@@ -696,7 +693,7 @@ class Capability {
         this._ensureContentTypeCapabilities();
 
         // Add to registry
-        capabilities.forEach(cap => {
+        capabilities.forEach((cap) => {
             if (this.isRegistered(cap.group)) {
                 this.update(cap.group, cap);
             } else {
@@ -706,7 +703,7 @@ class Capability {
     }
 
     async propagate() {
-        const caps = this.list.filter(item => {
+        const caps = this.list.filter((item) => {
             if (!op.get(item, 'objectId')) return true;
             return op.get(item, 'pending');
         });
@@ -727,8 +724,10 @@ class Capability {
             item = normalizeCapability(item);
 
             const id = op.get(item, 'objectId');
-            const allowed = item.allowed.map(name => op.get(roleEntries, name));
-            const excluded = item.excluded.map(name =>
+            const allowed = item.allowed.map((name) =>
+                op.get(roleEntries, name),
+            );
+            const excluded = item.excluded.map((name) =>
                 op.get(roleEntries, name),
             );
 
@@ -750,10 +749,10 @@ class Capability {
             Object.entries(data).forEach(([key, value]) => obj.set(key, value));
 
             const allowedRel = obj.relation('allowed');
-            allowed.forEach(role => allowedRel.add(role));
+            allowed.forEach((role) => allowedRel.add(role));
 
             const excludedRel = obj.relation('excluded');
-            excluded.forEach(role => excludedRel.add(role));
+            excluded.forEach((role) => excludedRel.add(role));
 
             saves.push(obj);
         }
@@ -764,7 +763,7 @@ class Capability {
 
         saves = await Actinium.Object.saveAll(saves, { useMasterKey: true });
 
-        saves.forEach(obj => {
+        saves.forEach((obj) => {
             const { group, objectId } = obj.toJSON();
             const newObj = { ...this.get(group), objectId };
             op.del(newObj, 'pending');
@@ -806,7 +805,7 @@ class Capability {
             return _.indexBy(this.get(), 'group');
         };
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const ival = setInterval(() => {
                 // prettier-ignore
                 const isPropagating = !!Actinium.Cache.get('capability.propagating');
@@ -844,7 +843,7 @@ class Capability {
             return _.indexBy(this.get(), 'group');
         };
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const ival = setInterval(() => {
                 // prettier-ignore
                 const isPropagating = !!Actinium.Cache.get('capability.propagating');
@@ -882,7 +881,7 @@ class Capability {
             return _.indexBy(this.get(), 'group');
         };
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const ival = setInterval(() => {
                 // prettier-ignore
                 const isPropagating = !!Actinium.Cache.get('capability.propagating');
@@ -920,7 +919,7 @@ class Capability {
             return _.indexBy(this.get(), 'group');
         };
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
             const ival = setInterval(() => {
                 // prettier-ignore
                 const isPropagating = !!Actinium.Cache.get('capability.propagating');
@@ -935,12 +934,9 @@ class Capability {
     }
 }
 
-const instance = new Capability();
+const init = () => new Capability();
 
-Actinium.User.can = instance.User.can;
-Actinium.User.capabilities = instance.User.get;
-
-module.exports = instance;
+export { Capability, init as default };
 
 /**
  * @api {Hook} before-capability-save before-capability-save

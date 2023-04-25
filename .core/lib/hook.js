@@ -1,10 +1,10 @@
-const chalk = require('chalk');
-const uuid = require('uuid/v4');
-const _ = require('underscore');
-const op = require('object-path');
-const ActionSequence = require('action-sequence');
-const assert = require('assert');
-const Enums = require('./enums');
+import chalk from 'chalk';
+import _ from 'underscore';
+import assert from 'assert';
+import op from 'object-path';
+import Enums from './enums.js';
+import { v4 as uuid } from 'uuid';
+import ActionSequence from 'action-sequence';
 
 const noop = {
     sync: () => {},
@@ -106,4 +106,4 @@ Hook.runSync = (name, ...params) => {
     return context;
 };
 
-module.exports = Hook;
+export default Hook;

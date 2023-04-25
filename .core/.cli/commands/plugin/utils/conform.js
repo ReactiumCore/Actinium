@@ -1,6 +1,6 @@
-const _ = require('underscore');
-const op = require('object-path');
-const { parseArray, parseDest, parseID } = require('./parsers');
+import { parseArray, parseDest, parseID } from './parsers.js';
+
+const { _, op } = arcli;
 
 const CONFORM = (input, props) =>
     Object.entries(input).reduce((obj, [key, val]) => {
@@ -50,4 +50,4 @@ const CONFORM = (input, props) =>
         return obj;
     }, {});
 
-module.exports = CONFORM;
+export default CONFORM;

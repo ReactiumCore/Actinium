@@ -1,8 +1,8 @@
-const path = require('path');
-const fs = require('fs-extra');
-const chalk = require('chalk');
-const assert = require('assert');
-const op = require('object-path');
+import fs from 'fs-extra'; 
+import chalk from 'chalk'; 
+import path from 'node:path';
+import op from 'object-path'; 
+import assert from 'node:assert';
 
 const DEFAULT_PORT = 9000;
 
@@ -188,4 +188,4 @@ function validateReactorEnvId(value) {
     assert(pattern.test(value), 'invalid value for ACTINIUM_ENV_ID');
 }
 
-module.exports = boot;
+export default boot;

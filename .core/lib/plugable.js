@@ -1,21 +1,17 @@
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const semverValidRange = require('semver/ranges/valid');
-const op = require('object-path');
-const globby = require('globby').sync;
-const appdir = path.normalize(`${APP_DIR}`);
-const coredir = path.normalize(`${BASE_DIR}/.core`);
-const npmdir = path.normalize(`${BASE_DIR}/node_modules`);
+import chalk from 'chalk';
+import _ from 'underscore';
+import semver from 'semver';
+import op from 'object-path';
+import path from 'node:path';
+import semverValidRange from 'semver/ranges/valid.js';
+import { globbySync as globby } from '../lib/globby-patch.js';
 
 const exp = {};
 const blacklist = [];
 const COLLECTION = 'Plugin';
 
-const loader = p => {
-    const plugin = require(path.normalize(p));
+const loader = async (p) => {
+    const plugin = await import(path.normalize(p));
 
     const ID = op.get(plugin, 'ID');
     if (ID) {
@@ -112,9 +108,10 @@ Plugable.capabilities = [
     },
 ];
 
-Plugable.exports = key => op.get(exp, key);
+Plugable.exports = (key) => op.get(exp, key);
 
 Plugable.register = (plugin, active = false) => {
+    const coredir = path.normalize(`${BASE_DIR}/.core`);
     const callerFileName = Actinium.Utils.getCallerFile();
     const ID = op.get(plugin, 'ID');
     plugin['active'] = active;
@@ -149,6 +146,7 @@ Plugable.register = (plugin, active = false) => {
 
     if (_isValid(plugin)) Actinium.Cache.set(`plugins.${ID}`, plugin);
 };
+export const pluginRegister = Plugable.register;
 
 Plugable.addMetaAsset = (ID, filePath, assetObjectPath = 'admin.assetURL') => {
     if (
@@ -232,7 +230,7 @@ Plugable.addStylesheet = (ID, filePath, app = 'admin') => {
     Plugable.addMetaAsset(ID, filePath, `${app}.style`);
 };
 
-Plugable.init = () => {
+Plugable.init = async () => {
     Plugable.capabilities.forEach(({ capability, roles }) =>
         Actinium.Capability.register(
             capability,
@@ -249,7 +247,11 @@ Plugable.init = () => {
         addField: false,
     });
 
-    return globby(ENV.GLOB_PLUGINS).map(item => loader(item));
+    const output = await Promise.all(
+        globby(ENV.GLOB_PLUGINS).map((item) => loader(item)),
+    );
+
+    return output;
 };
 
 Plugable.load = async () => {
@@ -346,12 +348,12 @@ Plugable.load = async () => {
     return Promise.resolve(plugins);
 };
 
-Plugable.get = ID =>
+Plugable.get = (ID) =>
     ID
         ? Actinium.Cache.get(`plugins.${ID}`)
         : Actinium.Cache.get('plugins', {});
 
-Plugable.isActive = ID => Actinium.Cache.get(`plugins.${ID}.active`, false);
+Plugable.isActive = (ID) => Actinium.Cache.get(`plugins.${ID}.active`, false);
 
 Plugable.isValid = (ID, strict = false) => {
     const plugin = Plugable.get(ID);
@@ -366,14 +368,14 @@ Plugable.gate = async ({ req, ID, name, callback }) => {
     return callback(req);
 };
 
-Plugable.deactivate = ID =>
+Plugable.deactivate = (ID) =>
     Parse.Cloud.run(
         'plugin-deactivate',
         { plugin: ID },
         { useMasterKey: true },
     );
 
-Plugable.activate = ID =>
+Plugable.activate = (ID) =>
     Parse.Cloud.run('plugin-activate', { plugin: ID }, { useMasterKey: true });
 
 Plugable.updateHookHelper = (pluginId, migrations = {}) => {
@@ -405,7 +407,7 @@ Plugable.updateHookHelper = (pluginId, migrations = {}) => {
     };
 };
 
-module.exports = Plugable;
+export default Plugable;
 
 /**
  * @api {Object} Actinium.Plugin Plugin
@@ -496,7 +498,7 @@ module.exports = Plugable;
   );
   Actinium.Plugin.addMetaAsset(PLUGIN.ID, 'plugin-assets/worker.js', 'webworkerURL');
  * @apiExample add-meta-asset-hook-example.js
-const path = require('path');
+import path from 'node:path';
 
 // The full object passed to the `add-meta-asset` is:
 // {
@@ -693,7 +695,7 @@ const myFunction = async () => {
   * @apiParam (migration) {Asynchronous} [test] optional test function that will return a promise resolving to true or false, whether the migration function should be run or not respectively. By default it will run if the version of the migration script is newer than the old version of the plugin.
   * @apiParam (migration) {Asynchronous} migration migration function, given the same parameters as the update hook (plugin, request, oldPlugin)
   * @apiExample plugin.js
-  const semver = require('semver');
+  import semver from 'semver';
   // if new version is 1.0.6 and old was 1.0.3, both 1.0.4, 1.0.5, and 1.0.6 updates will run by default
   // if new version is 1.0.6 and old was 1.0.5, only the 1.0.5 and 1.0.6 updates will run
   const migrations = {

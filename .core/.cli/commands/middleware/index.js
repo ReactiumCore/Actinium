@@ -4,13 +4,9 @@
  * -----------------------------------------------------------------------------
  */
 
-const chalk = require('chalk');
-const prettier = require('prettier');
-const path = require('path');
-const op = require('object-path');
-const mod = path.dirname(require.main.filename);
-const { error, message } = require(`${mod}/lib/messenger`);
-const GENERATOR = require('./generator');
+import GENERATOR from './generator.js';
+
+const { chalk, message, prettier, op } = arcli;
 
 /**
  * NAME String
@@ -57,7 +53,7 @@ const CONFIRM = ({ props, params, msg }) => {
                         required: true,
                         pattern: /^y|n|Y|N/,
                         message: ` `,
-                        before: val => {
+                        before: (val) => {
                             return String(val).toUpperCase() === 'Y';
                         },
                     },
@@ -82,7 +78,7 @@ const CONFIRM = ({ props, params, msg }) => {
  * @param input Object The key value pairs to reduce.
  * @since 2.0.0
  */
-const CONFORM = ({ input, props }) =>
+const CONFORM = ({ input }) =>
     Object.keys(input).reduce((obj, key) => {
         let val = input[key];
         switch (key) {
@@ -174,7 +170,7 @@ const SCHEMA = ({ props }) => {
  * @since 2.0.0
  */
 const ACTION = ({ opt, props }) => {
-    const { cwd, prompt } = props;
+    const { prompt } = props;
     const schema = SCHEMA({ props });
     const ovr = FLAGS_TO_PARAMS({ opt });
 
@@ -202,10 +198,10 @@ const ACTION = ({ opt, props }) => {
         .then(() => CONFIRM({ props, params }))
         .then(() => GENERATOR({ params, props }))
         .then(() => prompt.stop())
-        .then(results => {
+        .then(() => {
             console.log('');
         })
-        .catch(err => {
+        .catch((err) => {
             prompt.stop();
             message(op.get(err, 'message', CANCELED));
         });
@@ -219,7 +215,7 @@ const COMMAND = ({ program, props }) =>
     program
         .command(NAME)
         .description(DESC)
-        .action(opt => ACTION({ opt, props }))
+        .action((opt) => ACTION({ opt, props }))
         .option('-s, --sample [sample]', 'Sample parameter.')
         .option('-o, --overwrite [overwrite]', 'Overwrite existing file.')
         .on('--help', HELP);
@@ -231,7 +227,4 @@ const COMMAND = ({ program, props }) =>
  * @param props Object The CLI props passed from the calling class `arcli.js`.
  * @since 2.0.0
  */
-module.exports = {
-    COMMAND,
-    NAME,
-};
+export { COMMAND, NAME };

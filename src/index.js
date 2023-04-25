@@ -1,3 +1,3 @@
-require('../.core/actinium');
+import '../.core/actinium.js';
 
 Actinium.start();

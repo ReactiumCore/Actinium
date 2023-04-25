@@ -1,5 +1,8 @@
-const op = require('object-path');
-const chalk = require('chalk');
+import chalk from 'chalk';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PLUGIN = {
     ID: 'TEST-MAILER',
@@ -46,4 +49,4 @@ Actinium.Cloud.define(PLUGIN.ID, 'sendmail-test', async req => {
     });
 });
 
-module.exports = PLUGIN;
+export default PLUGIN;

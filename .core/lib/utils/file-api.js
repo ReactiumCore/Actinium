@@ -1,4 +1,7 @@
-const { File, FileReader } = require('file-api');
+import FileAPI from 'file-api';
+
+const { File, FileReader } = FileAPI;
+
 const getFileAs = (filePath, type = 'readAsDataURL', encoding) => {
     const file = new File(filePath);
     return new Promise((resolve, reject) => {
@@ -19,15 +22,10 @@ const getFileAs = (filePath, type = 'readAsDataURL', encoding) => {
     });
 };
 
-const getDataURL = filePath => getFileAs(filePath);
-const getArrayBuffer = filePath => getFileAs(filePath, 'readAsArrayBuffer');
-const getBinaryString = filePath => getFileAs(filePath, 'readAsBinaryString');
-const getText = (filePath, encoding) =>
+export const getDataURL = (filePath) => getFileAs(filePath);
+export const getArrayBuffer = (filePath) =>
+    getFileAs(filePath, 'readAsArrayBuffer');
+export const getBinaryString = (filePath) =>
+    getFileAs(filePath, 'readAsBinaryString');
+export const getText = (filePath, encoding) =>
     getFileAs(filePath, 'readAsBinaryString', encoding);
-
-module.exports = {
-    getDataURL,
-    getArrayBuffer,
-    getBinaryString,
-    getText,
-};

@@ -1,5 +1,15 @@
-const chalk = require('chalk');
-const op = require('object-path');
+import chalk from 'chalk';
+import op from 'object-path';
+{{#if sdk}}
+import PLUGIN_SDK from './sdk.js';
+{{/if}}
+{{#if blueprints}}
+import PLUGIN_BLUEPRINTS from './blueprints.js';
+{{/if}}
+{{#if routes}}
+import PLUGIN_ROUTES from './routes.js';
+{{/if}}
+
 const { CloudRunOptions } = Actinium.Utils;
 
 const PLUGIN = {
@@ -24,12 +34,10 @@ const PLUGIN = {
  * Extend Actinium SDK
  * ----------------------------------------------------------------------------
  */
-const PLUGIN_SDK = require('./sdk');
 Actinium['{{sdk}}'] = op.get(Actinium, '{{sdk}}', PLUGIN_SDK);
 {{/if}}
 
 {{#if blueprints}}
-const PLUGIN_BLUEPRINTS = require('./blueprints');
 const registerBlueprints = (reg = true) => ({ ID }) => {
     if (ID && ID !== PLUGIN.ID) return;
     if (reg === true) PLUGIN_BLUEPRINTS.forEach(bp => Actinium.Blueprint.register(bp.ID, bp));
@@ -59,7 +67,6 @@ Actinium.Plugin.register(PLUGIN, {{activate}});
  * ----------------------------------------------------------------------------
  */
 {{#if routes}}
-const PLUGIN_ROUTES = require('./routes');
 const saveRoutes = async () => {
     for (const route of PLUGIN_ROUTES) {
         await Actinium.Route.save(route);
@@ -95,7 +102,7 @@ Actinium.Hook.register('deactivate', async ({ ID }) => {
 Actinium.Hook.register('schema', async () => {
     if (!Actinium.Plugin.isActive(PLUGIN.ID)) return;
 
-    const PLUGIN_SCHEMA = require('./schema');
+    const PLUGIN_SCHEMA = await import('./schema.js');
     PLUGIN_SCHEMA.forEach((item) => {
         const { actions = {}, collection, schema = {} } = item;
 

@@ -1,18 +1,17 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const CONFIRM = require('./confirm');
+import CONFIRM from './confirm.js';
+
+const { _, chalk, prefix } = arcli;
 
 const COLLECTION = async (props, count = 0) => {
     count += 1;
-    const prefix = arcli.prefix;
-    const validate = val => !!val;
+    const validate = (val) => !!val;
     const suffix = chalk.magenta(': ');
 
     console.log('');
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, '------------------------------');
     // prettier-ignore
-    console.log(arcli.prefix, chalk.bold('Collection'), chalk.bold.magenta(count));
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, chalk.bold('Collection'), chalk.bold.magenta(count));
+    console.log(prefix, '------------------------------');
 
     const collection = await props.inquirer.prompt([
         {
@@ -130,7 +129,7 @@ const COLLECTION = async (props, count = 0) => {
     };
 
     // clean up collection action keys
-    Object.keys(collection).forEach(key => {
+    Object.keys(collection).forEach((key) => {
         if (
             String(key).startsWith('actions_') ||
             String(key).startsWith('before') ||
@@ -158,7 +157,7 @@ const COLLECTION = async (props, count = 0) => {
     }
 
     collection.schema = _.indexBy(schema, 'field');
-    Object.keys(collection.schema).forEach(key => {
+    Object.keys(collection.schema).forEach((key) => {
         delete collection.schema[key]['field'];
     });
 
@@ -171,16 +170,16 @@ const COLLECTION = async (props, count = 0) => {
 
 const FIELD = async (props, params, count = 0) => {
     count += 1;
-    const prefix = arcli.prefix;
-    const validate = val => !!val;
+    const prefix = prefix;
+    const validate = (val) => !!val;
     const suffix = chalk.magenta(': ');
     const pointers = ['Pointer', 'Relation'];
 
     console.log('');
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, '------------------------------');
     // prettier-ignore
-    console.log(arcli.prefix, chalk.bold(params.collection), chalk.bold('Field'), chalk.bold.magenta(count));
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, chalk.bold(params.collection), chalk.bold('Field'), chalk.bold.magenta(count));
+    console.log(prefix, '------------------------------');
 
     return props.inquirer.prompt([
         {
@@ -213,7 +212,7 @@ const FIELD = async (props, params, count = 0) => {
             validate,
             name: 'targetClass',
             message: 'targetClass',
-            when: answers => pointers.includes(answers.type),
+            when: (answers) => pointers.includes(answers.type),
         },
         {
             prefix,
@@ -259,7 +258,7 @@ const COLLECTIONS = async (props, params) => {
     }
 
     // get collection hooks
-    collections.forEach(item => {
+    collections.forEach((item) => {
         const { hooks = {} } = item;
 
         Object.entries(hooks).forEach(([key, val]) => {
@@ -276,4 +275,4 @@ const COLLECTIONS = async (props, params) => {
     return { collections, ...collectionHooks };
 };
 
-module.exports = COLLECTIONS;
+export default COLLECTIONS;

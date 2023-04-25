@@ -1,5 +1,4 @@
-const chalk = require('chalk');
-const op = require('object-path');
+const { chalk, op } = arcli; 
 
 const TOGGLES = (props, params) =>
     props.inquirer.prompt(
@@ -26,4 +25,4 @@ const TOGGLES = (props, params) =>
         params,
     );
 
-module.exports = TOGGLES;
+export default TOGGLES;

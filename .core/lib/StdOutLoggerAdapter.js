@@ -5,4 +5,4 @@ class StdOutLoggerAdapter {
     }
 }
 
-module.exports = StdOutLoggerAdapter;
+export default StdOutLoggerAdapter;

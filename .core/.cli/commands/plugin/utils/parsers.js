@@ -1,8 +1,6 @@
-const _ = require('underscore');
-const slugify = require('slugify');
-const camelcase = require('camelcase');
+const { _, slugify } = arcli;
 
-const parseArray = val => {
+const parseArray = (val) => {
     if (typeof val === 'undefined') return [];
     return _.compact(
         String(val)
@@ -13,10 +11,10 @@ const parseArray = val => {
     );
 };
 
-const parseCaps = str =>
-    parseArray(str).map(item => String(item).toLowerCase());
+const parseCaps = (str) =>
+    parseArray(str).map((item) => String(item).toLowerCase());
 
-const parseDest = val => {
+const parseDest = (val) => {
     const cwd = process.cwd();
     val = arcli.normalizePath(val);
     val = String(val).replace(/^cwd\\|^cwd\//i, cwd);
@@ -30,10 +28,10 @@ const parseDest = val => {
     return arcli.normalizePath(val);
 };
 
-const parseID = ID =>
+const parseID = (ID) =>
     slugify(ID, { lower: true, replace: '-', remove: /[^a-z0-9@\-\s\/\\]/gi });
 
-module.exports = {
+export {
     parseArray,
     parseCaps,
     parseDest,

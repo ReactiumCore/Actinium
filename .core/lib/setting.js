@@ -1,19 +1,8 @@
-const path = require('path');
-const chalk = require('chalk');
-const _ = require('underscore');
-const semver = require('semver');
-const op = require('object-path');
-const config = require(`${BASE_DIR}/.core/actinium-config`);
-
-const {
-    CloudCapOptions,
-    CloudHasCapabilities,
-    Registry,
-} = require(`${ACTINIUM_DIR}/lib/utils`);
+import _ from 'underscore';
+import op from 'object-path';
+import { CloudHasCapabilities, Registry } from './utils/index.js';
 
 const COLLECTION = 'Setting';
-
-Actinium.Cache.set('setting', ENV.SETTINGS);
 
 const Setting = {};
 
@@ -108,11 +97,7 @@ Setting.get = async (key, defaultValue, options) => {
         return op.get(result, settingPath, defaultValue);
     }
 
-    Actinium.Cache.set(
-        `setting.${key}`,
-        result,
-        Actinium.Enums.cache.dataLoading,
-    );
+    Actinium.Cache.set(`setting.${key}`, result, Actinium.Enums.cache.dataLoading);
 
     return typeof obj === 'undefined' ? defaultValue : obj;
 };
@@ -131,7 +116,7 @@ Actinium.Setting.unset('site.title');
 // remove the entire site setting group, including all settings and the capabilities associated
 Actinium.Setting.unset('site');
  */
-Setting.unset = key => {
+Setting.unset = (key) => {
     const options = Actinium.Utils.MasterOptions();
 
     return key.split('.').length > 0
@@ -145,11 +130,6 @@ Setting.load = async () => {
     return settings;
 };
 
-// Non-sensitive setting groups only!!
-Setting.anonymousGroup = new Registry('AnonymousGroup');
-Setting.anonymousGroup.register('app', { id: 'app' });
-Setting.anonymousGroup.register('profile', { id: 'profile' });
-
 Setting.list = async (req = {}, fullAccess) => {
     let skip = 0;
     const output = {};
@@ -161,7 +141,7 @@ Setting.list = async (req = {}, fullAccess) => {
     fullAccess =
         fullAccess || CloudHasCapabilities(req, `${COLLECTION}.retrieve`);
     while (results.length > 0) {
-        results.forEach(item => {
+        results.forEach((item) => {
             const { key, value } = item.toJSON();
             if (
                 key &&
@@ -182,4 +162,13 @@ Setting.list = async (req = {}, fullAccess) => {
     return output;
 };
 
-module.exports = Setting;
+Setting.init = () => {
+    Actinium.Cache.set('setting', ENV.SETTINGS);
+
+    // Non-sensitive setting groups only!!
+    Setting.anonymousGroup = new Registry('AnonymousGroup');
+    Setting.anonymousGroup.register('app', { id: 'app' });
+    Setting.anonymousGroup.register('profile', { id: 'profile' });
+};
+
+export default Setting;

@@ -1,24 +1,25 @@
-const middleware = [];
-const path = require('path');
-const op = require('object-path');
-const express = require('express');
-const { ParseServer } = require('parse-server');
-const ParseDashboard = require('parse-dashboard');
-const FileAdapter = require(ACTINIUM_DIR + '/lib/files-adapter');
+import op from 'object-path';
+import express from 'express';
+import Hook from '../../lib/hook.js';
+import { ParseServer } from 'parse-server';
+import ParseDashboard from 'parse-dashboard';
+import FileAdapter from '../../lib/files-adapter.js';
 
-const parseConfig = () => {
+const parseConfig = (hook) => {
     const config = {
         appId: ENV.APP_ID,
         appName: ENV.APP_NAME,
         masterKey: ENV.MASTER_KEY,
+        enforcePrivateUsers: false,
         sessionLength: 31536000000,
         databaseURI: ENV.DATABASE_URI,
-        cloud: ACTINIUM_DIR + '/cloud.js',
+        allowExpiredAuthDataToken: true,
+        cloud: ACTINIUM_DIR + '/cloud.cjs',
         serverURL: ENV.SERVER_URI + ENV.PARSE_MOUNT,
+        directAccess: ENV.PARSE_FILES_DIRECT_ACCESS,
+        preserveFileName: ENV.PARSE_PRESERVE_FILENAME,
         publicServerURL: ENV.PUBLIC_SERVER_URI + ENV.PARSE_MOUNT,
         allowClientClassCreation: ENV.PARSE_ALLOW_CLIENT_CLASS_CREATION,
-        preserveFileName: ENV.PARSE_PRESERVE_FILENAME,
-        directAccess: ENV.PARSE_FILES_DIRECT_ACCESS,
     };
 
     config.filesAdapter = FileAdapter.getProxy(config);
@@ -57,12 +58,14 @@ const parseConfig = () => {
         config.logLevel = ENV.PARSE_LOG_LEVEL;
     }
 
+    if (hook) Hook.runSync(hook, config);
+
     return config;
 };
 
-Actinium.Middleware.register('parse', app => {
+Actinium.Middleware.register('parse', (app) => {
     if (ENV.NO_PARSE !== true) {
-        const server = new ParseServer(parseConfig());
+        const server = new ParseServer(parseConfig('parse-server-config'));
 
         const routerServer = express.Router();
         routerServer.use(ENV.PARSE_MOUNT, server);
@@ -94,6 +97,8 @@ Actinium.Middleware.register('parse', app => {
                 },
             ],
         };
+
+        Hook.runSync('parse-dashboard-config', dashboardConfig);
 
         const dashboard = new ParseDashboard(dashboardConfig, {
             allowInsecureHTTP: ENV.PARSE_DASHBOARD_ALLOW_INSECURE_HTTP,

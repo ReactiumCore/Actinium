@@ -1,11 +1,8 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const uuid = require('uuid/v4');
-const cron = require('node-cron');
+import chalk from 'chalk';
+import _ from 'underscore';
+import cron from 'node-cron';
 
 const pulse = {};
-
-const noop = () => {};
 
 pulse.definitions = [];
 
@@ -141,4 +138,4 @@ pulse.stop = id => {
     }
 };
 
-module.exports = pulse;
+export default pulse;

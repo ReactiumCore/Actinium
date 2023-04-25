@@ -1,32 +1,51 @@
-const path = require('path');
-const chalk = require('chalk');
-const globby = require('globby').sync;
+import path from 'path';
+import chalk from 'chalk';
+import { globbySync as globby } from '../lib/globby-patch.js';
 
 const Cloud = { ...Parse.Cloud };
 
-Cloud.info = () =>
-    CLOUD_FUNCTIONS.forEach(({ name }) =>
-        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name)),
-    );
+Cloud.info = () => {
+    BOOT('');
+    BOOT(chalk.cyan('Loading Cloud functions')); 
 
-Cloud.init = () => {
-    // Load cloud functions
-    global.CLOUD_FUNCTIONS = globby(ENV.GLOB_CLOUD).map(item => {
-        const p = path.normalize(item);
-        const name = String(path.basename(item))
-            .split('.')
-            .shift();
-
-        require(p);
-        return { name };
+    CLOUD_FUNCTIONS.forEach(({ name }) => {
+        if (!name) return;
+        BOOT(chalk.cyan('  Cloud'), chalk.cyan('→'), chalk.magenta(name));
     });
 };
 
+Cloud.init = async () => {
+    const output = [];
+    const files = globby(ENV.GLOB_CLOUD);
+
+    // Load cloud functions
+    global.CLOUD_FUNCTIONS = await Promise.all(
+        files.map((item) => {
+            const p = path.normalize(item);
+            const name = String(path.basename(item)).split('.').shift();
+
+            output.push({ name, path: p });
+
+            return import(p);
+        }),
+    );
+
+    return output;
+};
+
 Cloud.define = (plugin, name, callback) => {
-    Parse.Cloud.define(name, req =>
+    if (!plugin || !name || !callback) {
+        throw new Error(
+            `Cloud.define(plugin, name, callback) all parameters required: ${
+                (!!plugin, !!name, !!callback)
+            }`,
+        );
+    }
+
+    Parse.Cloud.define(name, (req) =>
         Actinium.Plugin.gate({ req, ID: plugin, name, callback }),
     );
     CLOUD_FUNCTIONS.push({ name });
 };
 
-module.exports = Cloud;
+export default Cloud;

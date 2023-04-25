@@ -1,17 +1,17 @@
-const chalk = require('chalk');
-const CONFIRM = require('./confirm');
+import CONFIRM from './confirm.js';
+
+const { chalk, prefix } = arcli;
 
 const BLUEPRINT = async ({ inquirer }, params = {}, count = 0) => {
     count += 1;
-    const prefix = arcli.prefix;
-    const validate = val => !!val;
+    const validate = (val) => !!val;
     const suffix = chalk.magenta(': ');
 
     console.log('');
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, '------------------------------');
     // prettier-ignore
-    console.log(arcli.prefix, chalk.bold('Blueprint'), chalk.bold.magenta(count));
-    console.log(arcli.prefix, '------------------------------');
+    console.log(prefix, chalk.bold('Blueprint'), chalk.bold.magenta(count));
+    console.log(prefix, '------------------------------');
 
     return inquirer.prompt(
         [
@@ -102,4 +102,4 @@ const BLUEPRINTS = async (props, params) => {
     return { blueprints };
 };
 
-module.exports = BLUEPRINTS;
+export default BLUEPRINTS;

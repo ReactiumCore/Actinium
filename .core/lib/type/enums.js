@@ -19,7 +19,7 @@ const STATUS = {
 
 const DEFAULT_TYPE_REGISTRY = Symbol('DEFAULT_TYPE_REGISTRY');
 
-module.exports = {
+export {
     UNINSTALLED_NAMESPACE,
     DEFAULT_TYPE_REGISTRY,
     STATUS,

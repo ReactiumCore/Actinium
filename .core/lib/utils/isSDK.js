@@ -25,9 +25,9 @@ if (Actinium.Utils.isSDK(['Recycle', 'User'], 'Media')) {
   // Recycle a User and some Media
 }
  */
-const _ = require('underscore');
+import _ from 'underscore';
 
-module.exports = (check, ...args) => {
+export default (check, ...args) => {
     check = Array.isArray(check) ? Array.from(check) : [check];
     args = Array.from(args);
 

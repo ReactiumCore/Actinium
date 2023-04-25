@@ -1,4 +1,4 @@
-const op = require('object-path');
+import op from 'object-path';
 
 /**
  * @api {Function} Utils.serialize(ParseObject) Utils.serialize()
@@ -6,7 +6,7 @@ const op = require('object-path');
  * @apiName Utils.serialize
  * @apiGroup Actinium
  * @apiExample Usage
-const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+const { serialize } = Actinium.Utils;
 
 Actinium.Cloud.define('MY_PLUGIN', 'some-function', async req => {
     const object = new Parse.Object('SomeObject');
@@ -16,7 +16,7 @@ Actinium.Cloud.define('MY_PLUGIN', 'some-function', async req => {
     return serialize(object);
 });
  */
-const serialize = data => {
+const serialize = (data) => {
     if (!data || typeof data.toJSON === 'undefined') return data;
     const obj = data.toJSON();
     Object.entries(obj).forEach(([key, value]) => {
@@ -31,4 +31,4 @@ const serialize = data => {
     return obj;
 };
 
-module.exports = serialize;
+export default serialize;

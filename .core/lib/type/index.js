@@ -1,19 +1,15 @@
-const op = require('object-path');
-const _ = require('underscore');
-const uuidv5 = require('uuid/v5');
-const slugify = require(`${ACTINIUM_DIR}/lib/utils/slugify`);
-const serialize = require(`${ACTINIUM_DIR}/lib/utils/serialize`);
+import _ from 'underscore';
+import op from 'object-path';
+import { v5 as uuidv5 } from 'uuid';
+import { Registry, serialize, slugify } from '../utils/index.js';
 
-const {
-    PLUGIN,
-    STATUS,
-    UNINSTALLED_NAMESPACE,
-    DEFAULT_TYPE_REGISTRY,
-} = require('./enums');
+import * as ENUMS from './enums.js';
+
+const { PLUGIN, STATUS, UNINSTALLED_NAMESPACE, DEFAULT_TYPE_REGISTRY } = ENUMS;
 
 const COLLECTION = PLUGIN.ID;
 
-const Type = {};
+const Type = { ENUMS };
 
 const getNamespace = () => {
     return (
@@ -288,7 +284,7 @@ Type.retrieve = async (params, options) => {
  * @apiName Type.getCollection
  * @apiGroup Actinium
  */
-Type.getCollection = async params => {
+Type.getCollection = async (params) => {
     const typeObj = await Actinium.Type.retrieve(
         params,
         Actinium.Utils.MasterOptions(),
@@ -379,7 +375,7 @@ Type.list = async (params = {}, options) => {
             }
         }
 
-        types = types.map(contentType => serialize(contentType));
+        types = types.map((contentType) => serialize(contentType));
 
         // Get schema if specified
         if (op.get(params, 'schema') === true) {
@@ -446,7 +442,9 @@ Type.validateFields = (fields = {}, regions = {}) => {
             return valid && false;
         }
         if (!op.has(field, 'fieldType')) {
-            WARN(`Missing fieldType defining content type field.`, { field });
+            WARN(`Missing fieldType defining content type field.`, {
+                field,
+            });
             return valid && false;
         }
         if (!op.has(field, 'fieldName') || String(field.fieldName).length < 1) {
@@ -469,7 +467,7 @@ Type.validateFields = (fields = {}, regions = {}) => {
     }, true);
 };
 
-Type.saveSchema = async type => {
+Type.saveSchema = async (type) => {
     // ignore malformed types
     if (
         type.machineName === 'undefined' ||
@@ -515,7 +513,7 @@ Type.saveSchema = async type => {
         .uniq()
         .compact()
         .value()
-        .forEach(status =>
+        .forEach((status) =>
             Actinium.Capability.register(
                 `${type.collection}.setstatus-${status}`,
                 { allowed: ['contributor', 'moderator'] },
@@ -531,7 +529,6 @@ Type.saveSchema = async type => {
     });
 };
 
-Type[DEFAULT_TYPE_REGISTRY] = new Actinium.Utils.Registry('machineName');
 Type.register = async (typeTemplate = {}) => {
     const type = op.get(typeTemplate, 'type');
     const machineName = op.get(typeTemplate, 'machineName');
@@ -563,7 +560,7 @@ Type.register = async (typeTemplate = {}) => {
     });
 };
 
-const ensurePublisher = async typeObj => {
+const ensurePublisher = async (typeObj) => {
     if (!op.has(typeObj, 'fields.publisher')) {
         op.set(typeObj, 'fields.publisher', {
             fieldId: 'publisher',
@@ -576,14 +573,20 @@ const ensurePublisher = async typeObj => {
     }
 };
 
-Actinium.Hook.register('type-retrieved', async typeObj => {
-    await ensurePublisher(typeObj);
-});
+Type.init = () => {
+    Type[DEFAULT_TYPE_REGISTRY] = new Registry('machineName');
 
-Actinium.Hook.register('type-list', async result => {
-    for (const typeObj of result.types) {
+    Actinium.Hook.register('type-retrieved', async (typeObj) => {
         await ensurePublisher(typeObj);
-    }
-});
+    });
 
-module.exports = Type;
+    Actinium.Hook.register('type-list', async (result) => {
+        for (const typeObj of result.types) {
+            await ensurePublisher(typeObj);
+        }
+    });
+};
+
+Actinium.Type = Type;
+
+export default Type;

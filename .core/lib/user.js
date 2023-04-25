@@ -1,9 +1,7 @@
-const chalk = require('chalk');
-const _ = require('underscore');
-const uuid = require('uuid/v4');
-const moment = require('moment');
-const op = require('object-path');
-const slugify = require('slugify');
+import chalk from 'chalk';
+import _ from 'underscore';
+import op from 'object-path';
+import { v4 as uuid } from 'uuid';
 
 const COLLECTION = '_User';
 const COLLECTION_ROLE = '_Role';
@@ -747,4 +745,4 @@ User.Pref.update = async (params, options) => {
     return user;
 };
 
-module.exports = User;
+export default User;

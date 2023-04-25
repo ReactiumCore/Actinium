@@ -1,13 +1,9 @@
-const chalk = require('chalk');
-const uuid = require('uuid/v4');
-const _ = require('underscore');
-const op = require('object-path');
-const Capability = require('./capability');
-const ActionSequence = require('action-sequence');
-const { CloudRunOptions } = require(`${ACTINIUM_DIR}/lib/utils`);
+import _ from 'underscore';
+import op from 'object-path';
+import ActionSequence from 'action-sequence';
+import { CloudRunOptions } from './utils/options.js';
 
 const useMasterKey = true;
-const noop = () => Promise.resolve();
 
 const COLLECTION = Parse.Role;
 
@@ -70,7 +66,7 @@ const decorateRoles = async (objects = [], options) => {
             await item
                 .get('users')
                 .query()
-                .each(item => {
+                .each((item) => {
                     const { avatar, objectId, username } = item.toJSON();
                     users[objectId] = { avatar, objectId, username };
                 }, options);
@@ -78,7 +74,7 @@ const decorateRoles = async (objects = [], options) => {
             await item
                 .get('roles')
                 .query()
-                .each(item => {
+                .each((item) => {
                     const { level, name, objectId, label } = item.toJSON();
                     roles[objectId] = { label, level, name, objectId };
                 }, options);
@@ -96,7 +92,7 @@ const decorateRoles = async (objects = [], options) => {
 
 const Roles = { User: {} };
 
-Roles.get = search => {
+Roles.get = (search) => {
     return _.chain(
         Object.values(Actinium.Cache.get('roles', {})).filter(
             ({ name, level, objectId }) =>
@@ -140,7 +136,7 @@ Roles.list = async (req, opts) => {
     // 4. Get rest of roles
     while (results.length > 0) {
         output = output.concat(
-            results.map(item => {
+            results.map((item) => {
                 item = item.toJSON();
                 item['users'] = item.userList || {};
                 item['roles'] = item.roleList || {};
@@ -177,9 +173,9 @@ Roles.User.getMany = (users = []) => {
     }, {});
 
     const allRoles = Object.values(Roles.get());
-    allRoles.forEach(role => {
+    allRoles.forEach((role) => {
         const { users = {}, name, level } = role;
-        Object.values(users).forEach(user => {
+        Object.values(users).forEach((user) => {
             const id = user.id || user.objectId;
             if (id in byUser) byUser[id][name] = level;
         });
@@ -188,7 +184,7 @@ Roles.User.getMany = (users = []) => {
     return byUser;
 };
 
-Roles.User.get = search => {
+Roles.User.get = (search) => {
     return _.chain(
         Object.values(Roles.get()).filter(({ users = {} }) => {
             return (
@@ -231,10 +227,6 @@ Roles.User.is = (user, role) => {
         return level >= role;
     }
 };
-
-Roles.can = Capability.Role.can;
-
-Roles.capabilities = Capability.Role.get;
 
 Roles.create = (roleObj = {}, options = { useMasterKey }) => {
     const { label, level = 1, name, roles, acl } = roleObj;
@@ -280,13 +272,13 @@ Roles.init = () =>
                 .set('level', level),
         ),
         { useMasterKey: true },
-    ).then(roles => {
-        roles = roles.map(role => {
+    ).then((roles) => {
+        roles = roles.map((role) => {
             const { name } = role.toJSON();
             const roleData = _.findWhere(ENV.ROLES, { name }) || {};
 
             if (op.has(roleData, 'roles')) {
-                const related = roles.filter(r =>
+                const related = roles.filter((r) =>
                     roleData.roles.includes(r.get('name')),
                 );
                 role.getRoles().add(related);
@@ -294,7 +286,7 @@ Roles.init = () =>
 
             if (op.has(roleData, 'acl')) {
                 const ACL = Roles.defaultRoleACL();
-                roles.forEach(r => {
+                roles.forEach((r) => {
                     if (roleData.acl.includes(r.get('name'))) {
                         ACL.setPublicWriteAccess(false);
                         ACL.setRoleWriteAccess(r, true);
@@ -309,6 +301,4 @@ Roles.init = () =>
         return Parse.Object.saveAll(roles, { useMasterKey: true });
     });
 
-Actinium.User.isRole = Roles.User.is;
-
-module.exports = Roles;
+export default Roles;

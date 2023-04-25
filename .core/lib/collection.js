@@ -1,7 +1,7 @@
-const _ = require('underscore');
-const op = require('object-path');
-const ActionSequence = require('action-sequence');
-const chalk = require('chalk');
+import chalk from 'chalk';
+import _ from 'underscore';
+import op from 'object-path';
+import ActionSequence from 'action-sequence';
 
 const collectionPerms = {};
 const collectionSchema = {};
@@ -18,6 +18,7 @@ const defaultPublicSetting = {
 const Collection = {
     loaded: false,
 };
+
 Collection.register = (
     collection,
     publicSetting = defaultPublicSetting,
@@ -35,7 +36,7 @@ Collection.register = (
     collectionPerms[collection] = publicSetting;
 
     // Update Collection classLevelPermissions on capability updates
-    Actinium.Hook.register('capability-change', async req => {
+    Actinium.Hook.register('capability-change', async (req) => {
         const capability = req.object.get('group');
         if (
             Actinium.Collection.loaded &&
@@ -46,7 +47,7 @@ Collection.register = (
                 `${collection}.delete`,
                 `${collection}.addField`,
             ]
-                .map(c => String(c).toLowerCase(c))
+                .map((c) => String(c).toLowerCase(c))
                 .includes(capability)
         ) {
             await Actinium.Collection.load(collection);
@@ -64,7 +65,7 @@ Collection.register = (
     return Promise.resolve();
 };
 
-Collection.unregister = collection => {
+Collection.unregister = (collection) => {
     if (collection in collectionPerms) {
         // default to private permissions
         collectionPerms[collection] = defaultPublicSetting;
@@ -138,7 +139,8 @@ Collection.load = async (collection = false) => {
                 'delete',
                 'addField',
             ]) {
-                const capabilityName = `${collection}.${capability}`.toLowerCase();
+                const capabilityName =
+                    `${collection}.${capability}`.toLowerCase();
 
                 classLevelPermissions[capabilityName] = {};
 
@@ -148,7 +150,7 @@ Collection.load = async (collection = false) => {
 
                 const allowed = op.get(currentCap, 'allowed', []);
 
-                allowed.forEach(role =>
+                allowed.forEach((role) =>
                     op.set(
                         classLevelPermissions,
                         [capabilityName, `role:${role}`],
@@ -176,8 +178,9 @@ Collection.load = async (collection = false) => {
 
             try {
                 ['create', 'retrieve', 'update', 'delete', 'addField'].forEach(
-                    capability => {
-                        const capabilityName = `${collection}.${capability}`.toLowerCase();
+                    (capability) => {
+                        const capabilityName =
+                            `${collection}.${capability}`.toLowerCase();
                         let permissions = [];
                         switch (capability) {
                             case 'create': {
@@ -206,7 +209,7 @@ Collection.load = async (collection = false) => {
                             }
                         }
 
-                        permissions.forEach(permission => {
+                        permissions.forEach((permission) => {
                             op.set(
                                 schema,
                                 `classLevelPermissions.${permission}`,
@@ -246,7 +249,7 @@ Collection.load = async (collection = false) => {
                     return fieldIndex;
                 }, {});
 
-            Object.keys(fields).forEach(field => {
+            Object.keys(fields).forEach((field) => {
                 const del = op.get(fields, [field, 'delete']) === true;
 
                 if (del === true) {
@@ -322,7 +325,7 @@ Collection.load = async (collection = false) => {
     return Promise.resolve();
 };
 
-module.exports = Collection;
+export default Collection;
 
 /**
  * @api {Object} Actinium.Collection Collection

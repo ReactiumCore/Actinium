@@ -1,11 +1,7 @@
-const path = require('path');
-const chalk = require('chalk');
-const fs = require('fs-extra');
-const _ = require('underscore');
-const op = require('object-path');
+export default (spinner) => {
+    const { chalk } = arcli;
 
-module.exports = spinner => {
-    const message = text => {
+    const message = (text) => {
         if (spinner) {
             spinner.text = text;
         }
@@ -13,7 +9,7 @@ module.exports = spinner => {
 
     return {
         create: ({ action, params, props }) => {
-            message(`Creating ${chalk.cyan('something')}...`);
+            message(`Creating ${chalk.cyan('middleware')}...`);
         },
     };
 };
