@@ -170,7 +170,6 @@ const COLLECTION = async (props, count = 0) => {
 
 const FIELD = async (props, params, count = 0) => {
     count += 1;
-    const prefix = prefix;
     const validate = (val) => !!val;
     const suffix = chalk.magenta(': ');
     const pointers = ['Pointer', 'Relation'];
