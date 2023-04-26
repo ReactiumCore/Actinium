@@ -1,3 +1,15 @@
-const {{sdk}} = {};
+{{#if sdk}}
+class SDK {
+    constructor() {
+        this._version = '0.0.1';
+    }
 
-export default {{sdk}};
+    get version() {
+        return this._version;
+    }
+}
+
+Actinium.{{sdk}} = new SDK(); 
+
+export default Actinium.{{sdk}};
+{{/if}}
