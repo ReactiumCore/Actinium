@@ -3,7 +3,7 @@
  * @type {Object}
  */
 export default {
-    version: '5.1.2',
+    version: '5.1.3',
     semver: '^5.0.0',
     update: {
         package: {
@@ -23,24 +23,24 @@ export default {
             },
             actiniumDependencies: {
                 add: {
-                    '@atomic-reactor/actinium-capability': '5.0.1',
-                    '@atomic-reactor/actinium-component-manager': '5.0.1',
-                    '@atomic-reactor/actinium-content': '5.1.1',
-                    '@atomic-reactor/actinium-env': '5.0.1',
-                    '@atomic-reactor/actinium-fs-adapter': '5.0.1',
-                    '@atomic-reactor/actinium-io': '5.0.1',
-                    '@atomic-reactor/actinium-mailer': '5.0.1',
-                    '@atomic-reactor/actinium-plugin-manager': '5.0.1',
-                    '@atomic-reactor/actinium-pulse': '5.0.1',
-                    '@atomic-reactor/actinium-recycle': '5.0.1',
-                    '@atomic-reactor/actinium-reset': '5.0.1',
-                    '@atomic-reactor/actinium-roles': '5.0.1',
-                    '@atomic-reactor/actinium-route': '5.0.1',
-                    '@atomic-reactor/actinium-search': '5.0.1',
-                    '@atomic-reactor/actinium-settings': '5.0.1',
-                    '@atomic-reactor/actinium-taxonomy': '5.0.1',
-                    '@atomic-reactor/actinium-type': '5.0.1',
-                    '@atomic-reactor/actinium-users': '5.0.1',
+                    '@atomic-reactor/actinium-capability': '5.0.2',
+                    '@atomic-reactor/actinium-component-manager': '5.0.2',
+                    '@atomic-reactor/actinium-content': '5.1.2',
+                    '@atomic-reactor/actinium-env': '5.0.2',
+                    '@atomic-reactor/actinium-fs-adapter': '5.0.2',
+                    '@atomic-reactor/actinium-io': '5.0.2',
+                    '@atomic-reactor/actinium-mailer': '5.0.2',
+                    '@atomic-reactor/actinium-plugin-manager': '5.0.2',
+                    '@atomic-reactor/actinium-pulse': '5.0.2',
+                    '@atomic-reactor/actinium-recycle': '5.0.2',
+                    '@atomic-reactor/actinium-reset': '5.0.2',
+                    '@atomic-reactor/actinium-roles': '5.0.2',
+                    '@atomic-reactor/actinium-route': '5.0.2',
+                    '@atomic-reactor/actinium-search': '5.0.2',
+                    '@atomic-reactor/actinium-settings': '5.0.2',
+                    '@atomic-reactor/actinium-taxonomy': '5.0.2',
+                    '@atomic-reactor/actinium-type': '5.0.2',
+                    '@atomic-reactor/actinium-users': '5.0.2',
                 },
                 remove: [
                     '@actinium-reactor/actinium-media',
