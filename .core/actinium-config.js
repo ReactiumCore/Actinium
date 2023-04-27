@@ -3,7 +3,7 @@
  * @type {Object}
  */
 export default {
-    version: '5.1.0',
+    version: '5.1.1',
     semver: '^5.0.0',
     update: {
         package: {
@@ -17,7 +17,7 @@ export default {
             },
             scripts: {
                 add: {
-                    'plugin:install': 'npx reactium install -s',
+                    'plugin:install': 'npx reactium install',
                 },
                 remove: [],
             },
@@ -26,7 +26,7 @@ export default {
                     '@atomic-reactor/actinium-blueprint': '5.0.1',
                     '@atomic-reactor/actinium-capability': '5.0.1',
                     '@atomic-reactor/actinium-component-manager': '5.0.1',
-                    '@atomic-reactor/actinium-content': '5.0.1',
+                    '@atomic-reactor/actinium-content': '5.1.1',
                     '@atomic-reactor/actinium-env': '5.0.1',
                     '@atomic-reactor/actinium-fs-adapter': '5.0.1',
                     '@atomic-reactor/actinium-io': '5.0.1',
