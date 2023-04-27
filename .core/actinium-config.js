@@ -8,6 +8,7 @@ export default {
     update: {
         package: {
             dependencies: {
+                add: {'parse-server': '^6.1.0-alpha.7'},
                 remove: [],
             },
             devDependencies: {
