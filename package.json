@@ -15,28 +15,6 @@
         "plugin:install": "npx reactium install -s"
     },
     "dependencies": {
-        "@atomic-reactor/actinium-blueprint": "file:actinium_modules/@atomic-reactor/actinium-blueprint/_npm",
-        "@atomic-reactor/actinium-capability": "file:actinium_modules/@atomic-reactor/actinium-capability/_npm",
-        "@atomic-reactor/actinium-component-manager": "file:actinium_modules/@atomic-reactor/actinium-component-manager/_npm",
-        "@atomic-reactor/actinium-env": "file:actinium_modules/@atomic-reactor/actinium-env/_npm",
-        "@atomic-reactor/actinium-fs-adapter": "file:actinium_modules/@atomic-reactor/actinium-fs-adapter/_npm",
-        "@atomic-reactor/actinium-io": "file:actinium_modules/@atomic-reactor/actinium-io/_npm",
-        "@atomic-reactor/actinium-mailer": "file:actinium_modules/@atomic-reactor/actinium-mailer/_npm",
-        "@atomic-reactor/actinium-navigation": "file:actinium_modules/@atomic-reactor/actinium-navigation/_npm",
-        "@atomic-reactor/actinium-plugin-mananger": "file:actinium_modules/@atomic-reactor/actinium-plugin-mananger/_npm",
-        "@atomic-reactor/actinium-pulse": "file:actinium_modules/@atomic-reactor/actinium-pulse/_npm",
-        "@atomic-reactor/actinium-recycle": "file:actinium_modules/@atomic-reactor/actinium-recycle/_npm",
-        "@atomic-reactor/actinium-reset": "file:actinium_modules/@atomic-reactor/actinium-reset/_npm",
-        "@atomic-reactor/actinium-roles": "file:actinium_modules/@atomic-reactor/actinium-roles/_npm",
-        "@atomic-reactor/actinium-route": "file:actinium_modules/@atomic-reactor/actinium-route/_npm",
-        "@atomic-reactor/actinium-search": "file:actinium_modules/@atomic-reactor/actinium-search/_npm",
-        "@atomic-reactor/actinium-ses-mailer": "file:actinium_modules/@atomic-reactor/actinium-ses-mailer/_npm",
-        "@atomic-reactor/actinium-settings": "file:actinium_modules/@atomic-reactor/actinium-settings/_npm",
-        "@atomic-reactor/actinium-shortcodes": "file:actinium_modules/@atomic-reactor/actinium-shortcodes/_npm",
-        "@atomic-reactor/actinium-syndicate": "file:actinium_modules/@atomic-reactor/actinium-syndicate/_npm",
-        "@atomic-reactor/actinium-taxonomy": "file:actinium_modules/@atomic-reactor/actinium-taxonomy/_npm",
-        "@atomic-reactor/actinium-type": "file:actinium_modules/@atomic-reactor/actinium-type/_npm",
-        "@atomic-reactor/actinium-users": "file:actinium_modules/@atomic-reactor/actinium-users/_npm",
         "@atomic-reactor/dirname": "^1.0.7",
         "action-sequence": "^1.1.2",
         "apidoc": "^0.25.0",
@@ -107,6 +85,9 @@
             "git add"
         ]
     },
+    "workspaces": [
+        "actinium_modules/**/_npm"
+    ],
     "actiniumDependencies": {
         "@atomic-reactor/actinium-blueprint": "5.0.1",
         "@atomic-reactor/actinium-capability": "5.0.1",
