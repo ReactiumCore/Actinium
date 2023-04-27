@@ -63,14 +63,16 @@ const parseConfig = (hook) => {
     return config;
 };
 
-Actinium.Middleware.register('parse', (app) => {
+Actinium.Middleware.register('parse', async (app) => {
     if (ENV.NO_PARSE !== true) {
         const server = new ParseServer(parseConfig('parse-server-config'));
 
         const routerServer = express.Router();
-        routerServer.use(ENV.PARSE_MOUNT, server);
+        routerServer.use(ENV.PARSE_MOUNT, server.app);
 
         app.use(routerServer);
+
+        await server.start();
     }
 
     if (ENV.PARSE_DASHBOARD === true && !ENV.NO_PARSE) {

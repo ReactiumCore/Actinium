@@ -258,10 +258,10 @@ Type.retrieve = async (params, options) => {
     if (!contentType) throw new Error('Unable to find type.');
     const result = serialize(contentType);
 
-    if (op.get(params, 'schema', false) === true) {
-        const { schema } = await Actinium.Content.getSchema(result);
-        op.set(result, 'schema', schema);
-    }
+    // if (op.get(params, 'schema', false) === true) {
+    //     const { schema } = await Actinium.Content.getSchema(result);
+    //     op.set(result, 'schema', schema);
+    // }
 
     await Actinium.Hook.run('type-retrieved', result);
     return result;
@@ -378,13 +378,13 @@ Type.list = async (params = {}, options) => {
         types = types.map((contentType) => serialize(contentType));
 
         // Get schema if specified
-        if (op.get(params, 'schema') === true) {
-            for (let i = 0; i < types.length; i++) {
-                const type = types[i];
-                const { schema } = await Actinium.Content.getSchema(type);
-                op.set(type, 'schema', schema);
-            }
-        }
+        // if (op.get(params, 'schema') === true) {
+        //     for (let i = 0; i < types.length; i++) {
+        //         const type = types[i];
+        //         const { schema } = await Actinium.Content.getSchema(type);
+        //         op.set(type, 'schema', schema);
+        //     }
+        // }
 
         Actinium.Cache.set(cacheKey, types, 20000);
     } else {
@@ -477,7 +477,7 @@ Type.saveSchema = async (type) => {
         return;
     }
 
-    await Actinium.Content.saveSchema(type);
+    // await Actinium.Content.saveSchema(type);
 
     // content CLP should allow broad access to retrieve content by default
     Actinium.Capability.register(`${type.collection}.retrieve`, {

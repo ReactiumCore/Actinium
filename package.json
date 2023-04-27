@@ -37,6 +37,7 @@
         "@atomic-reactor/actinium-taxonomy": "file:actinium_modules/@atomic-reactor/actinium-taxonomy/_npm",
         "@atomic-reactor/actinium-type": "file:actinium_modules/@atomic-reactor/actinium-type/_npm",
         "@atomic-reactor/actinium-users": "file:actinium_modules/@atomic-reactor/actinium-users/_npm",
+        "@atomic-reactor/dirname": "^1.0.7",
         "action-sequence": "^1.1.2",
         "apidoc": "^0.25.0",
         "body-parser": "^1.20.1",
@@ -66,7 +67,7 @@
         "object-path": "^0.11.8",
         "parse": "^3.4.4",
         "parse-dashboard": "^5.0.0",
-        "parse-server": "^5.3.3",
+        "parse-server": "^6.1.0-alpha.7",
         "pluralize": "^8.0.0",
         "promise": "^8.3.0",
         "request": "^2.88.2",
@@ -79,13 +80,13 @@
         "uuid": "^9.0.0"
     },
     "devDependencies": {
-        "reactium": "^3.0.11",
         "clipboardy": "^3.0.0",
         "eslint": "^8.27.0",
         "husky": "^8.0.2",
         "lint-staged": "^13.0.3",
         "nodemon": "^2.0.20",
-        "prettier": "^2.7.1"
+        "prettier": "^2.7.1",
+        "reactium": "^3.0.11"
     },
     "repository": {
         "type": "git",
