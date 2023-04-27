@@ -3,12 +3,12 @@
  * @type {Object}
  */
 export default {
-    version: '5.1.1',
+    version: '5.1.2',
     semver: '^5.0.0',
     update: {
         package: {
             dependencies: {
-                add: {'parse-server': '^6.1.0-alpha.7'},
+                add: { 'parse-server': '^6.1.0-alpha.7' },
                 remove: [],
             },
             devDependencies: {
@@ -23,7 +23,6 @@ export default {
             },
             actiniumDependencies: {
                 add: {
-                    '@atomic-reactor/actinium-blueprint': '5.0.1',
                     '@atomic-reactor/actinium-capability': '5.0.1',
                     '@atomic-reactor/actinium-component-manager': '5.0.1',
                     '@atomic-reactor/actinium-content': '5.1.1',
@@ -43,7 +42,10 @@ export default {
                     '@atomic-reactor/actinium-type': '5.0.1',
                     '@atomic-reactor/actinium-users': '5.0.1',
                 },
-                remove: ['@actinium-reactor/actinium-media'],
+                remove: [
+                    '@actinium-reactor/actinium-media',
+                    '@atomic-reactor/actinium-blueprint',
+                ],
             },
         },
         files: {

@@ -2,7 +2,6 @@ export default [
     'ACL',
     'Analytics',
     'AnonymousUtils',
-    'Blueprint',
     'Cache',
     'Capability',
     'Cloud',

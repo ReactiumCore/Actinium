@@ -32,7 +32,6 @@ const CONFORM = (input, props) =>
                 op.set(obj, key, val);
                 break;
 
-            case 'blueprints':
             case 'routes':
                 if (_.isArray(val)) op.set(obj, key, val);
                 break;

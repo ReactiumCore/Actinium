@@ -12,7 +12,6 @@ import CONFIRM from './utils/confirm.js';
 import CONFORM from './utils/conform.js';
 import TOGGLES from './utils/toggles.js';
 import TEXTS from './utils/text-inputs.js';
-import BLUEPRINTS from './utils/blueprints.js';
 import COLLECTIONS from './utils/collections.js';
 import { parseArray } from './utils/parsers.js';
 
@@ -43,7 +42,6 @@ const flags = [
     'ID',
     'actiniumVersion',
     'activate',
-    'blueprints',
     'builtIn',
     'cloud',
     'collections',
@@ -93,10 +91,6 @@ const ACTION = async ({ opt, props }) => {
     await TOGGLES(props, params).then((values) =>
         Object.entries(values).forEach(([key, val]) => (params[key] = val)),
     );
-
-    // blueprints
-    const { blueprints } = await BLUEPRINTS(props, params);
-    params.blueprints = blueprints;
 
     // routes
     const { routes } = await ROUTES(props, params);
@@ -150,7 +144,6 @@ const COMMAND = ({ program, props }) =>
         .option('-p, --pluginVersion [pluginVersion]', 'Plugin version number.')
         .option('-s, --sdk [sdk]', 'Add a domain to the Actinium SDK.')
         .option('--activate [activate]', 'Activate the plugin by default.')
-        .option('--blueprints [blueprints]', 'Include blueprints file.')
         .option('--builtIn [builtIn]', 'Disable uninstallation of the plugin.')
         .option('--cloud [cloud]', 'Include cloud functions.')
         .option('--collections [collections]', 'Include collections file.')

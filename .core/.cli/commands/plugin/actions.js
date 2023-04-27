@@ -24,15 +24,9 @@ export default (spinner) => {
         );
 
     return {
-        init: ({ params, props }) => {
+        init: ({ params }) => {
             destination = op.get(params, 'destination');
             fs.ensureDirSync(destination);
-        },
-        blueprint: ({ params }) => {
-            if (!op.has(params, 'blueprints')) return;
-            const file = normalizePath(destination, 'blueprints.js');
-            message('Creating', chalk.cyan('blueprints'), 'file...');
-            generateFile('blueprints.hbs', file, params);
         },
         schema: ({ params }) => {
             if (!op.has(params, 'collections')) return;

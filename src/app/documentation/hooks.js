@@ -32,7 +32,6 @@ Hooks are synchronous and will execute in the order they are registered unless t
  * @apiParam (Hooks) afterSave-route
  * @apiParam (Hooks) beforeDelete-plugin
  * @apiParam (Hooks) beforeSave-plugin
- * @apiParam (Hooks) blueprint-list Triggered when the list of Blueprints is retrieved from `Blueprint.list()` or the cloud function `blueprints`
  * @apiParam (Hooks) capability-edit
  * @apiParam (Hooks) capability-loaded
  * @apiParam (Hooks) capability-loading

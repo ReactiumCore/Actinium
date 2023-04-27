@@ -89,7 +89,6 @@
         "actinium_modules/**/_npm"
     ],
     "actiniumDependencies": {
-        "@atomic-reactor/actinium-blueprint": "5.0.1",
         "@atomic-reactor/actinium-capability": "5.0.1",
         "@atomic-reactor/actinium-component-manager": "5.0.1",
         "@atomic-reactor/actinium-content": "5.1.1",
