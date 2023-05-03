@@ -1,9 +1,15 @@
 node_modules
 actinium_modules
+
 npm-debug.log
 Dockerfile*
+
 docker-compose*
+
 .dockerignore
 .git
 .gitignore
 .vscode
+
+src/env.*.json
+src/env.json

@@ -1,5 +1,5 @@
 # Build Stage
-FROM node:lts as build
+FROM node:lts-hydrogen as build
 
 # Create app directory
 WORKDIR /tmp/app
@@ -10,11 +10,11 @@ WORKDIR /tmp/app
 COPY . .
 
 # Install NPM and Reactium registry dependencies
-RUN npx -p @atomic-reactor/cli arcli install
+RUN npx reactium install
 RUN npm prune --production
 
 # Begin Deployable Stage - Ignores layers above in final image
-FROM node:lts
+FROM node:lts-hydrogen
 
 # Create app directory
 WORKDIR /usr/src/app
