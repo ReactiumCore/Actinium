@@ -1,25 +1,5 @@
 import chalk from 'chalk';
-import copy from 'clipboardy';
 import coreFeatures from './core-features.js';
-
-Actinium.Hook.register('start', () => {
-    if (ENV.FEATURE_GEN) {
-        const regex = /^[A-Z]/;
-
-        copy.writeSync(
-            JSON.stringify(
-                Object.keys(Actinium)
-                    .sort()
-                    .filter((key) => regex.test(key)),
-                null,
-                2,
-            ),
-        );
-
-        BOOT('');
-        BOOT(chalk.green('✓'), 'Actinium SDK feature list copied to clipboard');
-    }
-});
 
 if (ENV.RUN_TEST === true) {
     Actinium.Hook.register(
