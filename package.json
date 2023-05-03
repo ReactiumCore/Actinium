@@ -1,74 +1,20 @@
 {
-    "name": "actinium",
-    "version": "5.0.1",
+    "name": "Actinium",
+    "version": "5.1.0",
     "author": "Reactium LLC",
     "type": "module",
     "exports": "./dist/index.js",
     "scripts": {
         "local": "nodemon",
         "start": "node ./src/index.js",
-        "docker": "npm-run-all -s docker:*",
-        "docker:build": "docker image build -t atomicreactor/actinium:$npm_package_version .",
-        "docker:push": "docker push atomicreactor/actinium:$npm_package_version",
         "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
-        "heroku-prebuild": "npx reactium install",
-        "plugin:install": "npx reactium install -s"
+        "heroku-prebuild": "npx reactium install"
     },
-    "dependencies": {
-        "@atomic-reactor/dirname": "^1.0.7",
-        "action-sequence": "^1.1.2",
-        "apidoc": "^0.25.0",
-        "body-parser": "^1.20.1",
-        "camelcase": "^7.0.0",
-        "chalk": "^5.1.2",
-        "cookie-parser": "^1.4.6",
-        "cookie-session": "^2.0.0",
-        "cors": "^2.8.5",
-        "cross-env": "^7.0.3",
-        "ejs": "^3.1.8",
-        "events": "^3.3.0",
-        "express": "^4.18.2",
-        "fast-deep-equal": "^3.1.3",
-        "file-api": "^0.10.4",
-        "fs-extra": "^10.1.0",
-        "globby": "^13.1.2",
-        "handlebars": "^4.7.7",
-        "https": "^1.0.0",
-        "js-beautify": "^1.14.7",
-        "js-cookie": "^3.0.1",
-        "kerberos": "^2.0.1",
-        "memory-cache": "^0.2.0",
-        "moment": "*",
-        "morgan": "^1.10.0",
-        "node-cron": "^3.0.2",
-        "npm-run-all": "^4.1.5",
-        "object-path": "^0.11.8",
-        "parse": "^3.4.4",
-        "parse-dashboard": "^5.0.0",
-        "parse-server": "^6.1.0-alpha.7",
-        "pluralize": "^8.0.0",
-        "promise": "^8.3.0",
-        "request": "^2.88.2",
-        "saslprep": "^1.0.3",
-        "semver": "^7.3.7",
-        "sharp": "^0.31.2",
-        "slugify": "^1.6.5",
-        "string-to-arraybuffer": "^1.0.2",
-        "underscore": "^1.13.6",
-        "uuid": "^9.0.0"
-    },
-    "devDependencies": {
-        "clipboardy": "^3.0.0",
-        "eslint": "^8.27.0",
-        "husky": "^8.0.3",
-        "lint-staged": "^13.0.3",
-        "nodemon": "^2.0.20",
-        "prettier": "^2.7.1",
-        "reactium": "^3.0.11"
-    },
+    "dependencies": {},
+    "devDependencies": {},
     "repository": {
         "type": "git",
-        "url": "https://github.com/Atomic-Reactor/Actinium-2.0"
+        "url": "https://github.com/Atomic-Reactor/Actinium"
     },
     "engines": {
         "node": "20.0.0",
@@ -86,9 +32,11 @@
         ]
     },
     "workspaces": [
-        "actinium_modules/**/_npm"
+        "actinium_modules/*",
+        "actinium_modules/*/*"
     ],
     "actiniumDependencies": {
+        "@atomic-reactor/actinium-core": "5.0.0",
         "@atomic-reactor/actinium-capability": "5.0.1",
         "@atomic-reactor/actinium-component-manager": "5.0.1",
         "@atomic-reactor/actinium-content": "5.1.1",
@@ -102,7 +50,6 @@
         "@atomic-reactor/actinium-reset": "5.0.1",
         "@atomic-reactor/actinium-roles": "5.0.1",
         "@atomic-reactor/actinium-route": "5.0.1",
-        "@atomic-reactor/actinium-search": "5.0.1",
         "@atomic-reactor/actinium-settings": "5.0.1",
         "@atomic-reactor/actinium-taxonomy": "5.0.1",
         "@atomic-reactor/actinium-type": "5.0.1",
