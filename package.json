@@ -10,8 +10,9 @@
         "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
         "heroku-prebuild": "npx reactium install"
     },
-    "dependencies": {},
-    "devDependencies": {},
+    "devDependencies": {
+        "prettier": "^2.8.8"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/Atomic-Reactor/Actinium"
