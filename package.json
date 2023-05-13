@@ -1,59 +1,59 @@
 {
-    "name": "Actinium",
-    "version": "5.1.0",
-    "author": "Reactium LLC",
-    "type": "module",
-    "exports": "./dist/index.js",
-    "scripts": {
-        "local": "nodemon",
-        "start": "node ./src/index.js",
-        "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
-        "heroku-prebuild": "npx reactium install"
-    },
-    "devDependencies": {
-        "prettier": "^2.8.8"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/Atomic-Reactor/Actinium"
-    },
-    "engines": {
-        "node": "20.0.0",
-        "npm": "9.6.4"
-    },
-    "husky": {
-        "hooks": {
-            "pre-commit": "lint-staged"
-        }
-    },
-    "lint-staged": {
-        "*.{js,json,css,md}": [
-            "prettier --write",
-            "git add"
-        ]
-    },
-    "workspaces": [
-        "actinium_modules/*",
-        "actinium_modules/*/*"
-    ],
-    "actiniumDependencies": {
-        "@atomic-reactor/actinium-core": "5.1.4",
-        "@atomic-reactor/actinium-capability": "5.0.1",
-        "@atomic-reactor/actinium-component-manager": "5.0.1",
-        "@atomic-reactor/actinium-content": "5.1.3",
-        "@atomic-reactor/actinium-env": "5.0.1",
-        "@atomic-reactor/actinium-fs-adapter": "5.0.3",
-        "@atomic-reactor/actinium-io": "5.0.1",
-        "@atomic-reactor/actinium-mailer": "5.0.1",
-        "@atomic-reactor/actinium-plugin-manager": "5.0.1",
-        "@atomic-reactor/actinium-pulse": "5.0.1",
-        "@atomic-reactor/actinium-recycle": "5.0.1",
-        "@atomic-reactor/actinium-reset": "5.0.1",
-        "@atomic-reactor/actinium-roles": "5.0.3",
-        "@atomic-reactor/actinium-route": "5.0.1",
-        "@atomic-reactor/actinium-settings": "5.0.1",
-        "@atomic-reactor/actinium-taxonomy": "5.0.1",
-        "@atomic-reactor/actinium-type": "5.0.1",
-        "@atomic-reactor/actinium-users": "5.0.1"
+  "name": "actinium-core-project",
+  "version": "5.1.4",
+  "author": "Reactium LLC",
+  "type": "module",
+  "exports": "./dist/index.js",
+  "scripts": {
+    "local": "nodemon",
+    "start": "node ./src/index.js",
+    "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
+    "heroku-prebuild": "npx reactium install"
+  },
+  "devDependencies": {
+    "prettier": "^2.8.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Atomic-Reactor/Actinium"
+  },
+  "engines": {
+    "node": "20.0.0",
+    "npm": "9.6.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.{js,json,css,md}": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "workspaces": [
+    "actinium_modules/*",
+    "actinium_modules/*/*"
+  ],
+  "actiniumDependencies": {
+    "@atomic-reactor/actinium-core": "5.1.4",
+    "@atomic-reactor/actinium-capability": "5.0.1",
+    "@atomic-reactor/actinium-component-manager": "5.0.1",
+    "@atomic-reactor/actinium-content": "5.1.3",
+    "@atomic-reactor/actinium-env": "5.0.1",
+    "@atomic-reactor/actinium-fs-adapter": "5.0.3",
+    "@atomic-reactor/actinium-io": "5.0.1",
+    "@atomic-reactor/actinium-plugin-manager": "5.0.1",
+    "@atomic-reactor/actinium-pulse": "5.0.1",
+    "@atomic-reactor/actinium-recycle": "5.0.1",
+    "@atomic-reactor/actinium-reset": "5.0.1",
+    "@atomic-reactor/actinium-roles": "5.0.3",
+    "@atomic-reactor/actinium-route": "5.0.1",
+    "@atomic-reactor/actinium-settings": "5.0.3",
+    "@atomic-reactor/actinium-taxonomy": "5.0.1",
+    "@atomic-reactor/actinium-type": "5.0.1",
+    "@atomic-reactor/actinium-users": "5.0.1",
+    "@atomic-reactor/actinium-mailer": "5.0.2"
+  }
 }
