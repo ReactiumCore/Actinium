@@ -1,6 +1,6 @@
 {
   "name": "actinium-core-project",
-  "version": "5.1.4",
+  "version": "5.1.5",
   "author": "Reactium LLC",
   "type": "module",
   "exports": "./dist/index.js",
@@ -34,10 +34,10 @@
   },
   "workspaces": [
     "actinium_modules/*",
-    "actinium_modules/*/*"
+    "actinium_modules/@*/*"
   ],
   "actiniumDependencies": {
-    "@atomic-reactor/actinium-core": "5.1.4",
+    "@atomic-reactor/actinium-core": "5.1.5",
     "@atomic-reactor/actinium-capability": "5.0.1",
     "@atomic-reactor/actinium-component-manager": "5.0.1",
     "@atomic-reactor/actinium-content": "5.1.3",
