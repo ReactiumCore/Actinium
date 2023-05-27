@@ -1,6 +1,6 @@
 {
   "name": "actinium-core-project",
-  "version": "5.1.7",
+  "version": "5.1.9",
   "author": "Reactium LLC",
   "type": "module",
   "exports": "./dist/index.js",
@@ -37,7 +37,7 @@
     "actinium_modules/@*/*"
   ],
   "actiniumDependencies": {
-    "@atomic-reactor/actinium-core": "5.1.7",
+    "@atomic-reactor/actinium-core": "5.1.9",
     "@atomic-reactor/actinium-capability": "5.0.1",
     "@atomic-reactor/actinium-component-manager": "5.0.1",
     "@atomic-reactor/actinium-content": "5.1.3",
