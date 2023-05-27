@@ -1,6 +1,6 @@
 {
   "name": "actinium-core-project",
-  "version": "5.1.5",
+  "version": "5.1.7",
   "author": "Reactium LLC",
   "type": "module",
   "exports": "./dist/index.js",
@@ -8,7 +8,7 @@
     "local": "nodemon",
     "start": "node ./src/index.js",
     "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
-    "heroku-prebuild": "npx reactium install"
+    "heroku-prebuild": "npx reactium install --heroku"
   },
   "devDependencies": {
     "prettier": "^2.8.8"
@@ -37,7 +37,7 @@
     "actinium_modules/@*/*"
   ],
   "actiniumDependencies": {
-    "@atomic-reactor/actinium-core": "5.1.6",
+    "@atomic-reactor/actinium-core": "5.1.7",
     "@atomic-reactor/actinium-capability": "5.0.1",
     "@atomic-reactor/actinium-component-manager": "5.0.1",
     "@atomic-reactor/actinium-content": "5.1.3",
