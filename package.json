@@ -36,7 +36,7 @@
         "actinium_modules/@*/*"
     ],
     "actiniumDependencies": {
-        "@atomic-reactor/actinium-core": "5.1.17",
+        "@atomic-reactor/actinium-core": "5.1.18",
         "@atomic-reactor/actinium-capability": "5.0.1",
         "@atomic-reactor/actinium-component-manager": "5.0.1",
         "@atomic-reactor/actinium-content": "5.1.5",
