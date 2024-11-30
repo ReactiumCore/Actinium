@@ -8,7 +8,7 @@
         "local": "nodemon",
         "start": "node ./src/index.js",
         "docs": "npx reactium docs --verbose -s .core,src/app,actinium_modules,node_modules/@atomic-reactor -d docs",
-        "heroku-prebuild": "npx reactium install --heroku",
+        "heroku-prebuild": "npx reactium install",
         "prepare": "husky",
         "test": "echo tests here"
     },
