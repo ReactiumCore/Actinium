@@ -1,6 +1,6 @@
 {
     "name": "actinium-core-project",
-    "version": "5.1.9",
+    "version": "6.0.0",
     "author": "Reactium LLC",
     "type": "module",
     "exports": "./dist/index.js",
@@ -36,7 +36,7 @@
         "actinium_modules/@*/*"
     ],
     "actiniumDependencies": {
-        "@atomic-reactor/actinium-core": "5.1.18",
+        "@atomic-reactor/actinium-core": "6.0.0",
         "@atomic-reactor/actinium-capability": "5.0.2",
         "@atomic-reactor/actinium-component-manager": "5.0.1",
         "@atomic-reactor/actinium-content": "5.1.5",
@@ -50,9 +50,9 @@
         "@atomic-reactor/actinium-roles": "5.0.3",
         "@atomic-reactor/actinium-route": "5.0.1",
         "@atomic-reactor/actinium-settings": "5.0.3",
-        "@atomic-reactor/actinium-taxonomy": "5.0.1",
+        "@atomic-reactor/actinium-taxonomy": "5.0.3",
         "@atomic-reactor/actinium-type": "5.0.1",
-        "@atomic-reactor/actinium-users": "5.0.4",
+        "@atomic-reactor/actinium-users": "5.0.5",
         "@atomic-reactor/actinium-mailer": "5.0.2"
     }
 }
