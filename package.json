@@ -41,7 +41,7 @@
         "@atomic-reactor/actinium-component-manager": "5.0.1",
         "@atomic-reactor/actinium-content": "5.1.5",
         "@atomic-reactor/actinium-env": "5.0.1",
-        "@atomic-reactor/actinium-fs-adapter": "5.0.3",
+        "@atomic-reactor/actinium-fs-adapter": "5.1.0",
         "@atomic-reactor/actinium-io": "5.0.1",
         "@atomic-reactor/actinium-plugin-manager": "5.0.1",
         "@atomic-reactor/actinium-pulse": "5.0.1",
